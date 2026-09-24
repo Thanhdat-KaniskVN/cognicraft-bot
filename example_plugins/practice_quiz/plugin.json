@@ -1,0 +1,26 @@
+{
+  "name": "Practice Quiz",
+  "version": "1.5.0",
+  "author": "CogniCraft Team",
+  "description": "Quiz trac nghiem tu dong voi AI",
+  "category": "AI Tools",
+  "license": "MIT",
+  "requires": [],
+  "permissions": [
+    "read:scores",
+    "write:insights",
+    "send:messages",
+    "call:ai"
+  ],
+  "commands": [
+    {
+      "name": "quiz",
+      "description": "Bat dau quiz",
+      "handler": "start_quiz"
+    }
+  ],
+  "hooks": {},
+  "config": {},
+  "entry_point": "main.py",
+  "main_class": "PracticeQuizPlugin"
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plugin Hub · CogniCraft OS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static-plugins/style.css">
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<header class="header">
+    <div class="logo">
+        <span class="logo-icon">📦</span>
+        <div>
+            <h1 class="font-display">PLUGIN HUB</h1>
+            <p class="subtitle">CogniCraft OS · Marketplace</p>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="live-indicator">
+            <span class="live-dot"></span>
+            <span>LIVE</span>
+        </div>
+        <a href="/panel" class="btn-back">← Switch Board</a>
+    </div>
+</header>
+
+<main class="main">
+
+    <!-- KPI ROW -->
+    <section class="kpi-row">
+        <div class="kpi-card cyan">
+            <div class="kpi-label">TOTAL PLUGINS</div>
+            <div class="kpi-value font-display" id="kpi-total">-</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label">INSTALLED</div>
+            <div class="kpi-value font-display" id="kpi-installed">-</div>
+        </div>
+        <div class="kpi-card yellow">
+            <div class="kpi-label">AVAILABLE</div>
+            <div class="kpi-value font-display" id="kpi-available">-</div>
+        </div>
+        <div class="kpi-card purple">
+            <div class="kpi-label">CATEGORIES</div>
+            <div class="kpi-value font-display" id="kpi-categories">-</div>
+        </div>
+    </section>
+
+    <!-- PLUGINS GRID -->
+    <section class="panel">
+        <div class="panel-header">
+            <h2 class="font-heading">🔌 ALL PLUGINS</h2>
+            <button class="btn-refresh" onclick="loadPlugins()">↻ Refresh</button>
+        </div>
+        <div class="plugins-grid" id="plugins-grid">
+            <div class="loading-state">Đang tải plugins...</div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <span>CogniCraft Plugin Hub v1.0.0</span>
+        <span id="last-update">—</span>
+    </footer>
+</main>
+
+<script src="/static-plugins/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Room · CogniCraft OS</title>
+
+<!-- Monaco Editor (VS Code's editor) -->
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static-code/style.css">
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- HEADER -->
+<header class="header">
+    <div class="logo">
+        <span class="logo-icon">💻</span>
+        <div>
+            <h1 class="font-display">CODE ROOM</h1>
+            <p class="subtitle">CogniCraft OS · Luyện code thông minh</p>
+        </div>
+    </div>
+    <div class="status-bar">
+        <select id="theme-selector" class="theme-selector">
+            <option value="cyberpunk">🎨 Cyberpunk</option>
+            <option value="neon">🌃 Neon</option>
+            <option value="matrix">🟢 Matrix</option>
+            <option value="dracula">🧛 Dracula</option>
+        </select>
+        <button class="btn-header" onclick="saveCode()">💾 Save</button>
+        <button class="btn-header" onclick="showHistory()">↩️ History</button>
+        <button class="btn-header" onclick="askAI()">🧠 Fix với AI</button>
+        <a href="/panel" class="btn-back">← Board</a>
+    </div>
+</header>
+
+<!-- MAIN LAYOUT -->
+<main class="main-grid">
+
+    <!-- LEFT: FILE LIST -->
+    <aside class="panel file-panel">
+        <div class="panel-header">
+            <h2 class="font-heading">📁 FILES</h2>
+            <button class="mini-btn" onclick="newFile()">+ New</button>
+        </div>
+        <div id="file-list" class="file-list">
+            <div class="loading">Đang tải...</div>
+        </div>
+
+        <div class="panel-header" style="margin-top: 1rem;">
+            <h2 class="font-heading">🕐 SNAPSHOTS</h2>
+        </div>
+        <div id="snapshot-list" class="snapshot-list">
+            <div class="dim-text">Chưa có snapshot</div>
+        </div>
+    </aside>
+
+    <!-- CENTER: EDITOR -->
+    <section class="panel editor-panel">
+        <div class="editor-toolbar">
+            <span class="file-name" id="current-file">untitled.py</span>
+            <span class="edit-status" id="edit-status">● Unsaved</span>
+        </div>
+        <div id="editor-container" style="height: 100%;"></div>
+    </section>
+
+    <!-- RIGHT: OUTPUT + AI -->
+    <aside class="panel output-panel">
+        <div class="panel-header">
+            <h2 class="font-heading">⚡ OUTPUT</h2>
+            <button class="mini-btn" onclick="clearOutput()">Clear</button>
+        </div>
+        <div id="output" class="output">
+            <div class="dim-text">Nhấn ▶ Run để chạy code</div>
+        </div>
+
+        <div class="panel-header" style="margin-top: 1rem;">
+            <h2 class="font-heading">🧠 AI SUGGESTIONS</h2>
+        </div>
+        <div id="ai-suggestions" class="ai-suggestions">
+            <div class="dim-text">Nhấn "Fix với AI" để nhận gợi ý</div>
+        </div>
+    </aside>
+
+</main>
+
+<!-- BOTTOM BAR -->
+<footer class="footer-bar">
+    <div class="actions">
+        <button class="btn-action btn-run" onclick="runCode()">▶ Run (Ctrl+Enter)</button>
+        <button class="btn-action" onclick="undoSnapshot()">↩️ Undo Last</button>
+        <button class="btn-action btn-danger" onclick="clearEditor()">🗑 Clear</button>
+    </div>
+    <div class="status-info">
+        <span id="line-info">Ln 1, Col 1</span>
+        <span id="lang-info">Python</span>
+        <span id="status-msg"></span>
+    </div>
+</footer>
+
+<!-- SNAPSHOT MODAL -->
+<div id="history-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="font-heading">🕐 RESTORE HISTORY</h3>
+            <button class="close-btn" onclick="hideHistory()">×</button>
+        </div>
+        <div id="history-list" class="history-list"></div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script src="/static-code/app.js"></script>
+</body>
+</html>

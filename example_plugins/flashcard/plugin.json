@@ -1,0 +1,41 @@
+{
+  "name": "Flashcard",
+  "version": "1.0.0",
+  "author": "CogniCraft Team",
+  "description": "Tao the ghi nho tu dong voi AI - on tap hieu qua",
+  "category": "Learning Tools",
+  "license": "MIT",
+  "homepage": "https://cognicraft.io/plugins/flashcard",
+  "repository": "https://github.com/cognicraft/flashcard",
+  "requires": [],
+  "permissions": [
+    "read:scores",
+    "write:insights",
+    "send:messages",
+    "call:ai"
+  ],
+  "commands": [
+    {
+      "name": "flashcard",
+      "description": "Tao flashcard tu topic",
+      "handler": "create_flashcard"
+    },
+    {
+      "name": "fc_review",
+      "description": "On tap flashcard",
+      "handler": "review_flashcard"
+    }
+  ],
+  "hooks": {
+    "on_score_complete": "auto_create_cards"
+  },
+  "config": {
+    "default_count": {
+      "type": "integer",
+      "default": 5,
+      "description": "So the mac dinh"
+    }
+  },
+  "entry_point": "main.py",
+  "main_class": "FlashcardPlugin"
+}

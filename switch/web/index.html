@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Switch Board · CogniCraft OS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- BACKGROUND GRID -->
+<div class="grid-bg"></div>
+
+<!-- HEADER -->
+<header class="header">
+    <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <div>
+            <h1 class="font-display">SWITCH BOARD</h1>
+            <p class="subtitle">CogniCraft OS · Control Center</p>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="live-indicator">
+            <span class="live-dot"></span>
+            <span>LIVE</span>
+        </div>
+        <div class="clock font-display" id="clock">--:--:--</div>
+        <button class="refresh-btn" onclick="loadAll()">↻</button>
+    </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+    <!-- KPI ROW -->
+    <section class="kpi-row">
+        <div class="kpi-card cyan">
+            <div class="kpi-label">TOTAL SOCKETS</div>
+            <div class="kpi-value font-display" id="kpi-total">-</div>
+            <div class="kpi-desc">Đã cắm vào board</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label">ONLINE</div>
+            <div class="kpi-value font-display" id="kpi-on">-</div>
+            <div class="kpi-desc">Đang hoạt động</div>
+        </div>
+        <div class="kpi-card yellow">
+            <div class="kpi-label">TOTAL CALLS</div>
+            <div class="kpi-value font-display" id="kpi-calls">-</div>
+            <div class="kpi-desc">Requests đã xử lý</div>
+        </div>
+        <div class="kpi-card red">
+            <div class="kpi-label">FAILED</div>
+            <div class="kpi-value font-display" id="kpi-failed">-</div>
+            <div class="kpi-desc">Requests lỗi</div>
+        </div>
+    </section>
+
+    <!-- SOCKETS + SIDEBAR -->
+    <div class="content-grid">
+        
+        <!-- SOCKETS PANEL -->
+        <section class="panel">
+            <div class="panel-header">
+                <h2 class="font-heading">🔌 SOCKETS</h2>
+                <span class="badge" id="socket-count">0 sockets</span>
+            </div>
+            <div class="sockets-grid" id="sockets-grid">
+                <!-- Filled by JS -->
+            </div>
+        </section>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            
+            <!-- WIRES -->
+            <div class="panel mini">
+                <div class="panel-header">
+                    <h2 class="font-heading">⚡ WIRES</h2>
+                </div>
+                <div class="wires-list" id="wires-list">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <!-- EVENT LOG -->
+            <div class="panel mini">
+                <div class="panel-header">
+                    <h2 class="font-heading">📡 LIVE FEED</h2>
+                    <button class="mini-btn" onclick="clearFeed()">Clear</button>
+                </div>
+                <div class="feed-list" id="feed-list">
+                    <div class="feed-item dim">Đang chờ events...</div>
+                </div>
+            </div>
+
+        </aside>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <span>CogniCraft Switch Board v1.0.0</span>
+        <span id="last-update">Cập nhật: --</span>
+    </footer>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

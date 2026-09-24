@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plugin UI · CogniCraft OS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static-plugins/plugin/style.css">
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<header class="header">
+    <div class="logo">
+        <span class="logo-icon" id="plugin-icon">🔌</span>
+        <div>
+            <h1 class="font-display" id="plugin-name">PLUGIN</h1>
+            <p class="subtitle" id="plugin-desc">Loading...</p>
+        </div>
+    </div>
+    <div class="status-bar">
+        <span class="plugin-badge" id="plugin-version">v?.?.?</span>
+        <a href="/plugins/" class="btn-back">← Hub</a>
+    </div>
+</header>
+
+<main class="main">
+    <section class="panel">
+        <div class="panel-header">
+            <h2 class="font-heading">📊 PLUGIN INFO</h2>
+        </div>
+        <div id="plugin-info">
+            <p style="color: #6b7a99;">Đang tải thông tin plugin...</p>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <h2 class="font-heading">⚙️ CONFIGURATION</h2>
+        </div>
+        <div id="plugin-config">
+            <p style="color: #6b7a99;">Chưa có config.</p>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <h2 class="font-heading">🔗 COMMANDS</h2>
+        </div>
+        <div id="plugin-commands">
+            <p style="color: #6b7a99;">Đang tải...</p>
+        </div>
+    </section>
+</main>
+
+<script src="/static-plugins/plugin/app.js"></script>
+</body>
+</html>

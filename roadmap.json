@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "total_weeks": 72,
+  "phases": [
+    {
+      "id": 1,
+      "name": "Foundations",
+      "weeks": [1, 22],
+      "topics": [
+        {"id": "proofs_logic", "name": "Proofs & Logic", "keywords": ["proof", "logic", "mệnh đề", "chứng minh", "proposition"], "expected_weeks": [1, 2]},
+        {"id": "sets_functions", "name": "Sets & Functions", "keywords": ["set", "function", "tập hợp", "ánh xạ", "mapping"], "expected_weeks": [2, 3]},
+        {"id": "relations_orders", "name": "Relations & Orders", "keywords": ["relation", "order", "quan hệ", "thứ tự"], "expected_weeks": [4]},
+        {"id": "induction", "name": "Induction & State Machines", "keywords": ["induction", "quy nạp", "state machine"], "expected_weeks": [5, 6]},
+        {"id": "number_theory", "name": "Number Theory", "keywords": ["number theory", "số học", "prime", "modular"], "expected_weeks": [7, 8]},
+        {"id": "graph_theory", "name": "Graph Theory", "keywords": ["graph", "đồ thị", "tree", "cây"], "expected_weeks": [9, 10]},
+        {"id": "counting", "name": "Counting & Combinatorics", "keywords": ["counting", "đếm", "combinatorics", "tổ hợp"], "expected_weeks": [11, 12]},
+        {"id": "recurrences", "name": "Recurrences & Asymptotics", "keywords": ["recurrence", "asymptotic", "big-o"], "expected_weeks": [13, 14]},
+        {"id": "probability", "name": "Probability", "keywords": ["probability", "xác suất", "bayes"], "expected_weeks": [15, 16]},
+        {"id": "calculus_1", "name": "Calculus I", "keywords": ["calculus", "giải tích", "limit", "derivative", "integral"], "expected_weeks": [17, 18]},
+        {"id": "linear_algebra", "name": "Linear Algebra", "keywords": ["linear algebra", "đại số tuyến tính", "matrix", "vector"], "expected_weeks": [19, 20]},
+        {"id": "project_1", "name": "Project 1 - Foundations", "keywords": ["project", "dự án"], "expected_weeks": [21, 22]}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Core CS",
+      "weeks": [23, 38],
+      "topics": [
+        {"id": "data_structures", "name": "Data Structures", "keywords": ["array", "linked list", "stack", "queue", "hash table"], "expected_weeks": [23, 26]},
+        {"id": "algorithms_basic", "name": "Basic Algorithms", "keywords": ["sort", "search", "algorithm", "big-o"], "expected_weeks": [27, 30]},
+        {"id": "probability_stats", "name": "Probability & Statistics", "keywords": ["probability", "statistics", "distribution", "bayes"], "expected_weeks": [31, 34]},
+        {"id": "advanced_algorithms", "name": "Advanced Algorithms", "keywords": ["graph", "dynamic programming", "dijkstra", "dp"], "expected_weeks": [35, 37]},
+        {"id": "project_2", "name": "Project 2 - Core CS", "keywords": ["project", "dự án"], "expected_weeks": [38]}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Systems",
+      "weeks": [39, 54],
+      "topics": [
+        {"id": "operating_systems", "name": "Operating Systems", "keywords": ["os", "process", "thread", "memory", "concurrency"], "expected_weeks": [39, 44]},
+        {"id": "networking", "name": "Networking", "keywords": ["network", "tcp", "socket", "http", "ip"], "expected_weeks": [45, 49]},
+        {"id": "databases", "name": "Databases", "keywords": ["database", "sql", "b-tree", "transaction", "acid"], "expected_weeks": [50, 53]},
+        {"id": "project_3", "name": "Project 3 - Systems", "keywords": ["project", "dự án"], "expected_weeks": [54]}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Advanced & Capstone",
+      "weeks": [55, 72],
+      "topics": [
+        {"id": "theory_computation", "name": "Theory of Computation", "keywords": ["turing", "automata", "np-complete", "complexity"], "expected_weeks": [55, 60]},
+        {"id": "specialization_ai", "name": "AI & Machine Learning", "keywords": ["ai", "ml", "neural network", "deep learning"], "expected_weeks": [61, 66]},
+        {"id": "specialization_web", "name": "Web & Systems Design", "keywords": ["web", "rest", "microservice", "system design"], "expected_weeks": [61, 66]},
+        {"id": "capstone", "name": "Capstone Project", "keywords": ["capstone", "đồ án tốt nghiệp"], "expected_weeks": [67, 72]}
+      ]
+    }
+  ]
+}

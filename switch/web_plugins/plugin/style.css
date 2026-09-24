@@ -1,0 +1,142 @@
+/* ============================================================
+   PLUGIN UI - Individual Plugin Page
+   ============================================================ */
+
+:root {
+    --bg: #06080d;
+    --bg-elev: #0c1017;
+    --card: #11161f;
+    --border: #1a2433;
+    --border-glow: #2a3b52;
+    --text: #e6f1ff;
+    --dim: #6b7a99;
+    --cyan: #00fff9;
+    --green: #00ff88;
+    --yellow: #ffcc00;
+    --red: #ff3355;
+    --purple: #b537f2;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+}
+
+.font-display { font-family: 'Orbitron', sans-serif; letter-spacing: 0.08em; }
+.font-heading { font-family: 'Rajdhani', sans-serif; font-weight: 700; }
+
+.grid-bg {
+    position: fixed; inset: 0;
+    background-image:
+        linear-gradient(rgba(0, 255, 249, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 249, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.header {
+    position: relative; z-index: 10;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.2rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(12, 16, 23, 0.6);
+    backdrop-filter: blur(12px);
+}
+
+.logo { display: flex; align-items: center; gap: 1rem; }
+
+.logo-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 10px var(--cyan));
+}
+
+.header h1 { font-size: 1.5rem; color: var(--cyan); text-shadow: 0 0 12px rgba(0,255,249,0.5); }
+.subtitle { font-size: 0.75rem; color: var(--dim); margin-top: 2px; }
+
+.status-bar { display: flex; align-items: center; gap: 1rem; }
+
+.plugin-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    background: rgba(0, 255, 249, 0.1);
+    color: var(--cyan);
+    border: 1px solid rgba(0, 255, 249, 0.3);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.btn-back {
+    color: var(--cyan);
+    text-decoration: none;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--cyan);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+}
+
+.btn-back:hover { background: rgba(0, 255, 249, 0.1); }
+
+.main {
+    position: relative; z-index: 10;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.panel-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-header h2 {
+    font-size: 0.95rem; color: var(--cyan); letter-spacing: 0.1em;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.info-item { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.info-label { font-size: 0.7rem; color: var(--dim); letter-spacing: 0.1em; }
+
+.info-value { font-size: 1rem; color: var(--text); font-weight: 600; }
+
+.command-item {
+    background: rgba(0, 255, 249, 0.03);
+    border-left: 3px solid var(--cyan);
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.command-name {
+    color: var(--cyan);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.command-desc {
+    color: var(--dim);
+    font-size: 0.75rem;
+    margin-top: 0.3rem;
+}

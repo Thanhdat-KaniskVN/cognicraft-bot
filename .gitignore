@@ -1,0 +1,88 @@
+# ============================================================
+# COGNICRAFT - GITIGNORE
+# ============================================================
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+
+# Cache
+.cache/
+cache/
+*.cache
+
+# Secrets (KHÔNG BAO GIỜ PUSH!)
+.env
+*.env
+credentials.json
+token.json
+client_secret_*.json
+switch/credentials.json
+switch/token.json
+switch/.env
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+scores.db
+
+# State
+ml_state/
+ml_models/
+ml_results/
+hub_registry.json
+
+# Logs
+logs/
+*.log
+
+# Backups
+backup_*/
+*.backup
+*.zip
+
+# Debug files
+debug_*.py
+check_*.py
+reset_*.py
+clear_*.py
+
+# Test files
+test_*.py
+test_*.json
+test_all_modules.py
+test_api.py
+test_config.py
+test_hub.py
+test_load.py
+test_quota.py
+test_sandbox.py
+test_token_ml.py
+
+# Local scripts (chạy local only)
+start_all.bat
+start_bot.bat
+start_board.bat
+*.bat
+
+# Code Room data
+code_room/data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+tmp/
+temp/
+_wrapper_tmp.py

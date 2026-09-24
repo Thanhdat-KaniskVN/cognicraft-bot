@@ -1,0 +1,24 @@
+{
+  "name": "Practice Quiz",
+  "version": "1.5.0",
+  "author": "CogniCraft Team",
+  "description": "Quiz trắc nghiệm tự động với AI",
+  "category": "AI Tools",
+  "license": "MIT",
+  "requires": [],
+  "permissions": [
+    "read:scores",
+    "write:insights",
+    "send:messages",
+    "call:ai"
+  ],
+  "commands": [
+    {
+      "name": "practice_quiz",
+      "description": "Làm quiz trắc nghiệm",
+      "handler": "start_quiz"
+    }
+  ],
+  "entry_point": "main.py",
+  "main_class": "PracticeQuizPlugin"
+}

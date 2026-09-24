@@ -1,0 +1,126 @@
+{
+  "plugins": {
+    "flashcard": {
+      "id": "flashcard",
+      "name": "Flashcard",
+      "version": "1.0.0",
+      "author": "CogniCraft Team",
+      "description": "Tao the ghi nho tu dong voi AI - on tap hieu qua",
+      "category": "Learning Tools",
+      "license": "MIT",
+      "homepage": "https://cognicraft.io/plugins/flashcard",
+      "repository": "https://github.com/cognicraft/flashcard",
+      "requires": [],
+      "conflicts": [],
+      "permissions": [
+        "read:scores",
+        "write:insights",
+        "send:messages",
+        "call:ai"
+      ],
+      "commands": [
+        {
+          "name": "flashcard",
+          "description": "Tao flashcard tu topic",
+          "handler": "create_flashcard"
+        },
+        {
+          "name": "fc_review",
+          "description": "On tap flashcard",
+          "handler": "review_flashcard"
+        }
+      ],
+      "hooks": {
+        "on_score_complete": "auto_create_cards"
+      },
+      "config": {
+        "default_count": {
+          "type": "integer",
+          "default": 5,
+          "description": "So the mac dinh"
+        }
+      },
+      "entry_point": "main.py",
+      "main_class": "FlashcardPlugin"
+    },
+    "practice_quiz": {
+      "id": "practice_quiz",
+      "name": "Practice Quiz",
+      "version": "1.5.0",
+      "author": "CogniCraft Team",
+      "description": "Quiz trắc nghiệm tự động với AI",
+      "category": "AI Tools",
+      "license": "MIT",
+      "homepage": "",
+      "repository": "",
+      "requires": [],
+      "conflicts": [],
+      "permissions": [
+        "read:scores",
+        "write:insights",
+        "send:messages",
+        "call:ai"
+      ],
+      "commands": [
+        {
+          "name": "practice_quiz",
+          "description": "Làm quiz trắc nghiệm",
+          "handler": "start_quiz"
+        }
+      ],
+      "hooks": {},
+      "config": {},
+      "entry_point": "main.py",
+      "main_class": "PracticeQuizPlugin"
+    },
+    "socratic_tutor": {
+      "id": "socratic_tutor",
+      "name": "Socratic Tutor",
+      "version": "1.0.0",
+      "author": "CogniCraft Team",
+      "description": "Dạy bằng câu hỏi Socratic - không đưa đáp án",
+      "category": "AI Tools",
+      "license": "MIT",
+      "homepage": "https://cognicraft.io/plugins/socratic",
+      "repository": "https://github.com/cognicraft/socratic-tutor",
+      "requires": [],
+      "conflicts": [],
+      "permissions": [
+        "read:scores",
+        "write:insights",
+        "send:messages",
+        "call:ai"
+      ],
+      "commands": [
+        {
+          "name": "socratic",
+          "description": "Bắt đầu Socratic session",
+          "handler": "start_socratic"
+        },
+        {
+          "name": "answer",
+          "description": "Trả lời câu hỏi Socratic",
+          "handler": "answer_question"
+        }
+      ],
+      "hooks": {
+        "on_score_complete": "auto_recommend",
+        "on_weekly_report": "add_summary"
+      },
+      "config": {
+        "max_turns": {
+          "type": "integer",
+          "default": 5,
+          "description": "Số câu hỏi tối đa"
+        },
+        "model": {
+          "type": "string",
+          "default": "gemini-flash-lite-latest",
+          "description": "AI model sử dụng"
+        }
+      },
+      "entry_point": "main.py",
+      "main_class": "SocraticTutorPlugin"
+    }
+  }
+}

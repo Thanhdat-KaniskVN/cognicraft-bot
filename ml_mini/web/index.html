@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Mini · Sandbox Mesh</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static-ml/style.css">
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<header class="header">
+    <div class="logo">
+        <span class="logo-icon">🧠</span>
+        <div>
+            <h1 class="font-display">ML MINI</h1>
+            <p class="subtitle">Sandbox Mesh · Self-Healing</p>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="live-indicator">
+            <span class="live-dot"></span>
+            <span>LIVE</span>
+        </div>
+        <a href="/panel" class="btn-back">← Switch Board</a>
+    </div>
+</header>
+
+<main class="main">
+
+    <section class="kpi-row">
+        <div class="kpi-card cyan">
+            <div class="kpi-label">SANDBOXES</div>
+            <div class="kpi-value font-display" id="kpi-total">-</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-label">HEALTHY</div>
+            <div class="kpi-value font-display" id="kpi-healthy">-</div>
+        </div>
+        <div class="kpi-card yellow">
+            <div class="kpi-label">LINKS</div>
+            <div class="kpi-value font-display" id="kpi-links">-</div>
+        </div>
+        <div class="kpi-card red">
+            <div class="kpi-label">DOWN</div>
+            <div class="kpi-value font-display" id="kpi-down">-</div>
+        </div>
+    </section>
+
+    <div class="content-grid">
+        
+        <section class="panel">
+            <div class="panel-header">
+                <h2 class="font-heading">🕸️ SANDBOX MESH</h2>
+                <button class="btn-refresh" onclick="loadAll()">↻ Refresh</button>
+            </div>
+            <div class="mesh-container">
+                <svg id="mesh-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
+                </svg>
+            </div>
+        </section>
+
+        <aside class="sidebar">
+            
+            <div class="panel mini">
+                <div class="panel-header">
+                    <h2 class="font-heading">📦 SANDBOXES</h2>
+                </div>
+                <div class="sandboxes-list" id="sandboxes-list">
+                    <div class="loading">Đang tải...</div>
+                </div>
+            </div>
+
+            <div class="panel mini">
+                <div class="panel-header">
+                    <h2 class="font-heading">📡 EVENTS</h2>
+                    <button class="mini-btn" onclick="clearFeed()">Clear</button>
+                </div>
+                <div class="feed-list" id="feed-list">
+                    <div class="feed-item dim">Chờ events...</div>
+                </div>
+            </div>
+
+        </aside>
+    </div>
+
+    <footer class="footer">
+        <span>ML Mini v0.3.0 · Self-Healing Sandbox Mesh</span>
+        <span id="last-update">—</span>
+    </footer>
+</main>
+
+<script src="/static-ml/app.js"></script>
+</body>
+</html>
