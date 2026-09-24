@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="cyberpunk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plugin Detail · CogniCraft Store</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="grid-bg"></div>
+<div class="grid-bg"></div>
+<div id="cyberpunk-scene"></div>
+<div id="sakura-container"></div>
+<header class="header">
+    <div class="logo">
+        <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 1rem;">
+            <span class="logo-icon">🏛️</span>
+            <div>
+                <h1 class="font-display">COGNICRAFT STORE</h1>
+                <p class="subtitle">← Quay lại</p>
+            </div>
+        </a>
+    </div>
+    <div class="status-bar">
+        <div id="theme-switcher" class="theme-switcher"></div>
+    </div>
+</header>
+
+<main class="main">
+    <div class="loading-state" id="loading">
+        <span class="spinner"></span> Đang tải plugin...
+    </div>
+    
+    <div id="plugin-detail" style="display:none;">
+        <!-- Filled by JS -->
+    </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="theme-switcher.js"></script>
+<script>
+// ============================================================
+// PLUGIN DETAIL PAGE
+// ============================================================
+
+const API_URL = "http://localhost:8001";
+
+async function loadPluginDetail() {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("slug");
+    
+    if (!slug) {
+        window.location.href = "index.html";
+        return;
+    }
+
+    try {
+        const r = await fetch(`${API_URL}/api/store/plugins/${slug}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        
+        const data = await r.json();
+        renderDetail(data);
+    } catch (e) {
+        document.getElementById("loading").innerHTML =
+            `<div style="color: var(--red);">❌ Lỗi: ${e.message}</div>`;
+    }
+}
+
+function renderDetail(data) {
+    const p = data.plugin;
+    const versions = data.versions || [];
+    const reviews = data.reviews || [];
+    
+    const stars = "★".repeat(Math.round(p.rating || 0)) + "☆".repeat(5 - Math.round(p.rating || 0));
+    
+    const detail = document.getElementById("plugin-detail");
+    detail.style.display = "block";
+    
+    detail.innerHTML = `
+        <div style="max-width: 900px; margin: 0 auto;">
+            <!-- HEADER -->
+            <div class="plugin-detail-header" style="
+                display: flex;
+                gap: 2rem;
+                align-items: flex-start;
+                padding: 2rem;
+                background: linear-gradient(135deg, var(--bg-elev) 0%, var(--card) 100%);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                margin-bottom: 2rem;
+            ">
+                <div style="font-size: 5rem;">${p.icon || "📦"}</div>
+                <div style="flex: 1;">
+                    <h2 class="font-display" style="font-size: 2rem; color: var(--cyan); margin-bottom: 0.5rem;">${p.name}</h2>
+                    <p style="color: var(--dim); margin-bottom: 1rem;">${p.description || ""}</p>
+                    <div style="display: flex; gap: 2rem; font-size: 0.9rem; color: var(--dim); flex-wrap: wrap;">
+                        <span>👤 ${p.author}</span>
+                        <span>📁 ${p.category}</span>
+                        <span style="color: var(--yellow);">${stars} ${p.rating}</span>
+                        <span>📥 ${p.downloads} downloads</span>
+                    </div>
+                </div>
+                <button onclick="installPlugin('${p.slug}')" style="
+                    padding: 1rem 2rem;
+                    background: var(--green);
+                    color: var(--bg);
+                    border: none;
+                    border-radius: 8px;
+                    font-family: inherit;
+                    font-size: 1rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    box-shadow: 0 0 20px var(--green);
+                    transition: all 0.2s;
+                " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    📥 INSTALL
+                </button>
+            </div>
+            
+            <!-- DESCRIPTION -->
+            ${p.long_description ? `
+                <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem;">📝 MÔ TẢ</h3>
+                    <p style="color: var(--text); line-height: 1.7;">${p.long_description}</p>
+                </div>
+            ` : ""}
+            
+            <!-- VERSIONS -->
+            ${versions.length > 0 ? `
+                <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem;">📋 PHIÊN BẢN</h3>
+                    ${versions.map(v => `
+                        <div style="padding: 0.8rem; border-left: 3px solid var(--cyan); margin-bottom: 0.5rem; background: rgba(var(--primary-rgb), 0.03);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                                <strong style="color: var(--text);">v${v.version}</strong>
+                                <span style="color: var(--dim); font-size: 0.8rem;">${new Date(v.created_at).toLocaleDateString("vi-VN")}</span>
+                            </div>
+                            <p style="color: var(--dim); font-size: 0.85rem;">${v.changelog || ""}</p>
+                        </div>
+                    `).join("")}
+                </div>
+            ` : ""}
+            
+            <!-- REVIEWS -->
+            <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+                <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem;">⭐ ĐÁNH GIÁ (${reviews.length})</h3>
+                ${reviews.length === 0
+                    ? '<p style="color: var(--dim);">Chưa có đánh giá nào.</p>'
+                    : reviews.map(r => `
+                        <div style="padding: 0.8rem; border-bottom: 1px solid var(--border);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                                <strong style="color: var(--text);">${r.user_name || "Anonymous"}</strong>
+                                <span style="color: var(--yellow);">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span>
+                            </div>
+                            <p style="color: var(--dim); font-size: 0.85rem;">${r.comment || ""}</p>
+                        </div>
+                    `).join("")}
+            </div>
+        </div>
+    `;
+}
+
+async function installPlugin(slug) {
+    try {
+        const r = await fetch(`${API_URL}/api/store/install/${slug}`, {
+            method: "POST",
+        });
+        const data = await r.json();
+        
+        if (data.success) {
+            showToast(`✅ Đã install ${data.name} v${data.version}!`, "success");
+        } else {
+            showToast("❌ Install failed", "error");
+        }
+    } catch (e) {
+        showToast(`❌ ${e.message}`, "error");
+    }
+}
+
+function showToast(message, type = "info") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = `toast show ${type}`;
+    setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+loadPluginDetail();
+</script>
+</body>
+</html>

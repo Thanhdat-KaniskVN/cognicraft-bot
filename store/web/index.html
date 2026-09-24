@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="cyberpunk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CogniCraft Store · Plugin Marketplace</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="grid-bg"></div>
+<div id="cyberpunk-scene"></div>
+<div id="sakura-container"></div>
+<header class="header">
+    <div class="logo">
+        <span class="logo-icon">🏛️</span>
+        <div>
+            <h1 class="font-display">COGNICRAFT STORE</h1>
+            <p class="subtitle">Plugin Marketplace · Ecosystem</p>
+        </div>
+    </div>
+    <div class="status-bar">
+        <span class="live-dot"></span>
+        <span>LIVE</span>
+        <span id="stats-summary">Loading...</span>
+        <div id="theme-switcher" class="theme-switcher"></div>
+    </div>
+</header>
+
+<main class="main">
+
+    <!-- HERO -->
+    <section class="hero">
+        <h2 class="font-display">KHÁM PHÁ PLUGINS</h2>
+        <p>Mở rộng CogniCraft với hàng trăm công cụ</p>
+    </section>
+
+    <!-- SEARCH + FILTER -->
+    <section class="controls">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Tìm plugin...">
+        </div>
+        <select id="category-filter" class="filter-select">
+            <option value="">📁 Tất cả</option>
+        </select>
+        <select id="sort-filter" class="filter-select">
+            <option value="downloads">📥 Nhiều tải nhất</option>
+            <option value="rating">⭐ Đánh giá cao</option>
+            <option value="created_at">🆕 Mới nhất</option>
+            <option value="name">🔤 Tên A-Z</option>
+        </select>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="categories" id="categories-bar">
+        <!-- Filled by JS -->
+    </section>
+
+    <!-- FEATURED -->
+    <section class="section">
+        <div class="section-header">
+            <h3 class="font-heading">🌟 FEATURED</h3>
+            <span class="count" id="featured-count"></span>
+        </div>
+        <div class="plugins-grid" id="featured-grid">
+            <!-- Filled by JS -->
+        </div>
+    </section>
+
+    <!-- ALL PLUGINS -->
+    <section class="section">
+        <div class="section-header">
+            <h3 class="font-heading">📦 TẤT CẢ PLUGINS</h3>
+            <span class="count" id="total-count"></span>
+        </div>
+        <div class="plugins-grid" id="plugins-grid">
+            <!-- Filled by JS -->
+        </div>
+        <div class="loading-state" id="loading" style="display:none;">
+            <span class="spinner"></span> Đang tải...
+        </div>
+        <div class="empty-state" id="empty-state" style="display:none;">
+            <span style="font-size: 3rem;">📭</span>
+            <p>Không tìm thấy plugin nào</p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <span>CogniCraft Store v1.0.0</span>
+        <span id="last-update">—</span>
+    </footer>
+</main>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script src="theme-switcher.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
