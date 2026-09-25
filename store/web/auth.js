@@ -1,10 +1,9 @@
 // ============================================================
-// COGNICRAFT AUTH — Google Sign-In (GIS)
+// COGNICRAFT AUTH — Google Sign-In (GIS) + Profile
 // ============================================================
 (function () {
     'use strict';
 
-    // ⚠️ Thay Client ID nếu cần
     const GOOGLE_CLIENT_ID = "426541573663-cksl4s1t4qrv2gr0fa4f191404u0imnc.apps.googleusercontent.com";
 
     const STORAGE_KEY_TOKEN = "cognicraft_token";
@@ -12,11 +11,11 @@
 
     const API_URL = window.STORE_API || "http://localhost:8001";
 
-    // ============================================================
-    // STATE
-    // ============================================================
     let currentUser = null;
 
+    // ============================================================
+    // STORAGE
+    // ============================================================
     function getToken() {
         try { return localStorage.getItem(STORAGE_KEY_TOKEN); }
         catch (e) { return null; }
@@ -47,8 +46,17 @@
         return currentUser;
     }
 
+    function getUser() {
+        return loadUserFromStorage();
+    }
+
+    function getAuthHeader() {
+        const token = getToken();
+        return token ? { "Authorization": `Bearer ${token}` } : {};
+    }
+
     // ============================================================
-    // CALLBACK từ Google
+    // GOOGLE CALLBACK
     // ============================================================
     async function handleCredentialResponse(response) {
         const credential = response.credential;
@@ -71,7 +79,6 @@
             showToast(`✅ Xin chào ${data.user.name}!`, "success");
             updateAuthUI();
 
-            // Reload page sau 800ms để refresh state
             setTimeout(() => window.location.reload(), 800);
 
         } catch (e) {
@@ -90,7 +97,7 @@
     }
 
     // ============================================================
-    // UPDATE UI — Header
+    // UI
     // ============================================================
     function updateAuthUI() {
         const container = document.getElementById("auth-container");
@@ -99,23 +106,24 @@
         const user = loadUserFromStorage();
 
         if (user) {
-            // Logged in — show avatar + name + logout
             const initial = (user.name || "?").charAt(0).toUpperCase();
+            const username = (user.name || 'user').toLowerCase().replace(/\s+/g, '_');
+
             container.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 0.6rem;">
-                    <a href="user.html?username=${encodeURIComponent((user.name || 'user').toLowerCase().replace(/\\s+/g, '_'))}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                    <a href="user.html?username=${encodeURIComponent(username)}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
                         ${user.avatar_url ? `
-                            <img src="${user.avatar_url}" alt="${escapeHtml(user.name)}" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--cyan);" referrerpolicy="no-referrer">
+                            <img src="${escapeHtml(user.avatar_url)}" alt="${escapeHtml(user.name)}" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--cyan);" referrerpolicy="no-referrer">
                         ` : `
                             <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--green), var(--cyan)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--bg); font-size: 0.85rem;">${escapeHtml(initial)}</div>
                         `}
                         <span style="color: var(--text); font-size: 0.8rem; font-weight: 700;">${escapeHtml(user.name)}</span>
                     </a>
-                    <button onclick="CogniAuth.logout()" style="background: transparent; border: 1px solid var(--border); color: var(--dim); padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.75rem;" onmouseover="this.style.color='var(--red)'; this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--dim)'; this.style.borderColor='var(--border)'">Logout</button>
+                    <a href="settings.html" title="Cài đặt" style="background: transparent; border: 1px solid var(--border); color: var(--dim); padding: 0.4rem 0.7rem; border-radius: 6px; text-decoration: none; font-family: inherit; font-size: 0.75rem; transition: all 0.2s;" onmouseover="this.style.color='var(--cyan)'; this.style.borderColor='var(--cyan)'" onmouseout="this.style.color='var(--dim)'; this.style.borderColor='var(--border)'">⚙️</a>
+                    <button onclick="CogniAuth.logout()" style="background: transparent; border: 1px solid var(--border); color: var(--dim); padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.75rem; transition: all 0.2s;" onmouseover="this.style.color='var(--red)'; this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--dim)'; this.style.borderColor='var(--border)'">Logout</button>
                 </div>
             `;
         } else {
-            // Not logged in — show Google Sign-In button
             container.innerHTML = `
                 <div id="g_id_onload"
                      data-client_id="${GOOGLE_CLIENT_ID}"
@@ -132,30 +140,20 @@
                 </div>
             `;
 
-            // Re-init GIS
             if (window.google && window.google.accounts) {
                 window.google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
                     callback: handleCredentialResponse,
                 });
-                window.google.accounts.id.renderButton(
-                    container.querySelector(".g_id_signin") || container,
-                    { theme: "filled_black", size: "medium", shape: "pill", text: "signin_with" }
-                );
+                const btn = container.querySelector(".g_id_signin") || container;
+                window.google.accounts.id.renderButton(btn, {
+                    theme: "filled_black",
+                    size: "medium",
+                    shape: "pill",
+                    text: "signin_with",
+                });
             }
         }
-    }
-
-    // ============================================================
-    // GET USER INFO (for review form etc.)
-    // ============================================================
-    function getUser() {
-        return loadUserFromStorage();
-    }
-
-    function getAuthHeader() {
-        const token = getToken();
-        return token ? { "Authorization": `Bearer ${token}` } : {};
     }
 
     // ============================================================
@@ -185,7 +183,6 @@
     function init() {
         loadUserFromStorage();
 
-        // Wait for Google SDK loaded
         const waitForGoogle = setInterval(() => {
             if (window.google && window.google.accounts) {
                 clearInterval(waitForGoogle);
@@ -197,7 +194,6 @@
             }
         }, 100);
 
-        // Timeout 5s
         setTimeout(() => clearInterval(waitForGoogle), 5000);
     }
 
@@ -208,6 +204,7 @@
         init,
         logout,
         getUser,
+        getToken,
         getAuthHeader,
         handleGoogleCallback: handleCredentialResponse,
         updateAuthUI,

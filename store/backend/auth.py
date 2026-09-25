@@ -152,3 +152,58 @@ async def get_me(user: dict = Depends(get_current_user)):
         "bio": db_user.get("bio"),
         "created_at": db_user["created_at"].isoformat() if db_user.get("created_at") else None,
     }
+
+
+# ============================================================
+# PUT /me — Update profile
+# ============================================================
+class ProfileUpdateRequest(BaseModel):
+    github_username: Optional[str] = None
+    code_room_slug: Optional[str] = None
+    website: Optional[str] = None
+    bio: Optional[str] = None
+
+
+@router.put("/me")
+async def update_me(
+    req: ProfileUpdateRequest,
+    user: dict = Depends(get_current_user),
+):
+    """Update user profile"""
+    db = get_db()
+
+    # Get current
+    current = db.query_one("SELECT * FROM public.users WHERE id = %s", (user["sub"],))
+    if not current:
+        raise HTTPException(404, "User không tồn tại")
+
+    # Merge values (None = giữ nguyên)
+    github = req.github_username if req.github_username is not None else current.get("github_username")
+    code_room = req.code_room_slug if req.code_room_slug is not None else current.get("code_room_slug")
+    website = req.website if req.website is not None else current.get("website")
+    bio = req.bio if req.bio is not None else current.get("bio")
+
+    # Sanitize
+    def clean(s):
+        if s is None: return None
+        return s.strip()[:200] if s.strip() else None
+
+    db.execute(
+        """
+        UPDATE public.users 
+        SET github_username = %s, code_room_slug = %s, website = %s, bio = %s
+        WHERE id = %s
+        """,
+        (clean(github), clean(code_room), clean(website), clean(bio), user["sub"]),
+    )
+
+    return {
+        "success": True,
+        "message": "Đã cập nhật profile",
+        "user": {
+            "github_username": clean(github),
+            "code_room_slug": clean(code_room),
+            "website": clean(website),
+            "bio": clean(bio),
+        },
+    }

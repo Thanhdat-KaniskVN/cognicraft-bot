@@ -126,6 +126,12 @@ function renderProfile(data) {
                         <div style="color: var(--dim); font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.3rem;">USER</div>
                         <h2 class="font-display" style="color: var(--green); font-size: 2.2rem; margin-bottom: 0.5rem;">${escapeHtml(data.display_name)}</h2>
                         <p style="color: var(--dim); font-size: 0.9rem;">@${escapeHtml(data.username)}</p>
+                        ${data.bio ? `<p style="color: var(--text); font-size: 0.85rem; margin-top: 0.6rem; max-width: 500px; line-height: 1.5;">${escapeHtml(data.bio)}</p>` : ""}
+                        <div style="display: flex; gap: 0.6rem; margin-top: 0.8rem; flex-wrap: wrap;">
+                            ${data.github_username ? `<a href="https://github.com/${escapeHtml(data.github_username)}" target="_blank" style="display: flex; align-items: center; gap: 0.3rem; color: var(--dim); text-decoration: none; font-size: 0.8rem; border: 1px solid var(--border); padding: 0.3rem 0.7rem; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='var(--cyan)'; this.style.borderColor='var(--cyan)'" onmouseout="this.style.color='var(--dim)'; this.style.borderColor='var(--border)'">🐙 GitHub</a>` : ""}
+                            ${data.code_room_slug ? `<a href="http://localhost:8000/code?user=${escapeHtml(data.code_room_slug)}" target="_blank" style="display: flex; align-items: center; gap: 0.3rem; color: var(--dim); text-decoration: none; font-size: 0.8rem; border: 1px solid var(--border); padding: 0.3rem 0.7rem; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='var(--cyan)'; this.style.borderColor='var(--cyan)'" onmouseout="this.style.color='var(--dim)'; this.style.borderColor='var(--border)'">💻 Code Room</a>` : ""}
+                            ${data.website ? `<a href="${escapeHtml(data.website)}" target="_blank" style="display: flex; align-items: center; gap: 0.3rem; color: var(--dim); text-decoration: none; font-size: 0.8rem; border: 1px solid var(--border); padding: 0.3rem 0.7rem; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.color='var(--cyan)'; this.style.borderColor='var(--cyan)'" onmouseout="this.style.color='var(--dim)'; this.style.borderColor='var(--border)'">🌐 Website</a>` : ""}
+                        </div>
                     </div>
                 </div>
 
