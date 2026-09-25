@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="cyberpunk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Publish Plugin · CogniCraft Store</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+    .upload-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .drop-zone {
+        border: 3px dashed var(--border);
+        border-radius: 16px;
+        padding: 4rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: var(--card);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .drop-zone:hover {
+        border-color: var(--cyan);
+        background: rgba(var(--primary-rgb), 0.05);
+        box-shadow: 0 0 40px rgba(var(--primary-rgb), 0.2);
+    }
+
+    .drop-zone.dragover {
+        border-color: var(--green);
+        background: rgba(0, 255, 136, 0.08);
+        transform: scale(1.01);
+    }
+
+    .drop-zone.has-file {
+        border-style: solid;
+        border-color: var(--green);
+        padding: 2rem;
+    }
+
+    .drop-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        filter: drop-shadow(0 0 15px var(--cyan));
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .form-field.full {
+        grid-column: 1 / -1;
+    }
+
+    .form-field label {
+        color: var(--dim);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.7rem 0.9rem;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+        outline: none;
+        border-color: var(--cyan);
+        box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.2);
+    }
+
+    .form-field textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .progress-container {
+        margin-top: 1.5rem;
+        display: none;
+    }
+
+    .progress-container.active {
+        display: block;
+    }
+
+    .progress-bar-bg {
+        height: 10px;
+        background: var(--border);
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--cyan), var(--green));
+        transition: width 0.3s;
+        box-shadow: 0 0 15px var(--cyan);
+    }
+
+    .file-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--bg-elev);
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        margin-top: 1rem;
+    }
+
+    .file-info-icon {
+        font-size: 2.5rem;
+    }
+
+    .publish-btn {
+        background: linear-gradient(135deg, var(--green), var(--cyan));
+        color: var(--bg);
+        border: none;
+        border-radius: 10px;
+        padding: 1rem 2.5rem;
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        transition: all 0.2s;
+        width: 100%;
+        margin-top: 1.5rem;
+    }
+
+    .publish-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 0 50px rgba(0, 255, 136, 0.7);
+    }
+
+    .publish-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 600px) {
+        .form-grid { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div id="cyberpunk-scene"></div>
+<div id="sakura-container"></div>
+
+<header class="header">
+    <div class="logo">
+        <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 1rem;">
+            <span class="logo-icon">🏛️</span>
+            <div>
+                <h1 class="font-display">COGNICRAFT STORE</h1>
+                <p class="subtitle">← Quay lại</p>
+            </div>
+        </a>
+    </div>
+    <div class="status-bar">
+        <div id="theme-switcher" class="theme-switcher"></div>
+    </div>
+</header>
+
+<main class="main">
+    <div class="upload-container">
+
+        <!-- HERO -->
+        <div class="hero" style="padding-bottom: 2rem;">
+            <h2 class="font-display">📤 PUBLISH PLUGIN</h2>
+            <p>Đóng gói .cogni → kéo thả vào đây → publish lên Store</p>
+        </div>
+
+        <!-- STEP 1: AUTH -->
+        <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem; font-size: 0.95rem;">🔐 BƯỚC 1 — XÁC THỰC</h3>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Publish Token</label>
+                    <input type="password" id="auth-token" placeholder="cognicraft-dev-token-2026">
+                </div>
+                <div class="form-field">
+                    <label>Author Name</label>
+                    <input type="text" id="auth-author" placeholder="VD: Thanhdat">
+                </div>
+            </div>
+            <p style="color: var(--dim); font-size: 0.75rem; margin-top: 0.7rem;">
+                💡 Token được lưu local — không gửi đi đâu ngoài Store API.
+            </p>
+        </div>
+
+        <!-- STEP 2: DROP FILE -->
+        <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem; font-size: 0.95rem;">📦 BƯỚC 2 — CHỌN FILE .COGNI</h3>
+
+            <div class="drop-zone" id="drop-zone">
+                <div class="drop-icon" id="drop-icon">📁</div>
+                <div id="drop-text">
+                    <div style="color: var(--text); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">
+                        Kéo thả file .cogni vào đây
+                    </div>
+                    <div style="color: var(--dim); font-size: 0.85rem;">
+                        hoặc <span style="color: var(--cyan); text-decoration: underline;">click để chọn file</span>
+                    </div>
+                </div>
+                <input type="file" id="file-input" accept=".cogni,.zip" style="display: none;">
+            </div>
+
+            <div id="file-info" style="display: none;"></div>
+        </div>
+
+        <!-- STEP 3: METADATA -->
+        <div class="section" id="metadata-section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; display: none;">
+            <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem; font-size: 0.95rem;">📝 BƯỚC 3 — THÔNG TIN PLUGIN</h3>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Plugin ID (slug)</label>
+                    <input type="text" id="plugin-id" readonly style="opacity: 0.7;">
+                </div>
+                <div class="form-field">
+                    <label>Version</label>
+                    <input type="text" id="plugin-version" readonly style="opacity: 0.7;">
+                </div>
+                <div class="form-field">
+                    <label>Name</label>
+                    <input type="text" id="plugin-name" readonly style="opacity: 0.7;">
+                </div>
+                <div class="form-field">
+                    <label>Icon</label>
+                    <input type="text" id="plugin-icon" readonly style="opacity: 0.7;">
+                </div>
+                <div class="form-field full">
+                    <label>Description</label>
+                    <textarea id="plugin-description" readonly style="opacity: 0.7;"></textarea>
+                </div>
+                <div class="form-field">
+                    <label>Category (override)</label>
+                    <select id="override-category">
+                        <option value="">— Giữ nguyên —</option>
+                        <option value="ai">🤖 AI</option>
+                        <option value="tools">🔧 Tools</option>
+                        <option value="lms">📚 LMS</option>
+                        <option value="themes">🎨 Themes</option>
+                        <option value="plugins">🔌 Plugins</option>
+                        <option value="analytics">📊 Analytics</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Tags (comma-separated)</label>
+                    <input type="text" id="override-tags" placeholder="VD: ai,tutor,education">
+                </div>
+            </div>
+
+            <div class="form-field full" style="margin-top: 1rem;">
+                <label>Publish Mode</label>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text); font-size: 0.85rem; text-transform: none; letter-spacing: normal;">
+                        <input type="radio" name="publish-mode" value="new" checked> 🆕 Publish mới (plugin chưa tồn tại)
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text); font-size: 0.85rem; text-transform: none; letter-spacing: normal;">
+                        <input type="radio" name="publish-mode" value="version"> 📌 Publish version mới (plugin đã có)
+                    </label>
+                </div>
+            </div>
+
+            <button class="publish-btn" id="publish-btn" onclick="publishPlugin()">
+                🚀 PUBLISH LÊN STORE
+            </button>
+
+            <div class="progress-container" id="progress-container">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.8rem; color: var(--dim);">
+                    <span id="progress-label">Đang upload...</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="theme-switcher.js"></script>
+<script>
+const API_URL = "http://localhost:8001";
+let selectedFile = null;
+let parsedManifest = null;
+
+// ============================================================
+// LOAD SAVED AUTH
+// ============================================================
+document.addEventListener("DOMContentLoaded", () => {
+    const savedToken = localStorage.getItem("cognicraft_token");
+    const savedAuthor = localStorage.getItem("cognicraft_author_name");
+    if (savedToken) document.getElementById("auth-token").value = savedToken;
+    if (savedAuthor) document.getElementById("auth-author").value = savedAuthor;
+
+    initDropZone();
+});
+
+// ============================================================
+// DROP ZONE
+// ============================================================
+function initDropZone() {
+    const zone = document.getElementById("drop-zone");
+    const input = document.getElementById("file-input");
+
+    zone.addEventListener("click", () => input.click());
+
+    zone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        zone.classList.add("dragover");
+    });
+
+    zone.addEventListener("dragleave", () => {
+        zone.classList.remove("dragover");
+    });
+
+    zone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        zone.classList.remove("dragover");
+        const file = e.dataTransfer.files[0];
+        if (file) handleFile(file);
+    });
+
+    input.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) handleFile(file);
+    });
+}
+
+// ============================================================
+// HANDLE FILE
+// ============================================================
+async function handleFile(file) {
+    if (!file.name.endsWith(".cogni") && !file.name.endsWith(".zip")) {
+        showToast("❌ Chỉ chấp nhận file .cogni", "error");
+        return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+        showToast("❌ File quá lớn (max 50 MB)", "error");
+        return;
+    }
+
+    selectedFile = file;
+
+    // Show file info
+    document.getElementById("drop-icon").textContent = "✅";
+    document.getElementById("drop-text").innerHTML = `
+        <div style="color: var(--green); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">
+            Đã chọn file
+        </div>
+        <div style="color: var(--dim); font-size: 0.85rem;">
+            Kéo file khác để thay thế
+        </div>
+    `;
+    document.getElementById("drop-zone").classList.add("has-file");
+
+    document.getElementById("file-info").style.display = "block";
+    document.getElementById("file-info").innerHTML = `
+        <div class="file-info">
+            <div class="file-info-icon">📦</div>
+            <div style="flex: 1;">
+                <div style="color: var(--text); font-weight: 700;">${file.name}</div>
+                <div style="color: var(--dim); font-size: 0.8rem;">${formatBytes(file.size)}</div>
+            </div>
+            <button onclick="clearFile()" style="background: transparent; border: 1px solid var(--red); color: var(--red); border-radius: 6px; padding: 0.4rem 0.8rem; cursor: pointer; font-family: inherit; font-size: 0.8rem;">✕ Xóa</button>
+        </div>
+    `;
+
+    // Parse manifest
+    try {
+        showToast("📖 Đang đọc manifest...", "info");
+        const zip = await JSZip.loadAsync(file);
+        const manifestFile = zip.file("manifest.json");
+
+        if (!manifestFile) {
+            showToast("❌ File .cogni thiếu manifest.json", "error");
+            clearFile();
+            return;
+        }
+
+        const manifestText = await manifestFile.async("string");
+        parsedManifest = JSON.parse(manifestText);
+
+        // Auto-fill form
+        document.getElementById("plugin-id").value = parsedManifest.id || "";
+        document.getElementById("plugin-version").value = parsedManifest.version || "";
+        document.getElementById("plugin-name").value = parsedManifest.name || "";
+        document.getElementById("plugin-icon").value = parsedManifest.icon || "📦";
+        document.getElementById("plugin-description").value = parsedManifest.description || "";
+        document.getElementById("override-tags").value = (parsedManifest.tags || []).join(",");
+
+        // Show metadata section
+        document.getElementById("metadata-section").style.display = "block";
+
+        showToast("✅ Đã đọc manifest: " + parsedManifest.name, "success");
+
+    } catch (e) {
+        showToast(`❌ Lỗi đọc .cogni: ${e.message}`, "error");
+        clearFile();
+    }
+}
+
+function clearFile() {
+    selectedFile = null;
+    parsedManifest = null;
+
+    document.getElementById("drop-icon").textContent = "📁";
+    document.getElementById("drop-text").innerHTML = `
+        <div style="color: var(--text); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">
+            Kéo thả file .cogni vào đây
+        </div>
+        <div style="color: var(--dim); font-size: 0.85rem;">
+            hoặc <span style="color: var(--cyan); text-decoration: underline;">click để chọn file</span>
+        </div>
+    `;
+    document.getElementById("drop-zone").classList.remove("has-file");
+    document.getElementById("file-info").style.display = "none";
+    document.getElementById("metadata-section").style.display = "none";
+    document.getElementById("file-input").value = "";
+}
+
+// ============================================================
+// PUBLISH
+// ============================================================
+async function publishPlugin() {
+    if (!selectedFile || !parsedManifest) {
+        showToast("❌ Chưa chọn file", "error");
+        return;
+    }
+
+    const token = document.getElementById("auth-token").value.trim();
+    const author = document.getElementById("auth-author").value.trim();
+
+    if (!token || !author) {
+        showToast("❌ Nhập token và author trước", "error");
+        return;
+    }
+
+    // Save auth
+    localStorage.setItem("cognicraft_token", token);
+    localStorage.setItem("cognicraft_author_name", author);
+
+    const mode = document.querySelector('input[name="publish-mode"]:checked').value;
+    const category = document.getElementById("override-category").value;
+    const tags = document.getElementById("override-tags").value.trim();
+
+    // Build endpoint
+    const endpoint = mode === "new"
+        ? `${API_URL}/api/store/publish`
+        : `${API_URL}/api/store/publish/version`;
+
+    // Form data
+    const formData = new FormData();
+    formData.append("file", selectedFile, selectedFile.name);
+    if (category) formData.append("category", category);
+    if (tags) formData.append("tags", tags);
+
+    // Show progress
+    const progress = document.getElementById("progress-container");
+    const bar = document.getElementById("progress-bar");
+    const percent = document.getElementById("progress-percent");
+    const label = document.getElementById("progress-label");
+
+    progress.classList.add("active");
+    document.getElementById("publish-btn").disabled = true;
+    bar.style.width = "0%";
+    percent.textContent = "0%";
+    label.textContent = "Đang upload...";
+
+    try {
+        // Use fetch with XHR fallback for progress
+        await uploadWithProgress(endpoint, formData, token, author, (pct) => {
+            bar.style.width = pct + "%";
+            percent.textContent = Math.round(pct) + "%";
+        });
+
+        label.textContent = "✅ Thành công!";
+        bar.style.width = "100%";
+        percent.textContent = "100%";
+
+        showToast(`✅ Đã publish ${parsedManifest.name} v${parsedManifest.version}!`, "success");
+
+        setTimeout(() => {
+            if (confirm("Publish thành công! Mở trang plugin?")) {
+                window.location.href = `plugin.html?slug=${parsedManifest.id}`;
+            } else {
+                clearFile();
+                progress.classList.remove("active");
+                document.getElementById("publish-btn").disabled = false;
+            }
+        }, 500);
+
+    } catch (e) {
+        label.textContent = "❌ Lỗi";
+        bar.style.background = "var(--red)";
+        showToast(`❌ ${e.message}`, "error");
+        setTimeout(() => {
+            progress.classList.remove("active");
+            bar.style.background = "";
+        }, 2000);
+        document.getElementById("publish-btn").disabled = false;
+    }
+}
+
+// ============================================================
+// UPLOAD WITH PROGRESS (XHR)
+// ============================================================
+function uploadWithProgress(url, formData, token, author, onProgress) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) {
+                onProgress((e.loaded / e.total) * 100);
+            }
+        });
+
+        xhr.addEventListener("load", () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    resolve(JSON.parse(xhr.responseText));
+                } catch {
+                    resolve(xhr.responseText);
+                }
+            } else {
+                let errMsg = `HTTP ${xhr.status}`;
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    errMsg = data.detail || errMsg;
+                } catch {}
+                reject(new Error(errMsg));
+            }
+        });
+
+        xhr.addEventListener("error", () => reject(new Error("Network error")));
+
+        xhr.open("POST", url);
+        xhr.setRequestHeader("Authorization", `Bearer ${token}:${author}`);
+        xhr.send(formData);
+    });
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1024 / 1024).toFixed(2) + " MB";
+}
+
+function showToast(message, type = "info") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = `toast show ${type}`;
+    setTimeout(() => toast.classList.remove("show"), 3000);
+}
+</script>
+</body>
+</html>
