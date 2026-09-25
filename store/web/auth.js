@@ -125,18 +125,24 @@
             `;
         } else {
             container.innerHTML = `
-                <div id="g_id_onload"
-                     data-client_id="${GOOGLE_CLIENT_ID}"
-                     data-callback="CogniAuth.handleGoogleCallback"
-                     data-auto_prompt="false">
-                </div>
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-size="medium"
-                     data-theme="filled_black"
-                     data-text="signin_with"
-                     data-shape="pill"
-                     data-logo_alignment="left">
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <div id="g_id_onload"
+                         data-client_id="${GOOGLE_CLIENT_ID}"
+                         data-callback="CogniAuth.handleGoogleCallback"
+                         data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin"
+                         data-type="standard"
+                         data-size="medium"
+                         data-theme="filled_black"
+                         data-text="signin_with"
+                         data-shape="pill"
+                         data-logo_alignment="left">
+                    </div>
+                    <a href="${API_URL}/api/auth/github"
+                       style="display: flex; align-items: center; gap: 0.4rem; background: #24292e; color: white; padding: 0.5rem 1rem; border-radius: 20px; text-decoration: none; font-family: inherit; font-size: 0.8rem; font-weight: 700; border: 1px solid #444d56;">
+                        🐙 GitHub
+                    </a>
                 </div>
             `;
 
@@ -182,6 +188,42 @@
     // ============================================================
     function init() {
         loadUserFromStorage();
+
+        // Check GitHub callback (?auth_token=...)
+        const params = new URLSearchParams(window.location.search);
+        const authToken = params.get("auth_token");
+        const authError = params.get("auth_error");
+
+        if (authToken) {
+            // Save token, fetch user info
+            (async () => {
+                try {
+                    const r = await fetch(`${API_URL}/api/auth/me`, {
+                        headers: { "Authorization": `Bearer ${authToken}` },
+                    });
+                    if (!r.ok) throw new Error("Invalid token");
+                    const user = await r.json();
+
+                    saveSession(authToken, {
+                        id: user.id,
+                        email: user.email,
+                        name: user.name,
+                        avatar_url: user.avatar_url,
+                    });
+                    currentUser = user;
+                    showToast(`✅ Xin chào ${user.name}!`, "success");
+                } catch (e) {
+                    showToast(`❌ Login thất bại: ${e.message}`, "error");
+                } finally {
+                    // Xóa query khỏi URL
+                    window.history.replaceState({}, "", window.location.pathname);
+                    updateAuthUI();
+                }
+            })();
+        } else if (authError) {
+            showToast(`❌ GitHub login lỗi: ${authError}`, "error");
+            window.history.replaceState({}, "", window.location.pathname);
+        }
 
         const waitForGoogle = setInterval(() => {
             if (window.google && window.google.accounts) {
