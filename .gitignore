@@ -101,3 +101,12 @@ temp/
 _wrapper_tmp.py
 # ─── Installed plugins (từ Store) ────────────────────────
 .cogni-plugins/
+# Secrets — NEVER COMMIT
+secrets.txt
+secrets/
+*.pem
+github-app-key.json
+# Installed plugins (Code Room)
+code_room/plugins/
+store/examples/
+test_ml_event.json
