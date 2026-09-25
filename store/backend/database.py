@@ -39,7 +39,6 @@ class Database:
         )
 
     def query(self, sql: str, params: tuple = ()) -> List[Dict]:
-        """Execute SELECT query"""
         conn = self._connect()
         try:
             with conn.cursor() as cur:
@@ -49,12 +48,10 @@ class Database:
             conn.close()
 
     def query_one(self, sql: str, params: tuple = ()) -> Optional[Dict]:
-        """Execute SELECT, return first row"""
         rows = self.query(sql, params)
         return rows[0] if rows else None
 
     def execute(self, sql: str, params: tuple = ()) -> int:
-        """Execute INSERT/UPDATE/DELETE, return rowcount"""
         conn = self._connect()
         try:
             with conn.cursor() as cur:
@@ -65,7 +62,6 @@ class Database:
             conn.close()
 
     def execute_returning(self, sql: str, params: tuple = ()) -> Optional[Dict]:
-        """Execute INSERT with RETURNING"""
         conn = self._connect()
         try:
             with conn.cursor() as cur:
