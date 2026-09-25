@@ -18,8 +18,13 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Header
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-# Add project root để import cogni_package
+# Add path để import cogni_package
+# - Local: parent.parent.parent = root project
+# - Deploy (store = root): parent.parent = /app
 _root = Path(__file__).parent.parent.parent.resolve()
+if not (_root / "cogni_package").exists():
+    # Fallback cho Railway: cogni_package đã copy vào store/
+    _root = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(_root))
 
 from cogni_package.manifest import (
