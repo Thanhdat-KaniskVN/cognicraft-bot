@@ -1,6 +1,7 @@
 # store/backend/database.py
 """
 Database connection - Supabase PostgreSQL
+- Transaction pooler (port 6543) with keepalive
 """
 import os
 from pathlib import Path
@@ -16,16 +17,26 @@ load_dotenv(_root / ".env")
 
 
 class Database:
-    """PostgreSQL connection wrapper"""
+    """PostgreSQL connection wrapper with keepalive"""
 
     def __init__(self):
         self.database_url = os.getenv("DATABASE_URL")
 
     def _connect(self):
-        """Create new connection"""
+        """Create new connection với keepalive + sslmode"""
         if not self.database_url:
             raise RuntimeError("DATABASE_URL not set")
-        return psycopg2.connect(self.database_url, cursor_factory=RealDictCursor)
+
+        return psycopg2.connect(
+            self.database_url,
+            cursor_factory=RealDictCursor,
+            connect_timeout=10,
+            keepalives=1,
+            keepalives_idle=30,
+            keepalives_interval=10,
+            keepalives_count=5,
+            sslmode="require",
+        )
 
     def query(self, sql: str, params: tuple = ()) -> List[Dict]:
         """Execute SELECT query"""
