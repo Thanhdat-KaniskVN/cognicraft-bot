@@ -6,12 +6,14 @@
     'use strict';
 
     const THEMES = [
-        { id: 'cyberpunk', name: 'Cyberpunk', icon: '🌃' },
-        { id: 'matrix',    name: 'Matrix',    icon: '🟢' },
-        { id: 'vaporwave', name: 'Vaporwave', icon: '🌸' },
-        { id: 'terminal',  name: 'Terminal',  icon: '📟' },
-        { id: 'nord',      name: 'Nord',      icon: '❄️' },
-        { id: 'solarized', name: 'Solarized', icon: '☀️' },
+        { id: 'auto-light', name: 'Auto',      icon: '🌗' },
+        { id: 'cyberpunk',  name: 'Cyberpunk', icon: '🌃' },
+        { id: 'matrix',     name: 'Matrix',    icon: '🟢' },
+        { id: 'vaporwave',  name: 'Vaporwave', icon: '🌸' },
+        { id: 'terminal',   name: 'Terminal',  icon: '📟' },
+        { id: 'nord',       name: 'Nord',      icon: '❄️' },
+        { id: 'solarized',  name: 'Solarized', icon: '☀️' },
+        { id: 'auto-dark',  name: 'Dark',      icon: '🌙' },
     ];
 
     const STORAGE_KEY = 'cognicraft-theme';

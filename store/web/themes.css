@@ -1010,6 +1010,8 @@
 .theme-swatch[data-swatch="terminal"]  { background: linear-gradient(135deg, #16120a 50%, #ffb000 50%); }
 .theme-swatch[data-swatch="nord"]      { background: linear-gradient(135deg, #3b4252 50%, #88c0d0 50%); }
 .theme-swatch[data-swatch="solarized"] { background: linear-gradient(135deg, #f5efdc 50%, #268bd2 50%); }
+.theme-swatch[data-swatch="auto-light"] { background: linear-gradient(135deg, #f8f9fc 50%, #0891b2 50%); }
+.theme-swatch[data-swatch="auto-dark"]  { background: linear-gradient(135deg, #0f1117 50%, #22d3ee 50%); }
 
 /* ============================================================
    RESPONSIVE
@@ -1297,5 +1299,110 @@
     }
     .tags-label {
         width: 100%;
+    }
+}
+/* ============================================================
+   THEME 7: AUTO LIGHT — tự sáng theo system
+   ============================================================ */
+[data-theme="auto-light"] {
+    --bg: #f8f9fc;
+    --bg-elev: #f0f2f7;
+    --card: #ffffff;
+    --border: #e1e5ec;
+    --border-glow: #c5cad4;
+    --text: #1a1f2e;
+    --dim: #6b7280;
+    --cyan: #0891b2;
+    --green: #059669;
+    --yellow: #d97706;
+    --red: #dc2626;
+    --purple: #7c3aed;
+    --primary-rgb: 8, 145, 178;
+    --grid-color: rgba(8, 145, 178, 0.06);
+    --bg-blur: rgba(248, 249, 252, 0.85);
+}
+
+[data-theme="auto-light"] .header {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="auto-light"] .plugin-card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="auto-light"] .plugin-card:hover {
+    box-shadow: 0 8px 24px rgba(8, 145, 178, 0.15);
+}
+
+[data-theme="auto-light"] .plugin-name {
+    color: #0e7490;
+}
+
+/* ============================================================
+   THEME 8: AUTO DARK — tự tối theo system
+   ============================================================ */
+[data-theme="auto-dark"] {
+    --bg: #0f1117;
+    --bg-elev: #161a23;
+    --card: #1d2230;
+    --border: #2a3142;
+    --border-glow: #3a4254;
+    --text: #e8ecf4;
+    --dim: #8892a6;
+    --cyan: #22d3ee;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --purple: #a78bfa;
+    --primary-rgb: 34, 211, 238;
+    --grid-color: rgba(34, 211, 238, 0.04);
+    --bg-blur: rgba(15, 17, 23, 0.85);
+}
+
+/* ============================================================
+   AUTO MEDIA QUERY — TỰ ĐỘNG THEO SYSTEM
+   ============================================================ */
+
+/* Khi user chọn "Auto" → dùng theme auto-light hoặc auto-dark
+   tùy theo system preference */
+
+@media (prefers-color-scheme: light) {
+    [data-theme="auto-light"] {
+        /* Đã định nghĩa ở trên */
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto-light"] {
+        /* Nếu user chọn auto-light nhưng system dark → fallback về auto-dark */
+        --bg: #0f1117;
+        --bg-elev: #161a23;
+        --card: #1d2230;
+        --border: #2a3142;
+        --text: #e8ecf4;
+        --dim: #8892a6;
+        --cyan: #22d3ee;
+        --primary-rgb: 34, 211, 238;
+        --bg-blur: rgba(15, 17, 23, 0.85);
+    }
+    
+    [data-theme="auto-dark"] {
+        /* Đã định nghĩa ở trên */
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    [data-theme="auto-dark"] {
+        /* Nếu user chọn auto-dark nhưng system light → fallback về auto-light */
+        --bg: #f8f9fc;
+        --bg-elev: #f0f2f7;
+        --card: #ffffff;
+        --border: #e1e5ec;
+        --text: #1a1f2e;
+        --dim: #6b7280;
+        --cyan: #0891b2;
+        --primary-rgb: 8, 145, 178;
+        --bg-blur: rgba(248, 249, 252, 0.85);
     }
 }
