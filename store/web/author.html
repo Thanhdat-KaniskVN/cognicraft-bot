@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="cyberpunk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Author Profile · CogniCraft Store</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div id="cyberpunk-scene"></div>
+<div id="sakura-container"></div>
+
+<header class="header">
+    <div class="logo">
+        <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 1rem;">
+            <span class="logo-icon">🏛️</span>
+            <div>
+                <h1 class="font-display">COGNICRAFT STORE</h1>
+                <p class="subtitle">← Quay lại</p>
+            </div>
+        </a>
+    </div>
+    <div class="status-bar">
+        <div id="theme-switcher" class="theme-switcher"></div>
+    </div>
+</header>
+
+<main class="main">
+    <div class="loading-state" id="loading">
+        <span class="spinner"></span> Đang tải profile...
+    </div>
+
+    <div id="author-profile" style="display:none;"></div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="theme-switcher.js"></script>
+<script>
+const API_URL = "http://localhost:8001";
+
+async function loadAuthorProfile() {
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get("username") || params.get("u");
+
+    if (!username) {
+        window.location.href = "index.html";
+        return;
+    }
+
+    try {
+        const r = await fetch(`${API_URL}/api/store/authors/${encodeURIComponent(username)}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+        const data = await r.json();
+        renderProfile(data);
+    } catch (e) {
+        document.getElementById("loading").innerHTML =
+            `<div style="color: var(--red);">❌ Lỗi: ${e.message}</div>`;
+    }
+}
+
+function renderProfile(data) {
+    document.getElementById("loading").style.display = "none";
+    const container = document.getElementById("author-profile");
+    container.style.display = "block";
+
+    if (data.not_found || !data.plugins || data.plugins.length === 0) {
+        container.innerHTML = `
+            <div style="max-width: 800px; margin: 0 auto; text-align: center; padding: 4rem 2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">👤</div>
+                <h2 class="font-display" style="color: var(--cyan); margin-bottom: 0.5rem;">${data.display_name || data.username}</h2>
+                <p style="color: var(--dim);">Chưa publish plugin nào.</p>
+                <a href="index.html" style="display: inline-block; margin-top: 2rem; color: var(--cyan); text-decoration: none; border: 1px solid var(--cyan); padding: 0.6rem 1.5rem; border-radius: 6px;">← Về trang chủ</a>
+            </div>
+        `;
+        return;
+    }
+
+    const s = data.stats;
+    const initial = (data.display_name || data.username).charAt(0).toUpperCase();
+
+    container.innerHTML = `
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="padding: 2.5rem; background: linear-gradient(135deg, var(--bg-elev), var(--card)); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 2rem; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--cyan), var(--purple), var(--cyan));"></div>
+
+                <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: 900; color: var(--bg); box-shadow: 0 0 30px rgba(var(--primary-rgb), 0.4); font-family: 'Orbitron', sans-serif;">${initial}</div>
+
+                    <div style="flex: 1; min-width: 250px;">
+                        <div style="color: var(--dim); font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.3rem;">AUTHOR</div>
+                        <h2 class="font-display" style="color: var(--cyan); font-size: 2.2rem; margin-bottom: 0.5rem;">${data.display_name}</h2>
+                        <p style="color: var(--dim); font-size: 0.9rem;">@${data.username}</p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 2rem;">
+                    <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border);">
+                        <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase;">Plugins</div>
+                        <div class="font-display" style="color: var(--cyan); font-size: 1.8rem;">${s.total_plugins}</div>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border);">
+                        <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase;">Downloads</div>
+                        <div class="font-display" style="color: var(--green); font-size: 1.8rem;">${formatNumber(s.total_downloads)}</div>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border);">
+                        <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase;">Rating</div>
+                        <div class="font-display" style="color: var(--yellow); font-size: 1.8rem;">${s.avg_rating > 0 ? s.avg_rating : '—'}</div>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border);">
+                        <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase;">Reviews</div>
+                        <div class="font-display" style="color: var(--purple); font-size: 1.8rem;">${s.total_reviews}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h3 class="font-heading">📦 PLUGINS CỦA ${data.display_name.toUpperCase()}</h3>
+                    <span class="count">${data.plugins.length} plugins</span>
+                </div>
+                <div class="plugins-grid">
+                    ${data.plugins.map(p => renderPluginCard(p)).join("")}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderPluginCard(plugin) {
+    const stars = "★".repeat(Math.round(plugin.rating || 0)) + "☆".repeat(5 - Math.round(plugin.rating || 0));
+    const verifiedBadge = plugin.verified ? '<span class="plugin-badge badge-verified">✓ VERIFIED</span>' : "";
+    const featuredBadge = plugin.featured ? '<span class="plugin-badge badge-featured" style="top: 3rem;">⭐ FEATURED</span>' : "";
+
+    return `
+        <a href="plugin.html?slug=${plugin.slug}" class="plugin-card">
+            ${verifiedBadge}
+            ${featuredBadge}
+            <div class="plugin-icon">${plugin.icon || "📦"}</div>
+            <div class="plugin-name">${plugin.name}</div>
+            <div class="plugin-author">v${plugin.latest_version || "1.0.0"}</div>
+            <div class="plugin-desc">${plugin.description || ""}</div>
+            <div class="plugin-meta">
+                <span class="plugin-rating">${stars} ${plugin.rating || "0.0"}</span>
+                <span class="plugin-downloads">📥 ${formatNumber(plugin.downloads || 0)}</span>
+            </div>
+        </a>
+    `;
+}
+
+function formatNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+    return num.toString();
+}
+
+loadAuthorProfile();
+</script>
+</body>
+</html>

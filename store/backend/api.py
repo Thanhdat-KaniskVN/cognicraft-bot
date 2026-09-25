@@ -560,3 +560,134 @@ async def get_stats():
         "total_downloads": downloads,
         "avg_rating": round(float(avg_rating), 2),
     }
+
+
+# ============================================================
+# USER + AUTHOR PROFILES (Phase 2.3)
+# ============================================================
+
+@router.get("/users/{username}")
+async def get_user_profile(username: str):
+    """Get user profile — reviews đã viết + stats"""
+    db = get_db()
+
+    user_id = username.lower().replace(" ", "_").replace("-", "_")
+
+    reviews = db.query(
+        """
+        SELECT 
+            r.id, r.user_name, r.rating, r.comment, r.helpful_count, r.created_at,
+            p.slug AS plugin_slug, p.name AS plugin_name, p.icon AS plugin_icon
+        FROM reviews r
+        JOIN plugins p ON p.id = r.plugin_id
+        WHERE r.user_id = %s OR LOWER(REPLACE(r.user_name, ' ', '_')) = %s
+        ORDER BY r.created_at DESC
+        LIMIT 50
+        """,
+        (user_id, user_id),
+    )
+
+    for r in reviews:
+        if r.get("created_at"):
+            r["created_at"] = r["created_at"].isoformat()
+
+    if not reviews:
+        return {
+            "username": username,
+            "display_name": username,
+            "reviews": [],
+            "stats": {
+                "total_reviews": 0,
+                "avg_rating_given": 0,
+                "helpful_received": 0,
+            },
+            "not_found": True,
+        }
+
+    total_reviews = len(reviews)
+    avg_rating = round(sum(r["rating"] for r in reviews) / total_reviews, 2) if total_reviews else 0
+    helpful_received = sum(r["helpful_count"] or 0 for r in reviews)
+    display_name = reviews[0]["user_name"]
+
+    return {
+        "username": username,
+        "display_name": display_name,
+        "reviews": reviews,
+        "stats": {
+            "total_reviews": total_reviews,
+            "avg_rating_given": avg_rating,
+            "helpful_received": helpful_received,
+        },
+        "not_found": False,
+    }
+
+
+@router.get("/authors/{username}")
+async def get_author_profile(username: str):
+    """Get author profile — plugins đã publish + stats"""
+    db = get_db()
+
+    plugins = db.query(
+        """
+        SELECT 
+            id, slug, name, description, icon, category,
+            latest_version, downloads, installs, rating, review_count,
+            verified, featured, created_at
+        FROM plugins
+        WHERE LOWER(author) = LOWER(%s)
+        ORDER BY downloads DESC
+        """,
+        (username,),
+    )
+
+    for p in plugins:
+        if p.get("created_at"):
+            p["created_at"] = p["created_at"].isoformat()
+
+    if not plugins:
+        return {
+            "username": username,
+            "plugins": [],
+            "stats": {
+                "total_plugins": 0,
+                "total_downloads": 0,
+                "total_installs": 0,
+                "avg_rating": 0,
+                "total_reviews": 0,
+            },
+            "not_found": True,
+        }
+
+    total_plugins = len(plugins)
+    total_downloads = sum(p["downloads"] or 0 for p in plugins)
+    total_installs = sum(p["installs"] or 0 for p in plugins)
+    total_reviews = sum(p["review_count"] or 0 for p in plugins)
+
+    total_weight = sum(p["review_count"] or 0 for p in plugins)
+    if total_weight > 0:
+        weighted = sum((p["rating"] or 0) * (p["review_count"] or 0) for p in plugins)
+        avg_rating = round(weighted / total_weight, 2)
+    else:
+        avg_rating = 0
+
+    display_name = username
+    author_row = db.query_one(
+        "SELECT author FROM plugins WHERE LOWER(author) = LOWER(%s) LIMIT 1",
+        (username,),
+    )
+    if author_row:
+        display_name = author_row["author"]
+
+    return {
+        "username": username,
+        "display_name": display_name,
+        "plugins": plugins,
+        "stats": {
+            "total_plugins": total_plugins,
+            "total_downloads": total_downloads,
+            "total_installs": total_installs,
+            "avg_rating": avg_rating,
+            "total_reviews": total_reviews,
+        },
+        "not_found": False,
+    }

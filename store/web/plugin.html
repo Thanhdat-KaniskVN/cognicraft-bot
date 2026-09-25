@@ -34,9 +34,7 @@
         <span class="spinner"></span> Đang tải plugin...
     </div>
     
-    <div id="plugin-detail" style="display:none;">
-        <!-- Filled by JS -->
-    </div>
+    <div id="plugin-detail" style="display:none;"></div>
 </main>
 
 <div id="toast" class="toast"></div>
@@ -44,7 +42,7 @@
 <script src="theme-switcher.js"></script>
 <script>
 // ============================================================
-// PLUGIN DETAIL PAGE
+// PLUGIN DETAIL PAGE (Phase 2.3 — linked to author/user)
 // ============================================================
 
 const API_URL = "http://localhost:8001";
@@ -60,7 +58,6 @@ async function loadPluginDetail() {
     }
 
     try {
-        // Fetch plugin + reviews song song
         const [pluginRes, reviewsRes] = await Promise.all([
             fetch(`${API_URL}/api/store/plugins/${slug}`),
             fetch(`${API_URL}/api/store/reviews/${slug}`),
@@ -107,8 +104,8 @@ function renderDetail(data, reviewsData) {
                 <div style="flex: 1;">
                     <h2 class="font-display" style="font-size: 2rem; color: var(--cyan); margin-bottom: 0.5rem;">${p.name}</h2>
                     <p style="color: var(--dim); margin-bottom: 1rem;">${p.description || ""}</p>
-                    <div style="display: flex; gap: 2rem; font-size: 0.9rem; color: var(--dim); flex-wrap: wrap;">
-                        <span>👤 ${p.author}</span>
+                    <div style="display: flex; gap: 2rem; font-size: 0.9rem; color: var(--dim); flex-wrap: wrap; align-items: center;">
+                        <a href="author.html?username=${encodeURIComponent(p.author)}" style="color: var(--dim); text-decoration: none; border-bottom: 1px dashed var(--dim); transition: all 0.2s; padding-bottom: 1px;" onmouseover="this.style.color='var(--cyan)'; this.style.borderBottomColor='var(--cyan)'" onmouseout="this.style.color='var(--dim)'; this.style.borderBottomColor='var(--dim)'">👤 ${p.author}</a>
                         <span>📁 ${p.category}</span>
                         <span style="color: var(--yellow);">${stars} ${p.rating}</span>
                         <span>📥 ${p.downloads} downloads</span>
@@ -222,10 +219,12 @@ function renderDetail(data, reviewsData) {
                         <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; align-items: center;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--bg);">
-                                        ${(r.user_name || "A").charAt(0).toUpperCase()}
-                                    </div>
-                                    <strong style="color: var(--text); font-size: 0.9rem;">${r.user_name || "Anonymous"}</strong>
+                                    <a href="user.html?username=${encodeURIComponent((r.user_name || 'anonymous').toLowerCase().replace(/\s+/g, '_'))}" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                                        <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--bg);">
+                                            ${(r.user_name || "A").charAt(0).toUpperCase()}
+                                        </div>
+                                        <strong style="color: var(--text); font-size: 0.9rem; border-bottom: 1px dashed var(--dim); padding-bottom: 1px;" onmouseover="this.style.color='var(--cyan)'; this.style.borderBottomColor='var(--cyan)'" onmouseout="this.style.color='var(--text)'; this.style.borderBottomColor='var(--dim)'">${r.user_name || "Anonymous"}</strong>
+                                    </a>
                                 </div>
                                 <div style="text-align: right;">
                                     <div style="color: var(--yellow); font-size: 0.95rem;">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</div>
@@ -245,7 +244,6 @@ function renderDetail(data, reviewsData) {
         </div>
     `;
 
-    // Init star rating
     setTimeout(initStarRating, 50);
 }
 
@@ -320,7 +318,6 @@ async function submitReview(slug) {
         }
 
         showToast(`✅ ${data.message}`, 'success');
-
         setTimeout(() => loadPluginDetail(), 800);
 
     } catch (e) {
