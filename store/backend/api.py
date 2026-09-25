@@ -1,0 +1,562 @@
+# store/backend/api.py
+"""
+Store API - FastAPI routes (v2.2 - Advanced Search)
+"""
+from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import JSONResponse
+from typing import Optional, List
+import re
+
+from .database import get_db
+from .models import (
+    PluginUpload,
+    PluginResponse,
+    ReviewSubmit,
+    PluginListResponse,
+)
+
+
+router = APIRouter()
+
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def _slugify(text: str) -> str:
+    """Convert text to slug"""
+    text = text.lower().strip()
+    text = re.sub(r'[^a-z0-9]+', '_', text)
+    return text.strip('_')
+
+
+# ============================================================
+# LIST PLUGINS — Advanced search + filter (v2.2)
+# ============================================================
+
+@router.get("/plugins", response_model=PluginListResponse)
+async def list_plugins(
+    category: Optional[str] = None,
+    search: Optional[str] = None,
+    author: Optional[str] = None,
+    tag: Optional[str] = None,
+    min_rating: Optional[float] = Query(None, ge=0, le=5),
+    price_type: Optional[str] = Query(None, pattern="^(free|paid|freemium)$"),
+    featured: Optional[bool] = None,
+    sort: str = Query("downloads", pattern="^(downloads|rating|created_at|name|trending)$"),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+):
+    """
+    List plugins với ADVANCED filter + search + pagination
+
+    Query params:
+    - category: filter by category slug
+    - search: tìm trong name + description + author + tags
+    - author: filter by author name (exact-ish)
+    - tag: filter by 1 tag
+    - min_rating: rating tối thiểu (0-5)
+    - price_type: free | paid | freemium
+    - featured: true/false
+    - sort: downloads | rating | created_at | name | trending
+    - page + per_page: pagination
+    """
+    db = get_db()
+
+    # Build query
+    conditions = []
+    params = []
+
+    if category:
+        conditions.append("category = %s")
+        params.append(category)
+
+    if search:
+        # Search mở rộng: name + description + author + tags (array)
+        conditions.append(
+            "(name ILIKE %s OR description ILIKE %s OR author ILIKE %s OR %s = ANY(tags))"
+        )
+        search_pattern = f"%{search}%"
+        params.extend([search_pattern, search_pattern, search_pattern, search.lower()])
+
+    if author:
+        conditions.append("author ILIKE %s")
+        params.append(f"%{author}%")
+
+    if tag:
+        # Tag là array trong DB → dùng ANY
+        conditions.append("%s = ANY(tags)")
+        params.append(tag.lower())
+
+    if min_rating is not None:
+        conditions.append("rating >= %s")
+        params.append(min_rating)
+
+    if featured is not None:
+        conditions.append("featured = %s")
+        params.append(featured)
+
+    # Price type filter — check qua bảng plugin_pricing nếu có, else bỏ qua
+    if price_type:
+        # MVP: giả định tất cả là free (không có bảng pricing)
+        # Nếu em có bảng plugin_pricing → JOIN
+        try:
+            conditions.append("""
+                id IN (
+                    SELECT plugin_id FROM plugin_pricing 
+                    WHERE type = %s
+                )
+            """)
+            params.append(price_type)
+        except Exception:
+            pass  # Bỏ qua nếu không có bảng
+
+    where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
+
+    # Count total
+    count_sql = f"SELECT COUNT(*) as total FROM plugins {where_clause}"
+    total_row = db.query_one(count_sql, tuple(params))
+    total = total_row["total"] if total_row else 0
+
+    # Order clause
+    offset = (page - 1) * per_page
+    order_map = {
+        "downloads": "downloads DESC",
+        "rating": "rating DESC NULLS LAST",
+        "created_at": "created_at DESC",
+        "name": "name ASC",
+        "trending": "(downloads * 0.7 + COALESCE(rating, 0) * 100 * 0.3) DESC",
+    }
+    order_clause = order_map.get(sort, "downloads DESC")
+
+    sql = f"""
+        SELECT * FROM plugins
+        {where_clause}
+        ORDER BY {order_clause}
+        LIMIT %s OFFSET %s
+    """
+    params.extend([per_page, offset])
+
+    plugins = db.query(sql, tuple(params))
+
+    # Convert datetime
+    for p in plugins:
+        if p.get("created_at"):
+            p["created_at"] = p["created_at"].isoformat()
+        if p.get("updated_at"):
+            p["updated_at"] = p["updated_at"].isoformat()
+
+    return {
+        "total": total,
+        "plugins": plugins,
+        "page": page,
+        "per_page": per_page,
+    }
+
+
+# ============================================================
+# SEARCH SUGGESTIONS — autocomplete
+# ============================================================
+
+@router.get("/search/suggest")
+async def search_suggest(q: str = Query(..., min_length=1), limit: int = 8):
+    """
+    Autocomplete suggestions cho search bar
+    Trả về: list plugin names + authors + tags
+    """
+    db = get_db()
+
+    suggestions = []
+
+    # Plugin names
+    plugins = db.query(
+        "SELECT name, slug, icon FROM plugins WHERE name ILIKE %s LIMIT %s",
+        (f"%{q}%", limit),
+    )
+    for p in plugins:
+        suggestions.append({
+            "type": "plugin",
+            "text": p["name"],
+            "slug": p["slug"],
+            "icon": p.get("icon", "📦"),
+        })
+
+    # Authors
+    authors = db.query(
+        "SELECT DISTINCT author FROM plugins WHERE author ILIKE %s LIMIT %s",
+        (f"%{q}%", 3),
+    )
+    for a in authors:
+        suggestions.append({
+            "type": "author",
+            "text": a["author"],
+            "icon": "👤",
+        })
+
+    # Tags (flatten array)
+    tags_rows = db.query(
+        """
+        SELECT DISTINCT unnest(tags) as tag 
+        FROM plugins 
+        WHERE EXISTS (
+            SELECT 1 FROM unnest(tags) t WHERE t ILIKE %s
+        )
+        LIMIT 5
+        """,
+        (f"%{q}%",),
+    )
+    for t in tags_rows:
+        suggestions.append({
+            "type": "tag",
+            "text": t["tag"],
+            "icon": "🏷️",
+        })
+
+    return {"suggestions": suggestions[:limit]}
+
+
+# ============================================================
+# POPULAR TAGS
+# ============================================================
+
+@router.get("/tags")
+async def list_tags(limit: int = 20):
+    """List popular tags với count"""
+    db = get_db()
+
+    rows = db.query(
+        """
+        SELECT tag, COUNT(*) as count
+        FROM (
+            SELECT unnest(tags) as tag FROM plugins
+        ) sub
+        GROUP BY tag
+        ORDER BY count DESC
+        LIMIT %s
+        """,
+        (limit,),
+    )
+
+    return {"tags": rows}
+
+
+# ============================================================
+# GET PLUGIN DETAIL
+# ============================================================
+
+@router.get("/plugins/{slug}")
+async def get_plugin(slug: str):
+    """Get plugin detail với versions + reviews"""
+    db = get_db()
+
+    plugin = db.query_one("SELECT * FROM plugins WHERE slug = %s", (slug,))
+    if not plugin:
+        raise HTTPException(404, f"Plugin không tồn tại: {slug}")
+
+    # Convert datetime
+    if plugin.get("created_at"):
+        plugin["created_at"] = plugin["created_at"].isoformat()
+    if plugin.get("updated_at"):
+        plugin["updated_at"] = plugin["updated_at"].isoformat()
+
+    # Get versions
+    versions = db.query(
+        """SELECT version, changelog, created_at, file_size, downloads 
+           FROM plugin_versions WHERE plugin_id = %s ORDER BY created_at DESC""",
+        (plugin["id"],),
+    )
+    for v in versions:
+        if v.get("created_at"):
+            v["created_at"] = v["created_at"].isoformat()
+
+    # Get reviews
+    reviews = db.query(
+        """SELECT id, user_id, user_name, rating, comment, helpful_count, created_at 
+           FROM reviews WHERE plugin_id = %s 
+           ORDER BY helpful_count DESC, created_at DESC LIMIT 10""",
+        (plugin["id"],),
+    )
+    for r in reviews:
+        if r.get("created_at"):
+            r["created_at"] = r["created_at"].isoformat()
+
+    return {
+        "plugin": plugin,
+        "versions": versions,
+        "reviews": reviews,
+    }
+
+
+# ============================================================
+# UPLOAD PLUGIN
+# ============================================================
+
+@router.post("/upload")
+async def upload_plugin(data: PluginUpload):
+    """Upload plugin mới hoặc update version"""
+    db = get_db()
+
+    existing = db.query_one("SELECT id FROM plugins WHERE slug = %s", (data.slug,))
+
+    if existing:
+        db.execute(
+            """
+            UPDATE plugins SET
+                name = %s, description = %s, long_description = %s,
+                author = %s, category = %s, tags = %s, icon = %s,
+                latest_version = %s, updated_at = NOW()
+            WHERE slug = %s
+            """,
+            (
+                data.name, data.description, data.long_description,
+                data.author, data.category, data.tags, data.icon,
+                data.version, data.slug,
+            ),
+        )
+        plugin_id = existing["id"]
+    else:
+        result = db.execute_returning(
+            """
+            INSERT INTO plugins (
+                slug, name, description, long_description,
+                author, author_email, category, tags, icon,
+                homepage, repository, license, latest_version
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+            """,
+            (
+                data.slug, data.name, data.description, data.long_description,
+                data.author, data.author_email, data.category, data.tags, data.icon,
+                data.homepage, data.repository, data.license, data.version,
+            ),
+        )
+        plugin_id = result["id"]
+
+    db.execute(
+        """
+        INSERT INTO plugin_versions (plugin_id, version, changelog, requirements, file_url, file_size)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON CONFLICT (plugin_id, version) DO UPDATE SET
+            changelog = EXCLUDED.changelog,
+            file_url = EXCLUDED.file_url,
+            file_size = EXCLUDED.file_size
+        """,
+        (plugin_id, data.version, data.changelog, data.requirements, data.file_url, data.file_size),
+    )
+
+    return {
+        "success": True,
+        "slug": data.slug,
+        "version": data.version,
+        "message": f"Plugin {data.name} v{data.version} đã upload!",
+    }
+
+
+# ============================================================
+# INSTALL PLUGIN (Track download)
+# ============================================================
+
+@router.post("/install/{slug}")
+async def install_plugin(slug: str):
+    """Track install + return download info"""
+    db = get_db()
+
+    plugin = db.query_one("SELECT id, name, latest_version FROM plugins WHERE slug = %s", (slug,))
+    if not plugin:
+        raise HTTPException(404, f"Plugin không tồn tại: {slug}")
+
+    db.execute(
+        "UPDATE plugins SET installs = installs + 1, downloads = downloads + 1 WHERE id = %s",
+        (plugin["id"],),
+    )
+
+    version = db.query_one(
+        "SELECT file_url, file_size FROM plugin_versions WHERE plugin_id = %s AND version = %s",
+        (plugin["id"], plugin["latest_version"]),
+    )
+
+    return {
+        "success": True,
+        "name": plugin["name"],
+        "version": plugin["latest_version"],
+        "download_url": version["file_url"] if version else None,
+        "file_size": version["file_size"] if version else 0,
+    }
+
+
+# ============================================================
+# REVIEWS — Submit / List / Helpful (v2.1)
+# ============================================================
+
+@router.post("/reviews/{slug}")
+async def submit_review(slug: str, review: ReviewSubmit):
+    """Submit hoặc update đánh giá cho plugin"""
+    db = get_db()
+
+    plugin = db.query_one("SELECT id, name FROM plugins WHERE slug = %s", (slug,))
+    if not plugin:
+        raise HTTPException(404, f"Plugin '{slug}' không tồn tại")
+
+    plugin_id = plugin["id"]
+
+    existing = db.query_one(
+        "SELECT id FROM reviews WHERE plugin_id = %s AND user_id = %s",
+        (plugin_id, review.user_id),
+    )
+
+    if existing:
+        db.execute(
+            """
+            UPDATE reviews 
+            SET rating = %s, comment = %s, user_name = %s, created_at = NOW()
+            WHERE id = %s
+            """,
+            (review.rating, review.comment or "", review.user_name, existing["id"]),
+        )
+        action = "updated"
+    else:
+        db.execute(
+            """
+            INSERT INTO reviews (plugin_id, user_id, user_name, rating, comment, helpful_count, created_at)
+            VALUES (%s, %s, %s, %s, %s, 0, NOW())
+            """,
+            (plugin_id, review.user_id, review.user_name, review.rating, review.comment or ""),
+        )
+        action = "created"
+
+    stats = db.query_one(
+        """
+        SELECT 
+            AVG(rating) as avg_rating,
+            COUNT(*) as total
+        FROM reviews
+        WHERE plugin_id = %s
+        """,
+        (plugin_id,),
+    )
+
+    avg = 0.0
+    total = 0
+    if stats:
+        avg = round(float(stats["avg_rating"] or 0), 1)
+        total = int(stats["total"] or 0)
+        db.execute(
+            "UPDATE plugins SET rating = %s, review_count = %s WHERE id = %s",
+            (avg, total, plugin_id),
+        )
+
+    return {
+        "success": True,
+        "action": action,
+        "message": f"Đã {('cập nhật' if action == 'updated' else 'gửi')} đánh giá",
+        "new_rating": avg,
+        "total_reviews": total,
+    }
+
+
+@router.get("/reviews/{slug}")
+async def get_reviews(slug: str, limit: int = 50, offset: int = 0):
+    """Lấy danh sách reviews của plugin"""
+    db = get_db()
+
+    plugin = db.query_one("SELECT id FROM plugins WHERE slug = %s", (slug,))
+    if not plugin:
+        raise HTTPException(404, f"Plugin '{slug}' không tồn tại")
+
+    reviews = db.query(
+        """
+        SELECT id, user_id, user_name, rating, comment, helpful_count, created_at
+        FROM reviews
+        WHERE plugin_id = %s
+        ORDER BY created_at DESC
+        LIMIT %s OFFSET %s
+        """,
+        (plugin["id"], limit, offset),
+    )
+
+    for r in reviews:
+        if r.get("created_at"):
+            r["created_at"] = r["created_at"].isoformat()
+
+    breakdown_rows = db.query(
+        """
+        SELECT rating, COUNT(*) as count
+        FROM reviews
+        WHERE plugin_id = %s
+        GROUP BY rating
+        ORDER BY rating DESC
+        """,
+        (plugin["id"],),
+    )
+
+    breakdown = {r["rating"]: r["count"] for r in breakdown_rows}
+
+    return {
+        "total": len(reviews),
+        "reviews": reviews,
+        "breakdown": breakdown,
+    }
+
+
+@router.post("/reviews/{review_id}/helpful")
+async def mark_helpful(review_id: str):
+    """Tăng helpful_count cho review"""
+    db = get_db()
+
+    result = db.execute_returning(
+        """
+        UPDATE reviews
+        SET helpful_count = helpful_count + 1
+        WHERE id = %s
+        RETURNING helpful_count
+        """,
+        (review_id,),
+    )
+
+    if not result:
+        raise HTTPException(404, "Review không tồn tại")
+
+    return {
+        "success": True,
+        "helpful_count": result["helpful_count"],
+    }
+
+
+# ============================================================
+# CATEGORIES
+# ============================================================
+
+@router.get("/categories")
+async def list_categories():
+    """List all categories với count"""
+    db = get_db()
+
+    db.execute("""
+        UPDATE categories SET plugin_count = (
+            SELECT COUNT(*) FROM plugins WHERE category = categories.id
+        )
+    """)
+
+    return {"categories": db.query("SELECT * FROM categories ORDER BY name")}
+
+
+# ============================================================
+# STATS
+# ============================================================
+
+@router.get("/stats")
+async def get_stats():
+    """Store statistics"""
+    db = get_db()
+
+    total = db.query_one("SELECT COUNT(*) as c FROM plugins")["c"]
+    categories = db.query_one("SELECT COUNT(DISTINCT category) as c FROM plugins")["c"]
+    downloads = db.query_one("SELECT SUM(downloads) as s FROM plugins")["s"] or 0
+    avg_rating = db.query_one("SELECT AVG(rating) as a FROM plugins WHERE review_count > 0")["a"] or 0
+
+    return {
+        "total_plugins": total,
+        "categories": categories,
+        "total_downloads": downloads,
+        "avg_rating": round(float(avg_rating), 2),
+    }

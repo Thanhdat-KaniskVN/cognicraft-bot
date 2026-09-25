@@ -1,0 +1,28 @@
+{
+  "manifest_version": "1",
+  "id": "hello-plugin",
+  "name": "Hello Plugin",
+  "version": "1.0.0",
+  "author": "Thanhdat",
+  "description": "Plugin chào hỏi đơn giản - demo package format",
+  "entry": "plugin.py",
+  "long_description": "Plugin này minh họa cách tạo plugin cho CogniCraft ecosystem. Hỗ trợ Code Room, VSCode và Discord Bot.",
+  "icon": "👋",
+  "homepage": "https://github.com/Thanhdat-KaniskVN/cognicraft-bot",
+  "repository": "https://github.com/Thanhdat-KaniskVN/cognicraft-bot",
+  "license": "MIT",
+  "changelog": "v1.0.0 - Initial release",
+  "tags": ["demo", "hello", "starter"],
+  "screenshots": [],
+  "category": "tools",
+  "targets": ["code_room", "vscode", "discord_bot"],
+  "permissions": [],
+  "requirements": [],
+  "min_engine": "1.0.0",
+  "pricing": {
+    "type": "free",
+    "price_usd": 0,
+    "trial_days": 0,
+    "features_locked": []
+  }
+}

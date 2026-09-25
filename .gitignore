@@ -1,8 +1,8 @@
 # ============================================================
-# COGNICRAFT - GITIGNORE
+# COGNICRAFT - GITIGNORE (v2 - merged)
 # ============================================================
 
-# Python
+# ─── Python ───────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
@@ -10,51 +10,58 @@ __pycache__/
 venv/
 env/
 
-# Cache
+# ─── Cache ────────────────────────────────────────────────
 .cache/
 cache/
 *.cache
 
-# Secrets (KHÔNG BAO GIỜ PUSH!)
+# ─── Secrets (KHÔNG BAO GIỜ PUSH!) ────────────────────────
 .env
 *.env
+!.env.example
 credentials.json
 token.json
 client_secret_*.json
 switch/credentials.json
 switch/token.json
 switch/.env
+CONTEXT.md
 
-# Database
+# ─── Database ─────────────────────────────────────────────
 *.db
 *.sqlite
 *.sqlite3
 scores.db
 
-# State
+# ─── State ────────────────────────────────────────────────
 ml_state/
 ml_models/
 ml_results/
 hub_registry.json
 
-# Logs
+# ─── Logs ─────────────────────────────────────────────────
 logs/
 *.log
 
-# Backups
+# ─── Backups ──────────────────────────────────────────────
 backup_*/
 *.backup
 *.zip
 
-# Debug files
-debug_*.py
-check_*.py
-reset_*.py
-clear_*.py
+# ─── Build artifacts ──────────────────────────────────────
+dist/
+out/
+build/
+*.cogni
+*.vsix
+node_modules/
 
-# Test files
-test_*.py
-test_*.json
+# ─── Uploads (giữ .gitkeep) ───────────────────────────────
+store/uploads/*
+!store/uploads/.gitkeep
+
+# ─── Test temp (giữ test_package + test_publish) ──────────
+test-unpack/
 test_all_modules.py
 test_api.py
 test_config.py
@@ -64,25 +71,33 @@ test_quota.py
 test_sandbox.py
 test_token_ml.py
 
-# Local scripts (chạy local only)
+# ─── Debug files ──────────────────────────────────────────
+debug_*.py
+check_*.py
+reset_*.py
+clear_*.py
+
+# ─── Local scripts ────────────────────────────────────────
 start_all.bat
 start_bot.bat
 start_board.bat
 *.bat
 
-# Code Room data
+# ─── Code Room data ───────────────────────────────────────
 code_room/data/
 
-# IDE
+# ─── IDE ──────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 
-# OS
+# ─── OS ───────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 
-# Temp
+# ─── Temp ─────────────────────────────────────────────────
 tmp/
 temp/
 _wrapper_tmp.py
+# ─── Installed plugins (từ Store) ────────────────────────
+.cogni-plugins/

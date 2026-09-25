@@ -494,9 +494,9 @@ class TokenOptimizer:
 
         final = int(ml_tokens * ml_weight + rule_based * rule_weight)
 
-        # Clamp: không lệch quá 50%
-        min_allowed = int(rule_based * 0.5)
-        max_allowed = int(rule_based * 1.5)
+             # ✅ FIX v3.2: Clamp chặt — ML không lệch quá ±20%
+        min_allowed = int(rule_based * 0.8)
+        max_allowed = int(rule_based * 1.2)
         final = max(min_allowed, min(final, max_allowed))
 
         return {

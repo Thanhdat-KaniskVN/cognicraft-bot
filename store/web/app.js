@@ -1,14 +1,22 @@
 // ============================================================
-// COGNICRAFT STORE - Frontend
+// COGNICRAFT STORE - Frontend v2.2 (Advanced Search)
 // ============================================================
 
-// ⚠️ THAY ĐỔI URL NÀY KHI DEPLOY
-// Local: http://localhost:8001
-// Production: https://your-store-api.railway.app
 const API_URL = "http://localhost:8001";
 
 let allPlugins = [];
-let currentCategory = "";
+let currentFilters = {
+    category: "",
+    search: "",
+    author: "",
+    tag: "",
+    min_rating: null,
+    price_type: "",
+    sort: "downloads",
+    page: 1,
+};
+
+let searchSuggestTimeout = null;
 
 // ============================================================
 // LOAD PLUGINS
@@ -17,32 +25,37 @@ let currentCategory = "";
 async function loadPlugins() {
     const loading = document.getElementById("loading");
     const empty = document.getElementById("empty-state");
-    
-    loading.style.display = "block";
-    empty.style.display = "none";
+
+    if (loading) loading.style.display = "block";
+    if (empty) empty.style.display = "none";
 
     try {
         const params = new URLSearchParams();
-        if (currentCategory) params.append("category", currentCategory);
-        
-        const search = document.getElementById("search-input").value;
-        if (search) params.append("search", search);
-        
-        const sort = document.getElementById("sort-filter").value;
-        params.append("sort", sort);
+        if (currentFilters.category) params.append("category", currentFilters.category);
+        if (currentFilters.search) params.append("search", currentFilters.search);
+        if (currentFilters.author) params.append("author", currentFilters.author);
+        if (currentFilters.tag) params.append("tag", currentFilters.tag);
+        if (currentFilters.min_rating !== null) params.append("min_rating", currentFilters.min_rating);
+        if (currentFilters.price_type) params.append("price_type", currentFilters.price_type);
+        params.append("sort", currentFilters.sort);
+        params.append("page", currentFilters.page);
+        params.append("per_page", 50);
 
         const r = await fetch(`${API_URL}/api/store/plugins?${params}`);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        
+
         const data = await r.json();
         allPlugins = data.plugins;
 
         renderFeatured();
         renderPlugins(allPlugins);
-        
+
         document.getElementById("total-count").textContent = `${data.total} plugins`;
         document.getElementById("last-update").textContent =
             "Cập nhật: " + new Date().toLocaleTimeString("vi-VN");
+
+        // Update active filter count
+        updateFilterBadge();
 
         if (allPlugins.length === 0) {
             empty.style.display = "block";
@@ -51,7 +64,7 @@ async function loadPlugins() {
         console.error(e);
         showToast(`Lỗi: ${e.message}`, "error");
     } finally {
-        loading.style.display = "none";
+        if (loading) loading.style.display = "none";
     }
 }
 
@@ -63,7 +76,6 @@ async function loadCategories() {
     try {
         const r = await fetch(`${API_URL}/api/store/categories`);
         if (!r.ok) return;
-        
         const data = await r.json();
         renderCategories(data.categories);
     } catch (e) {
@@ -79,7 +91,6 @@ async function loadStats() {
     try {
         const r = await fetch(`${API_URL}/api/store/stats`);
         if (!r.ok) return;
-        
         const data = await r.json();
         document.getElementById("stats-summary").textContent =
             `${data.total_plugins} plugins · ${data.total_downloads} downloads`;
@@ -89,47 +100,165 @@ async function loadStats() {
 }
 
 // ============================================================
+// LOAD POPULAR TAGS
+// ============================================================
+
+async function loadTags() {
+    try {
+        const r = await fetch(`${API_URL}/api/store/tags?limit=10`);
+        if (!r.ok) return;
+        const data = await r.json();
+        renderTags(data.tags);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderTags(tags) {
+    const container = document.getElementById("popular-tags");
+    if (!container) return;
+
+    if (!tags || tags.length === 0) {
+        container.innerHTML = '<span style="color: var(--dim); font-size: 0.8rem;">Chưa có tag nào</span>';
+        return;
+    }
+
+    container.innerHTML = tags.map(t =>
+        `<div class="tag-chip ${currentFilters.tag === t.tag ? 'active' : ''}"
+              onclick="filterByTag('${t.tag}')">
+            🏷️ ${t.tag}
+            <span class="tag-count">${t.count}</span>
+        </div>`
+    ).join("");
+}
+
+function filterByTag(tag) {
+    if (currentFilters.tag === tag) {
+        currentFilters.tag = "";
+    } else {
+        currentFilters.tag = tag;
+    }
+    loadTags();
+    loadPlugins();
+}
+
+// ============================================================
+// SEARCH SUGGESTIONS
+// ============================================================
+
+async function fetchSuggestions(q) {
+    if (!q || q.length < 1) {
+        hideSuggestions();
+        return;
+    }
+
+    try {
+        const r = await fetch(`${API_URL}/api/store/search/suggest?q=${encodeURIComponent(q)}`);
+        if (!r.ok) return;
+        const data = await r.json();
+        showSuggestions(data.suggestions);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function showSuggestions(suggestions) {
+    const dropdown = document.getElementById("search-suggestions");
+    if (!dropdown) return;
+
+    if (!suggestions || suggestions.length === 0) {
+        hideSuggestions();
+        return;
+    }
+
+    dropdown.innerHTML = suggestions.map(s => {
+        if (s.type === "plugin") {
+            return `<div class="suggestion-item" onclick="selectSuggestion('plugin', '${s.slug}')">
+                <span class="suggestion-icon">${s.icon || '📦'}</span>
+                <span class="suggestion-text">${s.text}</span>
+                <span class="suggestion-type">plugin</span>
+            </div>`;
+        } else if (s.type === "author") {
+            return `<div class="suggestion-item" onclick="selectSuggestion('author', '${s.text}')">
+                <span class="suggestion-icon">${s.icon}</span>
+                <span class="suggestion-text">${s.text}</span>
+                <span class="suggestion-type">author</span>
+            </div>`;
+        } else if (s.type === "tag") {
+            return `<div class="suggestion-item" onclick="selectSuggestion('tag', '${s.text}')">
+                <span class="suggestion-icon">${s.icon}</span>
+                <span class="suggestion-text">${s.text}</span>
+                <span class="suggestion-type">tag</span>
+            </div>`;
+        }
+    }).join("");
+
+    dropdown.classList.add("open");
+}
+
+function hideSuggestions() {
+    const dropdown = document.getElementById("search-suggestions");
+    if (dropdown) dropdown.classList.remove("open");
+}
+
+function selectSuggestion(type, value) {
+    if (type === "plugin") {
+        // Navigate to plugin detail
+        window.location.href = `plugin.html?slug=${value}`;
+        return;
+    } else if (type === "author") {
+        currentFilters.author = value;
+        currentFilters.search = "";
+        document.getElementById("search-input").value = value;
+    } else if (type === "tag") {
+        currentFilters.tag = value;
+        currentFilters.search = "";
+        document.getElementById("search-input").value = value;
+    }
+    hideSuggestions();
+    loadPlugins();
+    loadTags();
+}
+
+// ============================================================
 // RENDER CATEGORIES
 // ============================================================
 
 function renderCategories(categories) {
     const bar = document.getElementById("categories-bar");
+    if (!bar) return;
     bar.innerHTML = "";
 
-    // "All" chip
     const allChip = document.createElement("div");
-    allChip.className = "category-chip" + (currentCategory === "" ? " active" : "");
+    allChip.className = "category-chip" + (currentFilters.category === "" ? " active" : "");
     allChip.innerHTML = `📁 Tất cả`;
     allChip.onclick = () => {
-        currentCategory = "";
+        currentFilters.category = "";
         loadPlugins();
     };
     bar.appendChild(allChip);
 
-    // Category chips
     categories.forEach(cat => {
         const chip = document.createElement("div");
-        chip.className = "category-chip" + (currentCategory === cat.id ? " active" : "");
-        chip.innerHTML = `
-            ${cat.icon} ${cat.name}
-            <span class="cat-count">${cat.plugin_count || 0}</span>
-        `;
+        chip.className = "category-chip" + (currentFilters.category === cat.id ? " active" : "");
+        chip.innerHTML = `${cat.icon} ${cat.name} <span class="cat-count">${cat.plugin_count || 0}</span>`;
         chip.onclick = () => {
-            currentCategory = cat.id;
+            currentFilters.category = cat.id;
             loadPlugins();
         };
         bar.appendChild(chip);
     });
 
-    // Update select filter
     const select = document.getElementById("category-filter");
-    select.innerHTML = '<option value="">📁 Tất cả</option>';
-    categories.forEach(cat => {
-        const option = document.createElement("option");
-        option.value = cat.id;
-        option.textContent = `${cat.icon} ${cat.name}`;
-        select.appendChild(option);
-    });
+    if (select) {
+        select.innerHTML = '<option value="">📁 Tất cả</option>';
+        categories.forEach(cat => {
+            const option = document.createElement("option");
+            option.value = cat.id;
+            option.textContent = `${cat.icon} ${cat.name}`;
+            select.appendChild(option);
+        });
+    }
 }
 
 // ============================================================
@@ -139,13 +268,15 @@ function renderCategories(categories) {
 function renderFeatured() {
     const featured = allPlugins.filter(p => p.featured).slice(0, 3);
     const grid = document.getElementById("featured-grid");
-    const section = grid.closest(".section");
-    
+    const section = grid ? grid.closest(".section") : null;
+
+    if (!section) return;
+
     if (featured.length === 0) {
         section.style.display = "none";
         return;
     }
-    
+
     section.style.display = "block";
     document.getElementById("featured-count").textContent = `${featured.length} plugins`;
     grid.innerHTML = featured.map(p => renderPluginCard(p)).join("");
@@ -157,12 +288,13 @@ function renderFeatured() {
 
 function renderPlugins(plugins) {
     const grid = document.getElementById("plugins-grid");
-    
+    if (!grid) return;
+
     if (plugins.length === 0) {
         grid.innerHTML = "";
         return;
     }
-    
+
     grid.innerHTML = plugins.map(p => renderPluginCard(p)).join("");
 }
 
@@ -170,12 +302,12 @@ function renderPluginCard(plugin) {
     const verifiedBadge = plugin.verified
         ? '<span class="plugin-badge badge-verified">✓ VERIFIED</span>'
         : "";
-    
+
     const featuredBadge = plugin.featured
         ? '<span class="plugin-badge badge-featured" style="top: 3rem;">⭐ FEATURED</span>'
         : "";
 
-    const stars = "★".repeat(Math.round(plugin.rating || 0)) + 
+    const stars = "★".repeat(Math.round(plugin.rating || 0)) +
                   "☆".repeat(5 - Math.round(plugin.rating || 0));
 
     return `
@@ -195,6 +327,60 @@ function renderPluginCard(plugin) {
 }
 
 // ============================================================
+// FILTER BADGE
+// ============================================================
+
+function updateFilterBadge() {
+    const badge = document.getElementById("filter-badge");
+    if (!badge) return;
+
+    let count = 0;
+    if (currentFilters.author) count++;
+    if (currentFilters.tag) count++;
+    if (currentFilters.min_rating !== null) count++;
+    if (currentFilters.price_type) count++;
+
+    if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = "inline-block";
+    } else {
+        badge.style.display = "none";
+    }
+}
+
+function toggleFilterPanel() {
+    const panel = document.getElementById("filter-panel");
+    if (!panel) return;
+    panel.classList.toggle("open");
+}
+
+function applyAdvancedFilters() {
+    const author = document.getElementById("filter-author").value.trim();
+    const minRating = document.getElementById("filter-rating").value;
+    const priceType = document.getElementById("filter-price").value;
+
+    currentFilters.author = author;
+    currentFilters.min_rating = minRating ? parseFloat(minRating) : null;
+    currentFilters.price_type = priceType;
+
+    loadPlugins();
+    toggleFilterPanel();
+}
+
+function resetFilters() {
+    document.getElementById("filter-author").value = "";
+    document.getElementById("filter-rating").value = "";
+    document.getElementById("filter-price").value = "";
+
+    currentFilters.author = "";
+    currentFilters.min_rating = null;
+    currentFilters.price_type = "";
+
+    loadPlugins();
+    updateFilterBadge();
+}
+
+// ============================================================
 // HELPERS
 // ============================================================
 
@@ -206,12 +392,10 @@ function formatNumber(num) {
 
 function showToast(message, type = "info") {
     const toast = document.getElementById("toast");
+    if (!toast) return;
     toast.textContent = message;
     toast.className = `toast show ${type}`;
-    
-    setTimeout(() => {
-        toast.classList.remove("show");
-    }, 3000);
+    setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
 // ============================================================
@@ -219,26 +403,60 @@ function showToast(message, type = "info") {
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Search input
-    let searchTimeout;
-    document.getElementById("search-input").addEventListener("input", () => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(loadPlugins, 300);
+    // Search input with debounce + suggestions
+    const searchInput = document.getElementById("search-input");
+    if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+            const val = e.target.value.trim();
+            currentFilters.search = val;
+            currentFilters.author = "";
+            currentFilters.tag = "";
+
+            clearTimeout(searchSuggestTimeout);
+            searchSuggestTimeout = setTimeout(() => {
+                loadPlugins();
+            }, 300);
+
+            // Fetch suggestions
+            clearTimeout(window.__suggestTimeout);
+            window.__suggestTimeout = setTimeout(() => {
+                fetchSuggestions(val);
+            }, 150);
+        });
+
+        searchInput.addEventListener("focus", (e) => {
+            if (e.target.value.trim()) fetchSuggestions(e.target.value.trim());
+        });
+    }
+
+    // Hide suggestions when click outside
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".search-box")) {
+            hideSuggestions();
+        }
     });
 
     // Category filter
-    document.getElementById("category-filter").addEventListener("change", (e) => {
-        currentCategory = e.target.value;
-        loadPlugins();
-    });
+    const catFilter = document.getElementById("category-filter");
+    if (catFilter) {
+        catFilter.addEventListener("change", (e) => {
+            currentFilters.category = e.target.value;
+            loadPlugins();
+        });
+    }
 
     // Sort filter
-    document.getElementById("sort-filter").addEventListener("change", () => {
-        loadPlugins();
-    });
+    const sortFilter = document.getElementById("sort-filter");
+    if (sortFilter) {
+        sortFilter.addEventListener("change", (e) => {
+            currentFilters.sort = e.target.value;
+            loadPlugins();
+        });
+    }
 
     // Initial load
     loadStats();
     loadCategories();
+    loadTags();
     loadPlugins();
 });

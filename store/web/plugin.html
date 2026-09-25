@@ -11,10 +11,9 @@
 <body>
 
 <div class="grid-bg"></div>
-<div class="grid-bg"></div>
-<div class="grid-bg"></div>
 <div id="cyberpunk-scene"></div>
 <div id="sakura-container"></div>
+
 <header class="header">
     <div class="logo">
         <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 1rem;">
@@ -49,6 +48,7 @@
 // ============================================================
 
 const API_URL = "http://localhost:8001";
+let selectedRating = 0;
 
 async function loadPluginDetail() {
     const params = new URLSearchParams(window.location.search);
@@ -60,26 +60,35 @@ async function loadPluginDetail() {
     }
 
     try {
-        const r = await fetch(`${API_URL}/api/store/plugins/${slug}`);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        // Fetch plugin + reviews song song
+        const [pluginRes, reviewsRes] = await Promise.all([
+            fetch(`${API_URL}/api/store/plugins/${slug}`),
+            fetch(`${API_URL}/api/store/reviews/${slug}`),
+        ]);
+
+        if (!pluginRes.ok) throw new Error(`HTTP ${pluginRes.status}`);
         
-        const data = await r.json();
-        renderDetail(data);
+        const data = await pluginRes.json();
+        const reviewsData = reviewsRes.ok ? await reviewsRes.json() : { reviews: [], total: 0, breakdown: {} };
+
+        renderDetail(data, reviewsData);
     } catch (e) {
         document.getElementById("loading").innerHTML =
             `<div style="color: var(--red);">❌ Lỗi: ${e.message}</div>`;
     }
 }
 
-function renderDetail(data) {
+function renderDetail(data, reviewsData) {
     const p = data.plugin;
     const versions = data.versions || [];
-    const reviews = data.reviews || [];
+    const reviews = reviewsData.reviews || [];
+    const breakdown = reviewsData.breakdown || {};
     
     const stars = "★".repeat(Math.round(p.rating || 0)) + "☆".repeat(5 - Math.round(p.rating || 0));
     
     const detail = document.getElementById("plugin-detail");
     detail.style.display = "block";
+    document.getElementById("loading").style.display = "none";
     
     detail.innerHTML = `
         <div style="max-width: 900px; margin: 0 auto;">
@@ -148,21 +157,193 @@ function renderDetail(data) {
             
             <!-- REVIEWS -->
             <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
-                <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem;">⭐ ĐÁNH GIÁ (${reviews.length})</h3>
+                <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1.5rem;">⭐ ĐÁNH GIÁ (${reviews.length})</h3>
+
+                ${reviews.length > 0 ? `
+                    <div style="display: flex; gap: 2rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);">
+                        <div style="text-align: center; min-width: 100px;">
+                            <div class="font-display" style="font-size: 3rem; color: var(--yellow); line-height: 1;">${p.rating || "0.0"}</div>
+                            <div style="color: var(--yellow); font-size: 1.2rem; margin: 0.3rem 0;">${stars}</div>
+                            <div style="color: var(--dim); font-size: 0.8rem;">${reviews.length} đánh giá</div>
+                        </div>
+                        <div style="flex: 1;">
+                            ${[5,4,3,2,1].map(star => {
+                                const count = breakdown[star] || 0;
+                                const pct = reviews.length > 0 ? (count / reviews.length * 100) : 0;
+                                return `
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; font-size: 0.85rem;">
+                                        <span style="color: var(--yellow); width: 40px;">${star} ★</span>
+                                        <div style="flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+                                            <div style="width: ${pct}%; height: 100%; background: var(--yellow); transition: width 0.3s;"></div>
+                                        </div>
+                                        <span style="color: var(--dim); width: 30px; text-align: right;">${count}</span>
+                                    </div>
+                                `;
+                            }).join("")}
+                        </div>
+                    </div>
+                ` : ""}
+
+                <!-- Review Form -->
+                <div style="background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 2rem;">
+                    <h4 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem; font-size: 0.95rem;">✍️ VIẾT ĐÁNH GIÁ</h4>
+
+                    <div style="margin-bottom: 0.8rem;">
+                        <label style="color: var(--dim); font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Tên của bạn</label>
+                        <input type="text" id="review-name" placeholder="VD: Thanhdat"
+                            style="width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.85rem; box-sizing: border-box;"
+                            value="${(localStorage.getItem('cognicraft_username') || '').replace(/[^a-zA-Z0-9_\sÀ-ỹ]/g, '')}">
+                    </div>
+
+                    <div style="margin-bottom: 0.8rem;">
+                        <label style="color: var(--dim); font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Đánh giá</label>
+                        <div id="review-stars" style="font-size: 1.8rem; cursor: pointer; user-select: none;">
+                            ${[1,2,3,4,5].map(i => `<span data-star="${i}" style="color: var(--dim); transition: color 0.15s;">★</span>`).join("")}
+                        </div>
+                        <input type="hidden" id="review-rating" value="0">
+                    </div>
+
+                    <div style="margin-bottom: 0.8rem;">
+                        <label style="color: var(--dim); font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Nhận xét (tùy chọn)</label>
+                        <textarea id="review-comment" rows="3" placeholder="Plugin này thế nào?"
+                            style="width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.85rem; resize: vertical; box-sizing: border-box;"></textarea>
+                    </div>
+
+                    <button onclick="submitReview('${p.slug}')"
+                        style="background: var(--green); color: var(--bg); border: none; border-radius: 6px; padding: 0.6rem 1.5rem; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px var(--green);">
+                        🚀 GỬI ĐÁNH GIÁ
+                    </button>
+                </div>
+
+                <!-- Review List -->
                 ${reviews.length === 0
-                    ? '<p style="color: var(--dim);">Chưa có đánh giá nào.</p>'
+                    ? '<p style="color: var(--dim); text-align: center; padding: 1rem;">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>'
                     : reviews.map(r => `
-                        <div style="padding: 0.8rem; border-bottom: 1px solid var(--border);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-                                <strong style="color: var(--text);">${r.user_name || "Anonymous"}</strong>
-                                <span style="color: var(--yellow);">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</span>
+                        <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--bg);">
+                                        ${(r.user_name || "A").charAt(0).toUpperCase()}
+                                    </div>
+                                    <strong style="color: var(--text); font-size: 0.9rem;">${r.user_name || "Anonymous"}</strong>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="color: var(--yellow); font-size: 0.95rem;">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</div>
+                                    <div style="color: var(--dim); font-size: 0.7rem;">${new Date(r.created_at).toLocaleDateString("vi-VN")}</div>
+                                </div>
                             </div>
-                            <p style="color: var(--dim); font-size: 0.85rem;">${r.comment || ""}</p>
+                            ${r.comment ? `<p style="color: var(--text); font-size: 0.85rem; line-height: 1.5; margin-top: 0.5rem;">${r.comment}</p>` : ""}
+                            <div style="margin-top: 0.5rem;">
+                                <button onclick="markHelpful('${r.id}', this)"
+                                    style="background: transparent; border: 1px solid var(--border); border-radius: 4px; padding: 0.3rem 0.6rem; color: var(--dim); font-family: inherit; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;">
+                                    👍 Hữu ích ${r.helpful_count > 0 ? `(${r.helpful_count})` : ""}
+                                </button>
+                            </div>
                         </div>
                     `).join("")}
             </div>
         </div>
     `;
+
+    // Init star rating
+    setTimeout(initStarRating, 50);
+}
+
+// ============================================================
+// REVIEW FUNCTIONS
+// ============================================================
+
+function initStarRating() {
+    const container = document.getElementById('review-stars');
+    if (!container) return;
+
+    const stars = container.querySelectorAll('span');
+    stars.forEach(star => {
+        const val = parseInt(star.dataset.star);
+
+        star.addEventListener('mouseenter', () => {
+            stars.forEach((s, i) => {
+                s.style.color = i < val ? '#ffcc00' : 'var(--dim)';
+            });
+        });
+
+        star.addEventListener('click', () => {
+            selectedRating = val;
+            document.getElementById('review-rating').value = val;
+            stars.forEach((s, i) => {
+                s.style.color = i < val ? '#ffcc00' : 'var(--dim)';
+            });
+        });
+    });
+
+    container.addEventListener('mouseleave', () => {
+        stars.forEach((s, i) => {
+            s.style.color = i < selectedRating ? '#ffcc00' : 'var(--dim)';
+        });
+    });
+}
+
+async function submitReview(slug) {
+    const name = document.getElementById('review-name').value.trim();
+    const rating = parseInt(document.getElementById('review-rating').value);
+    const comment = document.getElementById('review-comment').value.trim();
+
+    if (!name) {
+        showToast('❌ Nhập tên của bạn', 'error');
+        return;
+    }
+    if (rating < 1 || rating > 5) {
+        showToast('❌ Chọn số sao (1-5)', 'error');
+        return;
+    }
+
+    localStorage.setItem('cognicraft_username', name);
+
+    const payload = {
+        user_id: name.toLowerCase().replace(/\s+/g, '_'),
+        user_name: name,
+        rating: rating,
+        comment: comment || null,
+    };
+
+    try {
+        const r = await fetch(`${API_URL}/api/store/reviews/${slug}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await r.json();
+
+        if (!r.ok) {
+            throw new Error(data.detail || `HTTP ${r.status}`);
+        }
+
+        showToast(`✅ ${data.message}`, 'success');
+
+        setTimeout(() => loadPluginDetail(), 800);
+
+    } catch (e) {
+        showToast(`❌ ${e.message}`, 'error');
+    }
+}
+
+async function markHelpful(reviewId, btn) {
+    try {
+        const r = await fetch(`${API_URL}/api/store/reviews/${reviewId}/helpful`, {
+            method: 'POST',
+        });
+        const data = await r.json();
+
+        if (data.success) {
+            btn.textContent = `👍 Hữu ích (${data.helpful_count})`;
+            btn.style.color = 'var(--cyan)';
+            btn.style.borderColor = 'var(--cyan)';
+            btn.disabled = true;
+        }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 async function installPlugin(slug) {

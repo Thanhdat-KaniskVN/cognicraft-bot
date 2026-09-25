@@ -11,9 +11,9 @@
 <body>
 
 <div class="grid-bg"></div>
-<div class="grid-bg"></div>
 <div id="cyberpunk-scene"></div>
 <div id="sakura-container"></div>
+
 <header class="header">
     <div class="logo">
         <span class="logo-icon">🏛️</span>
@@ -42,22 +42,66 @@
     <section class="controls">
         <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input type="text" id="search-input" placeholder="Tìm plugin...">
+            <input type="text" id="search-input" placeholder="Tìm plugin, author, tag..." autocomplete="off">
+            <div id="search-suggestions" class="search-suggestions"></div>
         </div>
+
         <select id="category-filter" class="filter-select">
             <option value="">📁 Tất cả</option>
         </select>
+
         <select id="sort-filter" class="filter-select">
             <option value="downloads">📥 Nhiều tải nhất</option>
             <option value="rating">⭐ Đánh giá cao</option>
+            <option value="trending">🔥 Trending</option>
             <option value="created_at">🆕 Mới nhất</option>
             <option value="name">🔤 Tên A-Z</option>
         </select>
+
+        <button class="filter-toggle-btn" onclick="toggleFilterPanel()">
+            ⚙️ Bộ lọc <span id="filter-badge" class="filter-badge" style="display: none;">0</span>
+        </button>
+    </section>
+
+    <!-- ADVANCED FILTER PANEL -->
+    <section id="filter-panel" class="filter-panel">
+        <div class="filter-row">
+            <div class="filter-field">
+                <label>Tác giả</label>
+                <input type="text" id="filter-author" placeholder="VD: Thanhdat">
+            </div>
+            <div class="filter-field">
+                <label>Đánh giá tối thiểu</label>
+                <select id="filter-rating">
+                    <option value="">Tất cả</option>
+                    <option value="4.5">4.5★ trở lên</option>
+                    <option value="4">4★ trở lên</option>
+                    <option value="3">3★ trở lên</option>
+                </select>
+            </div>
+            <div class="filter-field">
+                <label>Loại</label>
+                <select id="filter-price">
+                    <option value="">Tất cả</option>
+                    <option value="free">Miễn phí</option>
+                    <option value="paid">Trả phí</option>
+                    <option value="freemium">Freemium</option>
+                </select>
+            </div>
+        </div>
+        <div class="filter-actions">
+            <button class="btn-primary" onclick="applyAdvancedFilters()">✅ Áp dụng</button>
+            <button class="btn-secondary" onclick="resetFilters()">🔄 Reset</button>
+        </div>
     </section>
 
     <!-- CATEGORIES -->
-    <section class="categories" id="categories-bar">
-        <!-- Filled by JS -->
+    <section class="categories" id="categories-bar"></section>
+
+    <!-- POPULAR TAGS -->
+    <section class="tags-section">
+        <div class="tags-label">🏷️ POPULAR TAGS:</div>
+        <div class="tags-list" id="popular-tags">Đang tải...</div>
     </section>
 
     <!-- FEATURED -->
@@ -66,9 +110,7 @@
             <h3 class="font-heading">🌟 FEATURED</h3>
             <span class="count" id="featured-count"></span>
         </div>
-        <div class="plugins-grid" id="featured-grid">
-            <!-- Filled by JS -->
-        </div>
+        <div class="plugins-grid" id="featured-grid"></div>
     </section>
 
     <!-- ALL PLUGINS -->
@@ -77,9 +119,7 @@
             <h3 class="font-heading">📦 TẤT CẢ PLUGINS</h3>
             <span class="count" id="total-count"></span>
         </div>
-        <div class="plugins-grid" id="plugins-grid">
-            <!-- Filled by JS -->
-        </div>
+        <div class="plugins-grid" id="plugins-grid"></div>
         <div class="loading-state" id="loading" style="display:none;">
             <span class="spinner"></span> Đang tải...
         </div>
@@ -91,12 +131,11 @@
 
     <!-- FOOTER -->
     <footer class="footer">
-        <span>CogniCraft Store v1.0.0</span>
+        <span>CogniCraft Store v2.2.0</span>
         <span id="last-update">—</span>
     </footer>
 </main>
 
-<!-- TOAST -->
 <div id="toast" class="toast"></div>
 
 <script src="theme-switcher.js"></script>
