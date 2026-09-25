@@ -7,3 +7,4 @@ python-multipart>=0.0.9
 httpx>=0.25.0
 google-auth>=2.23.0
 pyjwt>=2.8.0
+requests>=2.31.0
