@@ -33,25 +33,47 @@
     <div class="loading-state" id="loading">
         <span class="spinner"></span> Đang tải plugin...
     </div>
-    
     <div id="plugin-detail" style="display:none;"></div>
 </main>
 
 <div id="toast" class="toast"></div>
 
+<script src="config.js"></script>
 <script src="theme-switcher.js"></script>
 <script>
-// ============================================================
-// PLUGIN DETAIL PAGE (Phase 2.3 — linked to author/user)
-// ============================================================
-
-const API_URL = "http://localhost:8001";
+const API_URL = window.STORE_API || "http://localhost:8001";
 let selectedRating = 0;
 
+// ============================================================
+// SECURITY
+// ============================================================
+function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+        .replace(/`/g, "&#96;");
+}
+
+function escapeJs(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/\\/g, "\\\\")
+        .replace(/`/g, "\\`")
+        .replace(/\$\{/g, "\\${")
+        .replace(/'/g, "\\'");
+}
+
+// ============================================================
+// LOAD
+// ============================================================
 async function loadPluginDetail() {
     const params = new URLSearchParams(window.location.search);
     const slug = params.get("slug");
-    
+
     if (!slug) {
         window.location.href = "index.html";
         return;
@@ -59,19 +81,19 @@ async function loadPluginDetail() {
 
     try {
         const [pluginRes, reviewsRes] = await Promise.all([
-            fetch(`${API_URL}/api/store/plugins/${slug}`),
-            fetch(`${API_URL}/api/store/reviews/${slug}`),
+            fetch(`${API_URL}/api/store/plugins/${encodeURIComponent(slug)}`),
+            fetch(`${API_URL}/api/store/reviews/${encodeURIComponent(slug)}`),
         ]);
 
         if (!pluginRes.ok) throw new Error(`HTTP ${pluginRes.status}`);
-        
+
         const data = await pluginRes.json();
         const reviewsData = reviewsRes.ok ? await reviewsRes.json() : { reviews: [], total: 0, breakdown: {} };
 
         renderDetail(data, reviewsData);
     } catch (e) {
         document.getElementById("loading").innerHTML =
-            `<div style="color: var(--red);">❌ Lỗi: ${e.message}</div>`;
+            `<div style="color: var(--red);">❌ Lỗi: ${escapeHtml(e.message)}</div>`;
     }
 }
 
@@ -80,88 +102,61 @@ function renderDetail(data, reviewsData) {
     const versions = data.versions || [];
     const reviews = reviewsData.reviews || [];
     const breakdown = reviewsData.breakdown || {};
-    
+
     const stars = "★".repeat(Math.round(p.rating || 0)) + "☆".repeat(5 - Math.round(p.rating || 0));
-    
+
     const detail = document.getElementById("plugin-detail");
     detail.style.display = "block";
     document.getElementById("loading").style.display = "none";
-    
+
     detail.innerHTML = `
         <div style="max-width: 900px; margin: 0 auto;">
-            <!-- HEADER -->
-            <div class="plugin-detail-header" style="
-                display: flex;
-                gap: 2rem;
-                align-items: flex-start;
-                padding: 2rem;
-                background: linear-gradient(135deg, var(--bg-elev) 0%, var(--card) 100%);
-                border: 1px solid var(--border);
-                border-radius: 12px;
-                margin-bottom: 2rem;
-            ">
-                <div style="font-size: 5rem;">${p.icon || "📦"}</div>
+            <div class="plugin-detail-header" style="display: flex; gap: 2rem; align-items: flex-start; padding: 2rem; background: linear-gradient(135deg, var(--bg-elev) 0%, var(--card) 100%); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 2rem;">
+                <div style="font-size: 5rem;">${escapeHtml(p.icon || "📦")}</div>
                 <div style="flex: 1;">
-                    <h2 class="font-display" style="font-size: 2rem; color: var(--cyan); margin-bottom: 0.5rem;">${p.name}</h2>
-                    <p style="color: var(--dim); margin-bottom: 1rem;">${p.description || ""}</p>
+                    <h2 class="font-display" style="font-size: 2rem; color: var(--cyan); margin-bottom: 0.5rem;">${escapeHtml(p.name)}</h2>
+                    <p style="color: var(--dim); margin-bottom: 1rem;">${escapeHtml(p.description || "")}</p>
                     <div style="display: flex; gap: 2rem; font-size: 0.9rem; color: var(--dim); flex-wrap: wrap; align-items: center;">
-                        <a href="author.html?username=${encodeURIComponent(p.author)}" style="color: var(--dim); text-decoration: none; border-bottom: 1px dashed var(--dim); transition: all 0.2s; padding-bottom: 1px;" onmouseover="this.style.color='var(--cyan)'; this.style.borderBottomColor='var(--cyan)'" onmouseout="this.style.color='var(--dim)'; this.style.borderBottomColor='var(--dim)'">👤 ${p.author}</a>
-                        <span>📁 ${p.category}</span>
-                        <span style="color: var(--yellow);">${stars} ${p.rating}</span>
-                        <span>📥 ${p.downloads} downloads</span>
+                        <a href="author.html?username=${encodeURIComponent(p.author)}" style="color: var(--dim); text-decoration: none; border-bottom: 1px dashed var(--dim); transition: all 0.2s; padding-bottom: 1px;" onmouseover="this.style.color='var(--cyan)'; this.style.borderBottomColor='var(--cyan)'" onmouseout="this.style.color='var(--dim)'; this.style.borderBottomColor='var(--dim)'">👤 ${escapeHtml(p.author)}</a>
+                        <span>📁 ${escapeHtml(p.category)}</span>
+                        <span style="color: var(--yellow);">${stars} ${escapeHtml(p.rating)}</span>
+                        <span>📥 ${escapeHtml(p.downloads)} downloads</span>
                     </div>
                 </div>
-                <button onclick="installPlugin('${p.slug}')" style="
-                    padding: 1rem 2rem;
-                    background: var(--green);
-                    color: var(--bg);
-                    border: none;
-                    border-radius: 8px;
-                    font-family: inherit;
-                    font-size: 1rem;
-                    font-weight: 700;
-                    cursor: pointer;
-                    box-shadow: 0 0 20px var(--green);
-                    transition: all 0.2s;
-                " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    📥 INSTALL
-                </button>
+                <button onclick="installPlugin('${escapeJs(p.slug)}')" style="padding: 1rem 2rem; background: var(--green); color: var(--bg); border: none; border-radius: 8px; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 0 20px var(--green); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">📥 INSTALL</button>
             </div>
-            
-            <!-- DESCRIPTION -->
+
             ${p.long_description ? `
                 <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
                     <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem;">📝 MÔ TẢ</h3>
-                    <p style="color: var(--text); line-height: 1.7;">${p.long_description}</p>
+                    <p style="color: var(--text); line-height: 1.7;">${escapeHtml(p.long_description)}</p>
                 </div>
             ` : ""}
-            
-            <!-- VERSIONS -->
+
             ${versions.length > 0 ? `
                 <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
                     <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem;">📋 PHIÊN BẢN</h3>
                     ${versions.map(v => `
                         <div style="padding: 0.8rem; border-left: 3px solid var(--cyan); margin-bottom: 0.5rem; background: rgba(var(--primary-rgb), 0.03);">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-                                <strong style="color: var(--text);">v${v.version}</strong>
+                                <strong style="color: var(--text);">v${escapeHtml(v.version)}</strong>
                                 <span style="color: var(--dim); font-size: 0.8rem;">${new Date(v.created_at).toLocaleDateString("vi-VN")}</span>
                             </div>
-                            <p style="color: var(--dim); font-size: 0.85rem;">${v.changelog || ""}</p>
+                            <p style="color: var(--dim); font-size: 0.85rem;">${escapeHtml(v.changelog || "")}</p>
                         </div>
                     `).join("")}
                 </div>
             ` : ""}
-            
-            <!-- REVIEWS -->
+
             <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
-                <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1.5rem;">⭐ ĐÁNH GIÁ (${reviews.length})</h3>
+                <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1.5rem;">⭐ ĐÁNH GIÁ (${escapeHtml(reviews.length)})</h3>
 
                 ${reviews.length > 0 ? `
                     <div style="display: flex; gap: 2rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);">
                         <div style="text-align: center; min-width: 100px;">
-                            <div class="font-display" style="font-size: 3rem; color: var(--yellow); line-height: 1;">${p.rating || "0.0"}</div>
+                            <div class="font-display" style="font-size: 3rem; color: var(--yellow); line-height: 1;">${escapeHtml(p.rating || "0.0")}</div>
                             <div style="color: var(--yellow); font-size: 1.2rem; margin: 0.3rem 0;">${stars}</div>
-                            <div style="color: var(--dim); font-size: 0.8rem;">${reviews.length} đánh giá</div>
+                            <div style="color: var(--dim); font-size: 0.8rem;">${escapeHtml(reviews.length)} đánh giá</div>
                         </div>
                         <div style="flex: 1;">
                             ${[5,4,3,2,1].map(star => {
@@ -173,7 +168,7 @@ function renderDetail(data, reviewsData) {
                                         <div style="flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
                                             <div style="width: ${pct}%; height: 100%; background: var(--yellow); transition: width 0.3s;"></div>
                                         </div>
-                                        <span style="color: var(--dim); width: 30px; text-align: right;">${count}</span>
+                                        <span style="color: var(--dim); width: 30px; text-align: right;">${escapeHtml(count)}</span>
                                     </div>
                                 `;
                             }).join("")}
@@ -181,15 +176,12 @@ function renderDetail(data, reviewsData) {
                     </div>
                 ` : ""}
 
-                <!-- Review Form -->
                 <div style="background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 2rem;">
                     <h4 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem; font-size: 0.95rem;">✍️ VIẾT ĐÁNH GIÁ</h4>
 
                     <div style="margin-bottom: 0.8rem;">
                         <label style="color: var(--dim); font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Tên của bạn</label>
-                        <input type="text" id="review-name" placeholder="VD: Thanhdat"
-                            style="width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.85rem; box-sizing: border-box;"
-                            value="${(localStorage.getItem('cognicraft_username') || '').replace(/[^a-zA-Z0-9_\sÀ-ỹ]/g, '')}">
+                        <input type="text" id="review-name" placeholder="VD: Thanhdat" style="width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.85rem; box-sizing: border-box;" value="${escapeHtml((localStorage.getItem('cognicraft_username') || '').replace(/[^a-zA-Z0-9_\sÀ-ỹ]/g, ''))}">
                     </div>
 
                     <div style="margin-bottom: 0.8rem;">
@@ -202,17 +194,12 @@ function renderDetail(data, reviewsData) {
 
                     <div style="margin-bottom: 0.8rem;">
                         <label style="color: var(--dim); font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Nhận xét (tùy chọn)</label>
-                        <textarea id="review-comment" rows="3" placeholder="Plugin này thế nào?"
-                            style="width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.85rem; resize: vertical; box-sizing: border-box;"></textarea>
+                        <textarea id="review-comment" rows="3" placeholder="Plugin này thế nào?" style="width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.85rem; resize: vertical; box-sizing: border-box;"></textarea>
                     </div>
 
-                    <button onclick="submitReview('${p.slug}')"
-                        style="background: var(--green); color: var(--bg); border: none; border-radius: 6px; padding: 0.6rem 1.5rem; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px var(--green);">
-                        🚀 GỬI ĐÁNH GIÁ
-                    </button>
+                    <button onclick="submitReview('${escapeJs(p.slug)}')" style="background: var(--green); color: var(--bg); border: none; border-radius: 6px; padding: 0.6rem 1.5rem; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px var(--green);">🚀 GỬI ĐÁNH GIÁ</button>
                 </div>
 
-                <!-- Review List -->
                 ${reviews.length === 0
                     ? '<p style="color: var(--dim); text-align: center; padding: 1rem;">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>'
                     : reviews.map(r => `
@@ -220,10 +207,8 @@ function renderDetail(data, reviewsData) {
                             <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; align-items: center;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <a href="user.html?username=${encodeURIComponent((r.user_name || 'anonymous').toLowerCase().replace(/\s+/g, '_'))}" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
-                                        <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--bg);">
-                                            ${(r.user_name || "A").charAt(0).toUpperCase()}
-                                        </div>
-                                        <strong style="color: var(--text); font-size: 0.9rem; border-bottom: 1px dashed var(--dim); padding-bottom: 1px;" onmouseover="this.style.color='var(--cyan)'; this.style.borderBottomColor='var(--cyan)'" onmouseout="this.style.color='var(--text)'; this.style.borderBottomColor='var(--dim)'">${r.user_name || "Anonymous"}</strong>
+                                        <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--bg);">${escapeHtml((r.user_name || "A").charAt(0).toUpperCase())}</div>
+                                        <strong style="color: var(--text); font-size: 0.9rem; border-bottom: 1px dashed var(--dim); padding-bottom: 1px;" onmouseover="this.style.color='var(--cyan)'; this.style.borderBottomColor='var(--cyan)'" onmouseout="this.style.color='var(--text)'; this.style.borderBottomColor='var(--dim)'">${escapeHtml(r.user_name || "Anonymous")}</strong>
                                     </a>
                                 </div>
                                 <div style="text-align: right;">
@@ -231,12 +216,9 @@ function renderDetail(data, reviewsData) {
                                     <div style="color: var(--dim); font-size: 0.7rem;">${new Date(r.created_at).toLocaleDateString("vi-VN")}</div>
                                 </div>
                             </div>
-                            ${r.comment ? `<p style="color: var(--text); font-size: 0.85rem; line-height: 1.5; margin-top: 0.5rem;">${r.comment}</p>` : ""}
+                            ${r.comment ? `<p style="color: var(--text); font-size: 0.85rem; line-height: 1.5; margin-top: 0.5rem;">${escapeHtml(r.comment)}</p>` : ""}
                             <div style="margin-top: 0.5rem;">
-                                <button onclick="markHelpful('${r.id}', this)"
-                                    style="background: transparent; border: 1px solid var(--border); border-radius: 4px; padding: 0.3rem 0.6rem; color: var(--dim); font-family: inherit; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;">
-                                    👍 Hữu ích ${r.helpful_count > 0 ? `(${r.helpful_count})` : ""}
-                                </button>
+                                <button onclick="markHelpful('${escapeJs(r.id)}', this)" style="background: transparent; border: 1px solid var(--border); border-radius: 4px; padding: 0.3rem 0.6rem; color: var(--dim); font-family: inherit; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;">👍 Hữu ích ${r.helpful_count > 0 ? `(${escapeHtml(r.helpful_count)})` : ""}</button>
                             </div>
                         </div>
                     `).join("")}
@@ -246,10 +228,6 @@ function renderDetail(data, reviewsData) {
 
     setTimeout(initStarRating, 50);
 }
-
-// ============================================================
-// REVIEW FUNCTIONS
-// ============================================================
 
 function initStarRating() {
     const container = document.getElementById('review-stars');
@@ -286,14 +264,8 @@ async function submitReview(slug) {
     const rating = parseInt(document.getElementById('review-rating').value);
     const comment = document.getElementById('review-comment').value.trim();
 
-    if (!name) {
-        showToast('❌ Nhập tên của bạn', 'error');
-        return;
-    }
-    if (rating < 1 || rating > 5) {
-        showToast('❌ Chọn số sao (1-5)', 'error');
-        return;
-    }
+    if (!name) { showToast('❌ Nhập tên của bạn', 'error'); return; }
+    if (rating < 1 || rating > 5) { showToast('❌ Chọn số sao (1-5)', 'error'); return; }
 
     localStorage.setItem('cognicraft_username', name);
 
@@ -305,21 +277,17 @@ async function submitReview(slug) {
     };
 
     try {
-        const r = await fetch(`${API_URL}/api/store/reviews/${slug}`, {
+        const r = await fetch(`${API_URL}/api/store/reviews/${encodeURIComponent(slug)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
 
         const data = await r.json();
-
-        if (!r.ok) {
-            throw new Error(data.detail || `HTTP ${r.status}`);
-        }
+        if (!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
 
         showToast(`✅ ${data.message}`, 'success');
         setTimeout(() => loadPluginDetail(), 800);
-
     } catch (e) {
         showToast(`❌ ${e.message}`, 'error');
     }
@@ -327,29 +295,21 @@ async function submitReview(slug) {
 
 async function markHelpful(reviewId, btn) {
     try {
-        const r = await fetch(`${API_URL}/api/store/reviews/${reviewId}/helpful`, {
-            method: 'POST',
-        });
+        const r = await fetch(`${API_URL}/api/store/reviews/${reviewId}/helpful`, { method: 'POST' });
         const data = await r.json();
-
         if (data.success) {
             btn.textContent = `👍 Hữu ích (${data.helpful_count})`;
             btn.style.color = 'var(--cyan)';
             btn.style.borderColor = 'var(--cyan)';
             btn.disabled = true;
         }
-    } catch (e) {
-        console.error(e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 async function installPlugin(slug) {
     try {
-        const r = await fetch(`${API_URL}/api/store/install/${slug}`, {
-            method: "POST",
-        });
+        const r = await fetch(`${API_URL}/api/store/install/${slug}`, { method: "POST" });
         const data = await r.json();
-        
         if (data.success) {
             showToast(`✅ Đã install ${data.name} v${data.version}!`, "success");
         } else {

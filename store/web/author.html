@@ -39,10 +39,37 @@
 
 <div id="toast" class="toast"></div>
 
+<script src="config.js"></script>
 <script src="theme-switcher.js"></script>
 <script>
-const API_URL = "http://localhost:8001";
+const API_URL = window.STORE_API || "http://localhost:8001";
 
+// ============================================================
+// SECURITY
+// ============================================================
+function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+        .replace(/`/g, "&#96;");
+}
+
+function escapeJs(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/\\/g, "\\\\")
+        .replace(/`/g, "\\`")
+        .replace(/\$\{/g, "\\${")
+        .replace(/'/g, "\\'");
+}
+
+// ============================================================
+// LOAD
+// ============================================================
 async function loadAuthorProfile() {
     const params = new URLSearchParams(window.location.search);
     const username = params.get("username") || params.get("u");
@@ -60,7 +87,7 @@ async function loadAuthorProfile() {
         renderProfile(data);
     } catch (e) {
         document.getElementById("loading").innerHTML =
-            `<div style="color: var(--red);">❌ Lỗi: ${e.message}</div>`;
+            `<div style="color: var(--red);">❌ Lỗi: ${escapeHtml(e.message)}</div>`;
     }
 }
 
@@ -73,7 +100,7 @@ function renderProfile(data) {
         container.innerHTML = `
             <div style="max-width: 800px; margin: 0 auto; text-align: center; padding: 4rem 2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
                 <div style="font-size: 4rem; margin-bottom: 1rem;">👤</div>
-                <h2 class="font-display" style="color: var(--cyan); margin-bottom: 0.5rem;">${data.display_name || data.username}</h2>
+                <h2 class="font-display" style="color: var(--cyan); margin-bottom: 0.5rem;">${escapeHtml(data.display_name || data.username)}</h2>
                 <p style="color: var(--dim);">Chưa publish plugin nào.</p>
                 <a href="index.html" style="display: inline-block; margin-top: 2rem; color: var(--cyan); text-decoration: none; border: 1px solid var(--cyan); padding: 0.6rem 1.5rem; border-radius: 6px;">← Về trang chủ</a>
             </div>
@@ -82,7 +109,7 @@ function renderProfile(data) {
     }
 
     const s = data.stats;
-    const initial = (data.display_name || data.username).charAt(0).toUpperCase();
+    const initial = escapeHtml((data.display_name || data.username || "?").charAt(0).toUpperCase());
 
     container.innerHTML = `
         <div style="max-width: 1200px; margin: 0 auto;">
@@ -94,35 +121,35 @@ function renderProfile(data) {
 
                     <div style="flex: 1; min-width: 250px;">
                         <div style="color: var(--dim); font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.3rem;">AUTHOR</div>
-                        <h2 class="font-display" style="color: var(--cyan); font-size: 2.2rem; margin-bottom: 0.5rem;">${data.display_name}</h2>
-                        <p style="color: var(--dim); font-size: 0.9rem;">@${data.username}</p>
+                        <h2 class="font-display" style="color: var(--cyan); font-size: 2.2rem; margin-bottom: 0.5rem;">${escapeHtml(data.display_name)}</h2>
+                        <p style="color: var(--dim); font-size: 0.9rem;">@${escapeHtml(data.username)}</p>
                     </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 2rem;">
                     <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border);">
                         <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase;">Plugins</div>
-                        <div class="font-display" style="color: var(--cyan); font-size: 1.8rem;">${s.total_plugins}</div>
+                        <div class="font-display" style="color: var(--cyan); font-size: 1.8rem;">${escapeHtml(s.total_plugins)}</div>
                     </div>
                     <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border);">
                         <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase;">Downloads</div>
-                        <div class="font-display" style="color: var(--green); font-size: 1.8rem;">${formatNumber(s.total_downloads)}</div>
+                        <div class="font-display" style="color: var(--green); font-size: 1.8rem;">${escapeHtml(formatNumber(s.total_downloads))}</div>
                     </div>
                     <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border);">
                         <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase;">Rating</div>
-                        <div class="font-display" style="color: var(--yellow); font-size: 1.8rem;">${s.avg_rating > 0 ? s.avg_rating : '—'}</div>
+                        <div class="font-display" style="color: var(--yellow); font-size: 1.8rem;">${escapeHtml(s.avg_rating > 0 ? s.avg_rating : '—')}</div>
                     </div>
                     <div style="padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid var(--border);">
                         <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase;">Reviews</div>
-                        <div class="font-display" style="color: var(--purple); font-size: 1.8rem;">${s.total_reviews}</div>
+                        <div class="font-display" style="color: var(--purple); font-size: 1.8rem;">${escapeHtml(s.total_reviews)}</div>
                     </div>
                 </div>
             </div>
 
             <div class="section">
                 <div class="section-header">
-                    <h3 class="font-heading">📦 PLUGINS CỦA ${data.display_name.toUpperCase()}</h3>
-                    <span class="count">${data.plugins.length} plugins</span>
+                    <h3 class="font-heading">📦 PLUGINS CỦA ${escapeHtml(data.display_name.toUpperCase())}</h3>
+                    <span class="count">${escapeHtml(data.plugins.length)} plugins</span>
                 </div>
                 <div class="plugins-grid">
                     ${data.plugins.map(p => renderPluginCard(p)).join("")}
@@ -138,16 +165,16 @@ function renderPluginCard(plugin) {
     const featuredBadge = plugin.featured ? '<span class="plugin-badge badge-featured" style="top: 3rem;">⭐ FEATURED</span>' : "";
 
     return `
-        <a href="plugin.html?slug=${plugin.slug}" class="plugin-card">
+        <a href="plugin.html?slug=${escapeHtml(plugin.slug)}" class="plugin-card">
             ${verifiedBadge}
             ${featuredBadge}
-            <div class="plugin-icon">${plugin.icon || "📦"}</div>
-            <div class="plugin-name">${plugin.name}</div>
-            <div class="plugin-author">v${plugin.latest_version || "1.0.0"}</div>
-            <div class="plugin-desc">${plugin.description || ""}</div>
+            <div class="plugin-icon">${escapeHtml(plugin.icon || "📦")}</div>
+            <div class="plugin-name">${escapeHtml(plugin.name)}</div>
+            <div class="plugin-author">v${escapeHtml(plugin.latest_version || "1.0.0")}</div>
+            <div class="plugin-desc">${escapeHtml(plugin.description || "")}</div>
             <div class="plugin-meta">
-                <span class="plugin-rating">${stars} ${plugin.rating || "0.0"}</span>
-                <span class="plugin-downloads">📥 ${formatNumber(plugin.downloads || 0)}</span>
+                <span class="plugin-rating">${stars} ${escapeHtml(plugin.rating || "0.0")}</span>
+                <span class="plugin-downloads">📥 ${escapeHtml(formatNumber(plugin.downloads || 0))}</span>
             </div>
         </a>
     `;

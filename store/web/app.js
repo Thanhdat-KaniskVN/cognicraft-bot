@@ -2,7 +2,7 @@
 // COGNICRAFT STORE - Frontend v2.2 (Advanced Search)
 // ============================================================
 
-const API_URL = "http://localhost:8001";
+const API_URL = window.STORE_API || "http://localhost:8001";
 
 let allPlugins = [];
 let currentFilters = {
@@ -125,9 +125,9 @@ function renderTags(tags) {
 
     container.innerHTML = tags.map(t =>
         `<div class="tag-chip ${currentFilters.tag === t.tag ? 'active' : ''}"
-              onclick="filterByTag('${t.tag}')">
-            🏷️ ${t.tag}
-            <span class="tag-count">${t.count}</span>
+              onclick="filterByTag('${escapeHtml(t.tag)}')">
+            🏷️ ${escapeHtml(t.tag)}
+            <span class="tag-count">${escapeHtml(t.count)}</span>
         </div>`
     ).join("");
 }
@@ -173,21 +173,21 @@ function showSuggestions(suggestions) {
 
     dropdown.innerHTML = suggestions.map(s => {
         if (s.type === "plugin") {
-            return `<div class="suggestion-item" onclick="selectSuggestion('plugin', '${s.slug}')">
-                <span class="suggestion-icon">${s.icon || '📦'}</span>
-                <span class="suggestion-text">${s.text}</span>
+            return `<div class="suggestion-item" onclick="selectSuggestion('plugin', '${escapeHtml(s.slug)}')">
+                <span class="suggestion-icon">${escapeHtml(s.icon || '📦')}</span>
+                <span class="suggestion-text">${escapeHtml(s.text)}</span>
                 <span class="suggestion-type">plugin</span>
             </div>`;
         } else if (s.type === "author") {
-            return `<div class="suggestion-item" onclick="selectSuggestion('author', '${s.text}')">
-                <span class="suggestion-icon">${s.icon}</span>
-                <span class="suggestion-text">${s.text}</span>
+            return `<div class="suggestion-item" onclick="selectSuggestion('author', '${escapeHtml(s.text)}')">
+                <span class="suggestion-icon">${escapeHtml(s.icon)}</span>
+                <span class="suggestion-text">${escapeHtml(s.text)}</span>
                 <span class="suggestion-type">author</span>
             </div>`;
         } else if (s.type === "tag") {
-            return `<div class="suggestion-item" onclick="selectSuggestion('tag', '${s.text}')">
-                <span class="suggestion-icon">${s.icon}</span>
-                <span class="suggestion-text">${s.text}</span>
+            return `<div class="suggestion-item" onclick="selectSuggestion('tag', '${escapeHtml(s.text)}')">
+                <span class="suggestion-icon">${escapeHtml(s.icon)}</span>
+                <span class="suggestion-text">${escapeHtml(s.text)}</span>
                 <span class="suggestion-type">tag</span>
             </div>`;
         }
@@ -241,7 +241,7 @@ function renderCategories(categories) {
     categories.forEach(cat => {
         const chip = document.createElement("div");
         chip.className = "category-chip" + (currentFilters.category === cat.id ? " active" : "");
-        chip.innerHTML = `${cat.icon} ${cat.name} <span class="cat-count">${cat.plugin_count || 0}</span>`;
+        chip.innerHTML = `${escapeHtml(cat.icon)} ${escapeHtml(cat.name)} <span class="cat-count">${escapeHtml(cat.plugin_count || 0)}</span>`;
         chip.onclick = () => {
             currentFilters.category = cat.id;
             loadPlugins();
@@ -260,7 +260,6 @@ function renderCategories(categories) {
         });
     }
 }
-
 // ============================================================
 // RENDER FEATURED
 // ============================================================
@@ -311,16 +310,16 @@ function renderPluginCard(plugin) {
                   "☆".repeat(5 - Math.round(plugin.rating || 0));
 
     return `
-        <a href="plugin.html?slug=${plugin.slug}" class="plugin-card">
+        <a href="plugin.html?slug=${escapeHtml(plugin.slug)}" class="plugin-card">
             ${verifiedBadge}
             ${featuredBadge}
-            <div class="plugin-icon">${plugin.icon || "📦"}</div>
-            <div class="plugin-name">${plugin.name}</div>
-            <div class="plugin-author">${plugin.author}</div>
-            <div class="plugin-desc">${plugin.description || ""}</div>
+            <div class="plugin-icon">${escapeHtml(plugin.icon || "📦")}</div>
+            <div class="plugin-name">${escapeHtml(plugin.name)}</div>
+            <div class="plugin-author">${escapeHtml(plugin.author)}</div>
+            <div class="plugin-desc">${escapeHtml(plugin.description || "")}</div>
             <div class="plugin-meta">
-                <span class="plugin-rating">${stars} ${plugin.rating || "0.0"}</span>
-                <span class="plugin-downloads">📥 ${formatNumber(plugin.downloads || 0)}</span>
+                <span class="plugin-rating">${stars} ${escapeHtml(plugin.rating || "0.0")}</span>
+                <span class="plugin-downloads">📥 ${escapeHtml(formatNumber(plugin.downloads || 0))}</span>
             </div>
         </a>
     `;
@@ -383,6 +382,19 @@ function resetFilters() {
 // ============================================================
 // HELPERS
 // ============================================================
+// ============================================================
+// SECURITY: Escape HTML
+// ============================================================
+function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+        .replace(/`/g, "&#96;");
+}
 
 function formatNumber(num) {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
