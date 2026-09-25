@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" data-theme="cyberpunk">
-<head>
+<head><script src="https://accounts.google.com/gsi/client" async defer></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plugin Detail · CogniCraft Store</title>
@@ -25,6 +25,7 @@
         </a>
     </div>
     <div class="status-bar">
+        <div id="auth-container" class="auth-container"></div>
         <div id="theme-switcher" class="theme-switcher"></div>
     </div>
 </header>
@@ -39,6 +40,8 @@
 <div id="toast" class="toast"></div>
 
 <script src="config.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
 <script src="theme-switcher.js"></script>
 <script>
 const API_URL = window.STORE_API || "http://localhost:8001";
@@ -181,7 +184,7 @@ function renderDetail(data, reviewsData) {
 
                     <div style="margin-bottom: 0.8rem;">
                         <label style="color: var(--dim); font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Tên của bạn</label>
-                        <input type="text" id="review-name" placeholder="VD: Thanhdat" style="width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.85rem; box-sizing: border-box;" value="${escapeHtml((localStorage.getItem('cognicraft_username') || '').replace(/[^a-zA-Z0-9_\sÀ-ỹ]/g, ''))}">
+                        <input type="text" id="review-name" placeholder="VD: Thanhdat" style="width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.85rem; box-sizing: border-box;" value="${escapeHtml((window.CogniAuth && window.CogniAuth.getUser()?.name) || localStorage.getItem('cognicraft_username') || '')}">
                     </div>
 
                     <div style="margin-bottom: 0.8rem;">
@@ -260,7 +263,8 @@ function initStarRating() {
 }
 
 async function submitReview(slug) {
-    const name = document.getElementById('review-name').value.trim();
+    const sessionUser = window.CogniAuth && window.CogniAuth.getUser();
+const name = sessionUser ? sessionUser.name : document.getElementById('review-name').value.trim();
     const rating = parseInt(document.getElementById('review-rating').value);
     const comment = document.getElementById('review-comment').value.trim();
 

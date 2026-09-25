@@ -6,6 +6,7 @@ Deploy to Railway as separate service
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -40,6 +41,13 @@ app.add_middleware(
 app.include_router(store_router, prefix="/api/store", tags=["store"])
 app.include_router(publish_router, prefix="/api/store", tags=["publish"])
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
+# ============================================================
+# SERVE STORE UI (dev + prod fallback)
+# ============================================================
+_web_dir = Path(__file__).parent / "web"
+if _web_dir.exists():
+    app.mount("/store", StaticFiles(directory=str(_web_dir), html=True), name="store-ui")
+    print(f"📦 Store UI mounted at /store → {_web_dir}")
 
 @app.get("/")
 async def root():

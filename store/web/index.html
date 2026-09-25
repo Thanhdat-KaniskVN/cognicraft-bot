@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="themes.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -27,6 +28,7 @@
         <span>LIVE</span>
         <span id="stats-summary">Loading...</span>
         <a href="upload.html" style="display: flex; align-items: center; gap: 0.4rem; background: linear-gradient(135deg, var(--green), var(--cyan)); color: var(--bg); text-decoration: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); white-space: nowrap;">📤 Publish</a>
+        <div id="auth-container" class="auth-container"></div>
         <div id="theme-switcher" class="theme-switcher"></div>
     </div>
 </header>
@@ -127,6 +129,7 @@
 
 <script src="config.js"></script>
 <script src="theme-switcher.js"></script>
+<script src="auth.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
