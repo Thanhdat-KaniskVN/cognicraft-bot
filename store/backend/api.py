@@ -139,12 +139,19 @@ async def list_plugins(
 
     plugins = db.query(sql, tuple(params))
 
-    # Convert datetime
+    # Convert datetime + check has_file
     for p in plugins:
         if p.get("created_at"):
             p["created_at"] = p["created_at"].isoformat()
         if p.get("updated_at"):
             p["updated_at"] = p["updated_at"].isoformat()
+
+        # ✅ Check có file .cogni trong plugin_versions không
+        version_row = db.query_one(
+            "SELECT file_url FROM plugin_versions WHERE plugin_id = %s AND file_url IS NOT NULL LIMIT 1",
+            (p["id"],),
+        )
+        p["has_file"] = bool(version_row and version_row.get("file_url"))
 
     return {
         "total": total,

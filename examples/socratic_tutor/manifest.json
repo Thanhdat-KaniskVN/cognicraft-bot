@@ -1,0 +1,14 @@
+{
+  "manifest_version": "1",
+  "id": "socratic_tutor",
+  "name": "Socratic Tutor",
+  "version": "1.0.0",
+  "author": "CogniCraft Team",
+  "description": "Dạy bằng câu hỏi Socratic - không đưa đáp án",
+  "entry": "plugin.py",
+  "icon": "🎓",
+  "category": "ai",
+  "tags": ["education", "tutor", "socratic"],
+  "targets": ["code_room", "vscode", "discord_bot"],
+  "pricing": { "type": "free", "price_usd": 0 }
+}

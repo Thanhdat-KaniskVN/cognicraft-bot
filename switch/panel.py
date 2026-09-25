@@ -141,6 +141,10 @@ async def ml_web_ui():
 _code_room_dir = _BOT_ROOT / "code_room" / "web"
 if _code_room_dir.exists():
     app.mount("/static-code", StaticFiles(directory=str(_code_room_dir)), name="static-code")
+        # ✅ Store Bridge — Code Room ↔ Store integration
+    from code_room.backend.store_bridge import router as store_bridge_router
+    app.include_router(store_bridge_router, prefix="/code", tags=["store-bridge"])
+    print(f"[Panel] Store Bridge mounted at /code/api/store/*")
     print(f"[Panel] Code Room mounted: {_code_room_dir}")
 
 # Code Room API router

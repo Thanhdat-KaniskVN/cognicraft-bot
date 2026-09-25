@@ -496,3 +496,256 @@ setInterval(() => {
         loadSnapshots();
     }
 }, 30000);
+
+// ============================================================
+// PHASE 3 — STORE INTEGRATION
+// ============================================================
+
+let storeSearchTimeout = null;
+let installedSlugs = new Set();
+
+// ============================================================
+// OPEN / CLOSE MODAL
+// ============================================================
+
+function openStore() {
+    document.getElementById('store-modal').style.display = 'flex';
+    loadInstalledSlugs().then(() => {
+        loadStorePlugins();
+    });
+}
+
+function closeStore() {
+    document.getElementById('store-modal').style.display = 'none';
+}
+
+function switchStoreTab(tab) {
+    document.querySelectorAll('.store-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.store-tab[data-tab="${tab}"]`).classList.add('active');
+
+    document.getElementById('store-panel-browse').style.display = tab === 'browse' ? 'block' : 'none';
+    document.getElementById('store-panel-installed').style.display = tab === 'installed' ? 'block' : 'none';
+
+    if (tab === 'installed') {
+        loadInstalledPlugins();
+    }
+}
+
+// ============================================================
+// LOAD STORE PLUGINS
+// ============================================================
+
+async function loadStorePlugins() {
+    const list = document.getElementById('store-plugins-list');
+    list.innerHTML = '<div class="dim-text" style="padding: 2rem; text-align: center;">Đang tải...</div>';
+
+    const search = document.getElementById('store-search').value.trim();
+    const sort = document.getElementById('store-sort').value;
+
+    const params = new URLSearchParams({ sort, per_page: 50 });
+    if (search) params.append('search', search);
+
+    try {
+        const r = await fetch(`/code/api/store/plugins?${params}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+
+        renderStorePlugins(data.plugins || []);
+    } catch (e) {
+        list.innerHTML = `<div class="store-empty"><div class="store-empty-icon">❌</div>Lỗi: ${e.message}</div>`;
+    }
+}
+
+function renderStorePlugins(plugins) {
+    const list = document.getElementById('store-plugins-list');
+
+    if (plugins.length === 0) {
+        list.innerHTML = '<div class="store-empty"><div class="store-empty-icon">📭</div>Không tìm thấy plugin</div>';
+        return;
+    }
+
+    list.innerHTML = plugins.map(p => {
+        const isInstalled = installedSlugs.has(p.slug);
+        const stars = '★'.repeat(Math.round(p.rating || 0)) + '☆'.repeat(5 - Math.round(p.rating || 0));
+
+        const hasFile = p.has_file !== false;  // Nếu API trả về has_file
+
+        return `
+            <div class="store-plugin-card">
+                <div class="store-plugin-icon">${p.icon || '📦'}</div>
+                <div class="store-plugin-info">
+                    <div class="store-plugin-name">${p.name}</div>
+                    <div class="store-plugin-meta">
+                        👤 ${p.author} · 📁 ${p.category} ·
+                        <span class="store-plugin-rating">${stars} ${p.rating || '0.0'}</span> ·
+                        📥 ${p.downloads || 0}
+                    </div>
+                    <div class="store-plugin-desc">${p.description || ''}</div>
+                </div>
+                <button class="store-install-btn ${isInstalled ? 'installed' : ''}"
+                        onclick="installStorePlugin('${p.slug}', this)"
+                        ${isInstalled || !hasFile ? 'disabled' : ''}
+                        title="${!hasFile ? 'Plugin chưa có file .cogni' : ''}">
+                    ${isInstalled ? '✅ Đã cài' : (!hasFile ? '⚠️ Chưa có' : '📥 Install')}
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+// ============================================================
+// SEARCH DEBOUNCE
+// ============================================================
+
+function debouncedStoreSearch() {
+    clearTimeout(storeSearchTimeout);
+    storeSearchTimeout = setTimeout(loadStorePlugins, 300);
+}
+
+// ============================================================
+// INSTALL PLUGIN
+// ============================================================
+
+async function installStorePlugin(slug, btn) {
+    btn.disabled = true;
+    btn.classList.add('installing');
+    btn.textContent = '⏳ Đang cài...';
+
+    try {
+        const r = await fetch(`/code/api/store/install/${slug}`, { method: 'POST' });
+        const data = await r.json();
+
+        if (!r.ok || !data.success) {
+            throw new Error(data.detail || `HTTP ${r.status}`);
+        }
+
+        btn.classList.remove('installing');
+        btn.classList.add('installed');
+        btn.textContent = '✅ Đã cài';
+
+        installedSlugs.add(slug);
+        updateInstalledCount();
+
+        showToast(`✅ Đã cài ${data.name} v${data.version}`, 'success');
+
+    } catch (e) {
+        btn.classList.remove('installing');
+        btn.disabled = false;
+        btn.textContent = '📥 Install';
+        showToast(`❌ ${e.message}`, 'error');
+    }
+}
+
+// ============================================================
+// LOAD INSTALLED PLUGINS
+// ============================================================
+
+async function loadInstalledSlugs() {
+    try {
+        const r = await fetch('/code/api/store/installed');
+        if (!r.ok) return;
+        const data = await r.json();
+        installedSlugs = new Set((data.installed || []).map(p => p.slug));
+        updateInstalledCount();
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function updateInstalledCount() {
+    const el = document.getElementById('installed-count');
+    if (el) el.textContent = installedSlugs.size;
+}
+
+async function loadInstalledPlugins() {
+    const list = document.getElementById('installed-plugins-list');
+    list.innerHTML = '<div class="dim-text" style="padding: 2rem; text-align: center;">Đang tải...</div>';
+
+    try {
+        const r = await fetch('/code/api/store/installed');
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+
+        const installed = data.installed || [];
+
+        if (installed.length === 0) {
+            list.innerHTML = '<div class="store-empty"><div class="store-empty-icon">📭</div>Chưa cài plugin nào</div>';
+            return;
+        }
+
+        list.innerHTML = installed.map(p => `
+            <div class="store-plugin-card">
+                <div class="store-plugin-icon">${p.icon || '📦'}</div>
+                <div class="store-plugin-info">
+                    <div class="store-plugin-name">${p.name}</div>
+                    <div class="store-plugin-meta">
+                        v${p.version} · 👤 ${p.author} · 📁 ${p.category}
+                    </div>
+                    <div class="store-plugin-desc">${p.description || ''}</div>
+                </div>
+                <button class="store-install-btn" style="background: transparent; color: #ff3355; border: 1px solid #ff3355;"
+                        onclick="uninstallPlugin('${p.slug}', this)">
+                    🗑 Xóa
+                </button>
+            </div>
+        `).join('');
+
+    } catch (e) {
+        list.innerHTML = `<div class="store-empty"><div class="store-empty-icon">❌</div>Lỗi: ${e.message}</div>`;
+    }
+}
+
+// ============================================================
+// UNINSTALL
+// ============================================================
+
+async function uninstallPlugin(slug, btn) {
+    if (!confirm(`Xóa plugin "${slug}"?`)) return;
+
+    btn.disabled = true;
+    btn.textContent = '⏳...';
+
+    try {
+        const r = await fetch(`/code/api/store/installed/${slug}`, { method: 'DELETE' });
+        const data = await r.json();
+
+        if (!r.ok || !data.success) {
+            throw new Error(data.detail || `HTTP ${r.status}`);
+        }
+
+        installedSlugs.delete(slug);
+        updateInstalledCount();
+        showToast(`✅ Đã xóa ${slug}`, 'success');
+        loadInstalledPlugins();
+
+    } catch (e) {
+        btn.disabled = false;
+        btn.textContent = '🗑 Xóa';
+        showToast(`❌ ${e.message}`, 'error');
+    }
+}
+
+// ============================================================
+// TOAST (nếu app.js chưa có)
+// ============================================================
+
+if (typeof showToast !== 'function') {
+    window.showToast = function(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.className = `toast show ${type}`;
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    };
+}
+
+// Đóng modal khi click ngoài
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('store-modal');
+    if (modal && e.target === modal) closeStore();
+});
+
+// ESC để đóng
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeStore();
+});

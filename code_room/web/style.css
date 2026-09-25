@@ -514,3 +514,218 @@ body {
     .main-grid { grid-template-columns: 1fr; }
     .file-panel, .output-panel { display: none; }
 }
+/* ============================================================
+   PHASE 3 — STORE MODAL (Code Room ↔ Store)
+   ============================================================ */
+
+.btn-store {
+    background: linear-gradient(135deg, var(--green, #00ff88), var(--cyan, #00fff9));
+    color: var(--bg, #06080d) !important;
+    font-weight: 900;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+    border: none;
+}
+
+.btn-store:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 255, 136, 0.7);
+}
+
+.store-modal-content {
+    width: 90%;
+    max-width: 900px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel-bg, #0f1520);
+    border: 1px solid var(--border, #1a2433);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.store-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border, #1a2433);
+    background: var(--bg-elev, #0c1017);
+}
+
+.store-tab {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    color: var(--dim, #6b7a99);
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.store-tab:hover {
+    color: var(--text, #e6f1ff);
+    background: rgba(0, 255, 249, 0.05);
+}
+
+.store-tab.active {
+    color: var(--cyan, #00fff9);
+    border-bottom-color: var(--cyan, #00fff9);
+}
+
+.store-panel {
+    padding: 1.2rem;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.store-search-box {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--panel-bg, #0f1520);
+    padding-bottom: 0.5rem;
+}
+
+.store-search-box input {
+    flex: 1;
+    background: var(--bg-elev, #0c1017);
+    border: 1px solid var(--border, #1a2433);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    color: var(--text, #e6f1ff);
+    font-family: inherit;
+    font-size: 0.85rem;
+}
+
+.store-search-box input:focus {
+    outline: none;
+    border-color: var(--cyan, #00fff9);
+    box-shadow: 0 0 12px rgba(0, 255, 249, 0.2);
+}
+
+.store-search-box select {
+    background: var(--bg-elev, #0c1017);
+    border: 1px solid var(--border, #1a2433);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    color: var(--text, #e6f1ff);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.store-plugins-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.store-plugin-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--card, #11161f);
+    border: 1px solid var(--border, #1a2433);
+    border-radius: 10px;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.store-plugin-card:hover {
+    border-color: var(--cyan, #00fff9);
+    box-shadow: 0 0 20px rgba(0, 255, 249, 0.15);
+    transform: translateY(-1px);
+}
+
+.store-plugin-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.store-plugin-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.store-plugin-name {
+    font-weight: 700;
+    color: var(--text, #e6f1ff);
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+}
+
+.store-plugin-meta {
+    color: var(--dim, #6b7a99);
+    font-size: 0.75rem;
+    margin-bottom: 0.3rem;
+}
+
+.store-plugin-desc {
+    color: var(--dim, #6b7a99);
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.store-plugin-rating {
+    color: #ffcc00;
+    font-size: 0.75rem;
+}
+
+.store-install-btn {
+    flex-shrink: 0;
+    background: var(--green, #00ff88);
+    color: var(--bg, #06080d);
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 100px;
+}
+
+.store-install-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+.store-install-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.store-install-btn.installed {
+    background: transparent;
+    color: var(--green, #00ff88);
+    border: 1px solid var(--green, #00ff88);
+}
+
+.store-install-btn.installing {
+    background: var(--cyan, #00fff9);
+    animation: pulse-install 1s infinite;
+}
+
+@keyframes pulse-install {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.6; }
+}
+
+.store-empty {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: var(--dim, #6b7a99);
+    font-size: 0.9rem;
+}
+
+.store-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}

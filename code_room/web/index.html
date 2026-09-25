@@ -31,6 +31,7 @@
             <option value="matrix">🟢 Matrix</option>
             <option value="dracula">🧛 Dracula</option>
         </select>
+        <button class="btn-header btn-store" onclick="openStore()">🏪 Store</button>
         <button class="btn-header" onclick="saveCode()">💾 Save</button>
         <button class="btn-header" onclick="showHistory()">↩️ History</button>
         <button class="btn-header" onclick="askAI()">🧠 Fix với AI</button>
@@ -101,6 +102,45 @@
         <span id="status-msg"></span>
     </div>
 </footer>
+
+<!-- STORE MODAL -->
+<div id="store-modal" class="modal store-modal" style="display:none;">
+    <div class="modal-content store-modal-content">
+        <div class="modal-header">
+            <h3 class="font-heading">🏪 COGNICRAFT STORE</h3>
+            <button class="close-btn" onclick="closeStore()">×</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="store-tabs">
+            <div class="store-tab active" data-tab="browse" onclick="switchStoreTab('browse')">🔍 Browse</div>
+            <div class="store-tab" data-tab="installed" onclick="switchStoreTab('installed')">📦 Installed (<span id="installed-count">0</span>)</div>
+        </div>
+
+        <!-- Browse Tab -->
+        <div class="store-panel" id="store-panel-browse">
+            <div class="store-search-box">
+                <input type="text" id="store-search" placeholder="🔍 Tìm plugin..." oninput="debouncedStoreSearch()">
+                <select id="store-sort" onchange="loadStorePlugins()">
+                    <option value="downloads">📥 Nhiều tải</option>
+                    <option value="rating">⭐ Đánh giá cao</option>
+                    <option value="trending">🔥 Trending</option>
+                    <option value="created_at">🆕 Mới nhất</option>
+                </select>
+            </div>
+            <div id="store-plugins-list" class="store-plugins-list">
+                <div class="dim-text" style="padding: 2rem; text-align: center;">Đang tải...</div>
+            </div>
+        </div>
+
+        <!-- Installed Tab -->
+        <div class="store-panel" id="store-panel-installed" style="display: none;">
+            <div id="installed-plugins-list" class="store-plugins-list">
+                <div class="dim-text" style="padding: 2rem; text-align: center;">Đang tải...</div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- SNAPSHOT MODAL -->
 <div id="history-modal" class="modal" style="display:none;">

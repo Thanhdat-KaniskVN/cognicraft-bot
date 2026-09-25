@@ -1,0 +1,14 @@
+{
+  "manifest_version": "1",
+  "id": "flashcard",
+  "name": "Flashcard",
+  "version": "1.0.0",
+  "author": "CogniCraft Team",
+  "description": "Tạo thẻ ghi nhớ tự động với AI",
+  "entry": "plugin.py",
+  "icon": "🃏",
+  "category": "tools",
+  "tags": ["flashcard", "memory"],
+  "targets": ["code_room", "vscode", "discord_bot"],
+  "pricing": { "type": "free", "price_usd": 0 }
+}

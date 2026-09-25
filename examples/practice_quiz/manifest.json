@@ -1,0 +1,14 @@
+{
+  "manifest_version": "1",
+  "id": "practice_quiz",
+  "name": "Practice Quiz",
+  "version": "1.0.0",
+  "author": "CogniCraft Team",
+  "description": "Quiz trắc nghiệm tự động với AI",
+  "entry": "plugin.py",
+  "icon": "📝",
+  "category": "tools",
+  "tags": ["quiz", "practice"],
+  "targets": ["code_room", "vscode", "discord_bot"],
+  "pricing": { "type": "free", "price_usd": 0 }
+}
