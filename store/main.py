@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 
 from backend.api import router as store_router
 from backend.publish import router as publish_router
+from backend.auth import router as auth_router
+
 
 # Load env
 _root = Path(__file__).parent.parent
@@ -37,6 +39,7 @@ app.add_middleware(
 # Include router
 app.include_router(store_router, prefix="/api/store", tags=["store"])
 app.include_router(publish_router, prefix="/api/store", tags=["publish"])
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 
 @app.get("/")
 async def root():
