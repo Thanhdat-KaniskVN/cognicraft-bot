@@ -27,7 +27,7 @@ switch/token.json
 switch/.env
 CONTEXT.md
 STRUCTURE.md
-
+USER_CONTEXT.md
 # ─── Database ─────────────────────────────────────────────
 *.db
 *.sqlite
