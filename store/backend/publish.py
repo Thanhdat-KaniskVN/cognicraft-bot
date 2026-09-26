@@ -178,14 +178,23 @@ async def publish_plugin(
                 "Dùng /publish/version để upload version mới."
             )
 
-        # 5. Move file to final destination
+        # 5. Upload to Supabase Storage
+        from .storage import upload_file
+
         final_name = f"{manifest.id}-{manifest.version}.cogni"
-        final_path = UPLOAD_DIR / final_name
-        shutil.move(str(tmp), str(final_path))
+        file_bytes = tmp.read_bytes()
+
+        ok = await upload_file(file_bytes, final_name, "application/zip")
+        if not ok:
+            tmp.unlink(missing_ok=True)
+            raise HTTPException(500, "Upload lên Supabase Storage thất bại")
 
         # 6. Compute checksum
-        checksum = _compute_sha256(final_path)
-        file_size = final_path.stat().st_size
+        checksum = _compute_sha256(tmp)
+        file_size = len(file_bytes)
+
+        # Xóa file tmp
+        tmp.unlink(missing_ok=True)
 
         # 7. Insert DB
         plugin_row = db.execute_returning(
@@ -292,13 +301,21 @@ async def publish_version(
         if dup:
             raise HTTPException(409, f"Version {manifest.version} đã tồn tại")
 
-        # Move file
-        final_name = f"{manifest.id}-{manifest.version}.cogni"
-        final_path = UPLOAD_DIR / final_name
-        shutil.move(str(tmp), str(final_path))
+        # Upload to Supabase Storage
+        from .storage import upload_file
 
-        checksum = _compute_sha256(final_path)
-        file_size = final_path.stat().st_size
+        final_name = f"{manifest.id}-{manifest.version}.cogni"
+        file_bytes = tmp.read_bytes()
+
+        ok = await upload_file(file_bytes, final_name, "application/zip")
+        if not ok:
+            tmp.unlink(missing_ok=True)
+            raise HTTPException(500, "Upload lên Supabase Storage thất bại")
+
+        checksum = _compute_sha256(tmp)
+        file_size = len(file_bytes)
+
+        tmp.unlink(missing_ok=True)
 
         # Insert version
         db.execute(

@@ -151,9 +151,13 @@ async def sync_plugin_to_github(
     if not version_row or not version_row.get("file_url"):
         raise HTTPException(404, "Plugin chưa có file .cogni")
 
-    cogni_path = UPLOAD_DIR / version_row["file_url"]
-    if not cogni_path.exists():
-        raise HTTPException(404, "File .cogni bị mất")
+    from .storage import download_file
+
+    file_url = version_row["file_url"]
+    cogni_content = await download_file(file_url)
+
+    if not cogni_content:
+        raise HTTPException(404, "File .cogni không tìm thấy trên Storage")
 
     # 4. Repo name
     repo_name = req.repo_name or slug.replace("_", "-")
@@ -185,7 +189,6 @@ async def sync_plugin_to_github(
     repo_url = repo["html_url"]
 
     # 6. Push .cogni file
-    cogni_content = cogni_path.read_bytes()
     await push_file(
         token,
         owner,
