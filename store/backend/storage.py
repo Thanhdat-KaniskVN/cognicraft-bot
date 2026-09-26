@@ -1,20 +1,38 @@
 # store/backend/storage.py
 """
 Supabase Storage — Persistent file storage
+- Tolerant env var loading (handles leading/trailing whitespace in names)
 """
 import os
 import httpx
 from typing import Optional
 
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://mqgcvrojhafewfokpwtx.supabase.co")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
+def _get_env(name: str, default: str = "") -> str:
+    """Get env var — tolerant với whitespace trong tên"""
+    # Try exact match first
+    val = os.getenv(name)
+    if val:
+        return val.strip()
+
+    # Try with whitespace stripped in key names
+    for key, value in os.environ.items():
+        if key.strip() == name:
+            return value.strip()
+
+    return default
+
+
+SUPABASE_URL = _get_env("SUPABASE_URL", "https://mqgcvrojhafewfokpwtx.supabase.co")
+SUPABASE_SERVICE_KEY = _get_env("SUPABASE_SERVICE_KEY")
 BUCKET = "plugins"
 
 
 async def upload_file(file_bytes: bytes, filename: str, content_type: str = "application/zip") -> bool:
     """Upload file lên Supabase Storage"""
     if not SUPABASE_SERVICE_KEY:
+        # Debug info
+        print(f"[Storage] Missing SUPABASE_SERVICE_KEY. Available keys: {list(os.environ.keys())[:30]}")
         raise RuntimeError("SUPABASE_SERVICE_KEY chưa cấu hình")
 
     url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{filename}"
