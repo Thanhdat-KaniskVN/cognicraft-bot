@@ -64,7 +64,18 @@ async def root():
         "docs": "/docs",
     }
 
-
+@app.get("/debug/env")
+async def debug_env():
+    """DEBUG — XÓA sau khi fix"""
+    import os
+    return {
+        "SB_KEY_exists": "SB_KEY" in os.environ,
+        "SB_KEY_length": len(os.environ.get("SB_KEY", "")),
+        "SB_KEY_prefix": os.environ.get("SB_KEY", "")[:15],
+        "SB_URL_exists": "SB_URL" in os.environ,
+        "SB_URL_value": os.environ.get("SB_URL", "")[:50],
+        "all_sb_keys": [k for k in os.environ.keys() if "SB" in k.upper()],
+    }
 @app.get("/health")
 async def health():
     from datetime import datetime
