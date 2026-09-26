@@ -8,6 +8,53 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="themes.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  .store-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 24px auto 0;
+    padding: 6px;
+    background: rgba(30, 15, 60, 0.6);
+    border: 1px solid var(--border, rgba(168, 85, 247, 0.25));
+    border-radius: 999px;
+    backdrop-filter: blur(20px);
+    width: fit-content;
+    position: relative;
+    z-index: 10;
+  }
+
+  .store-tab {
+    padding: 10px 24px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted, #a78bfa);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .store-tab:hover {
+    color: #fff;
+  }
+
+  .store-tab.active {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+  }
+
+  .store-tab .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    font-weight: 800;
+  }
+</style>
 </head>
 <body>
 
@@ -34,6 +81,18 @@
 </header>
 
 <main class="main">
+
+    <!-- ⭐ TAB SWITCHER — PLUGINS vs THEMES -->
+    <div class="store-tabs">
+        <a href="index.html" class="store-tab active">
+            🏪 Plugins
+        </a>
+        <a href="marketplace.html" class="store-tab">
+            🎨 Themes
+            <span class="badge" id="themes-count">0</span>
+        </a>
+    </div>
+
     <section class="hero">
         <h2 class="font-display">KHÁM PHÁ PLUGINS</h2>
         <p>Mở rộng CogniCraft với hàng trăm công cụ</p>
@@ -133,5 +192,23 @@
 <script src="presence.js"></script>
 <script src="user-theme.js"></script>
 <script src="app.js"></script>
+
+<!-- ⭐ AUTO COUNT THEMES -->
+<script>
+  (async function () {
+    try {
+      const API_BASE = window.COGNI_API_BASE ||
+        (location.hostname === 'localhost'
+          ? 'http://localhost:8001'
+          : 'https://web-production-8b760.up.railway.app');
+      const res = await fetch(API_BASE + '/api/marketplace/themes?per_page=1');
+      const data = await res.json();
+      const badge = document.getElementById('themes-count');
+      if (badge) badge.textContent = data.total || 0;
+    } catch (e) {
+      console.warn('Theme count fail:', e);
+    }
+  })();
+</script>
 </body>
 </html>

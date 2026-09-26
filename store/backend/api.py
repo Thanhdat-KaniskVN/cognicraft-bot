@@ -1,6 +1,6 @@
 # store/backend/api.py
 """
-Store API - FastAPI routes (v2.2 - Advanced Search)
+Store API - FastAPI routes (v3.0 - Plugin + Theme unified)
 """
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -31,7 +31,7 @@ def _slugify(text: str) -> str:
 
 
 # ============================================================
-# LIST PLUGINS — Advanced search + filter (v2.2)
+# LIST PLUGINS — Advanced search + filter (v3.0)
 # ============================================================
 
 @router.get("/plugins", response_model=PluginListResponse)
@@ -43,36 +43,41 @@ async def list_plugins(
     min_rating: Optional[float] = Query(None, ge=0, le=5),
     price_type: Optional[str] = Query(None, pattern="^(free|paid|freemium)$"),
     featured: Optional[bool] = None,
+    type_filter: Optional[str] = Query(None, alias="type", pattern="^(plugin|theme|all)$"),
     sort: str = Query("downloads", pattern="^(downloads|rating|created_at|name|trending)$"),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
 ):
     """
-    List plugins với ADVANCED filter + search + pagination
+    List plugins/themes với ADVANCED filter + search + pagination
 
     Query params:
-    - category: filter by category slug
-    - search: tìm trong name + description + author + tags
-    - author: filter by author name (exact-ish)
-    - tag: filter by 1 tag
-    - min_rating: rating tối thiểu (0-5)
-    - price_type: free | paid | freemium
-    - featured: true/false
-    - sort: downloads | rating | created_at | name | trending
-    - page + per_page: pagination
+    - type: plugin | theme | all (default: chỉ plugin)
+    - category, search, author, tag, min_rating, featured
+    - price_type: free | paid
+    - sort, page, per_page
     """
     db = get_db()
 
-    # Build query
     conditions = []
     params = []
+
+    # ⭐ TYPE FILTER — mặc định chỉ plugin
+    if type_filter == "all":
+        pass  # không filter type
+    elif type_filter == "theme":
+        conditions.append("type = %s")
+        params.append("theme")
+    else:
+        # Default: chỉ plugin (không lẫn theme)
+        conditions.append("type = %s")
+        params.append("plugin")
 
     if category:
         conditions.append("category = %s")
         params.append(category)
 
     if search:
-        # Search mở rộng: name + description + author + tags (array)
         conditions.append(
             "(name ILIKE %s OR description ILIKE %s OR author ILIKE %s OR %s = ANY(tags))"
         )
@@ -84,7 +89,6 @@ async def list_plugins(
         params.append(f"%{author}%")
 
     if tag:
-        # Tag là array trong DB → dùng ANY
         conditions.append("%s = ANY(tags)")
         params.append(tag.lower())
 
@@ -96,20 +100,11 @@ async def list_plugins(
         conditions.append("featured = %s")
         params.append(featured)
 
-    # Price type filter — check qua bảng plugin_pricing nếu có, else bỏ qua
-    if price_type:
-        # MVP: giả định tất cả là free (không có bảng pricing)
-        # Nếu em có bảng plugin_pricing → JOIN
-        try:
-            conditions.append("""
-                id IN (
-                    SELECT plugin_id FROM plugin_pricing 
-                    WHERE type = %s
-                )
-            """)
-            params.append(price_type)
-        except Exception:
-            pass  # Bỏ qua nếu không có bảng
+    # Price filter — dùng cột is_paid (theme) hoặc price_vnd
+    if price_type == "free":
+        conditions.append("(is_paid = FALSE OR is_paid IS NULL OR price_vnd = 0 OR price_vnd IS NULL)")
+    elif price_type == "paid":
+        conditions.append("(is_paid = TRUE AND price_vnd > 0)")
 
     where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
 
@@ -139,19 +134,21 @@ async def list_plugins(
 
     plugins = db.query(sql, tuple(params))
 
-    # Convert datetime + check has_file
     for p in plugins:
         if p.get("created_at"):
             p["created_at"] = p["created_at"].isoformat()
         if p.get("updated_at"):
             p["updated_at"] = p["updated_at"].isoformat()
 
-        # ✅ Check có file .cogni trong plugin_versions không
-        version_row = db.query_one(
-            "SELECT file_url FROM plugin_versions WHERE plugin_id = %s AND file_url IS NOT NULL LIMIT 1",
-            (p["id"],),
-        )
-        p["has_file"] = bool(version_row and version_row.get("file_url"))
+        # Check file .cogni (chỉ plugin mới có)
+        if p.get("type") == "theme":
+            p["has_file"] = False
+        else:
+            version_row = db.query_one(
+                "SELECT file_url FROM plugin_versions WHERE plugin_id = %s AND file_url IS NOT NULL LIMIT 1",
+                (p["id"],),
+            )
+            p["has_file"] = bool(version_row and version_row.get("file_url"))
 
     return {
         "total": total,
@@ -162,27 +159,24 @@ async def list_plugins(
 
 
 # ============================================================
-# SEARCH SUGGESTIONS — autocomplete
+# SEARCH SUGGESTIONS
 # ============================================================
 
 @router.get("/search/suggest")
 async def search_suggest(q: str = Query(..., min_length=1), limit: int = 8):
-    """
-    Autocomplete suggestions cho search bar
-    Trả về: list plugin names + authors + tags
-    """
+    """Autocomplete suggestions"""
     db = get_db()
 
     suggestions = []
 
-    # Plugin names
+    # Plugins + themes
     plugins = db.query(
-        "SELECT name, slug, icon FROM plugins WHERE name ILIKE %s LIMIT %s",
+        "SELECT name, slug, icon, type FROM plugins WHERE name ILIKE %s LIMIT %s",
         (f"%{q}%", limit),
     )
     for p in plugins:
         suggestions.append({
-            "type": "plugin",
+            "type": p.get("type") or "plugin",
             "text": p["name"],
             "slug": p["slug"],
             "icon": p.get("icon", "📦"),
@@ -200,7 +194,7 @@ async def search_suggest(q: str = Query(..., min_length=1), limit: int = 8):
             "icon": "👤",
         })
 
-    # Tags (flatten array)
+    # Tags
     tags_rows = db.query(
         """
         SELECT DISTINCT unnest(tags) as tag 
@@ -228,7 +222,7 @@ async def search_suggest(q: str = Query(..., min_length=1), limit: int = 8):
 
 @router.get("/tags")
 async def list_tags(limit: int = 20):
-    """List popular tags với count"""
+    """List popular tags"""
     db = get_db()
 
     rows = db.query(
@@ -248,35 +242,37 @@ async def list_tags(limit: int = 20):
 
 
 # ============================================================
-# GET PLUGIN DETAIL
+# GET PLUGIN / THEME DETAIL
 # ============================================================
 
 @router.get("/plugins/{slug}")
 async def get_plugin(slug: str):
-    """Get plugin detail với versions + reviews"""
+    """Get plugin/theme detail với versions + reviews"""
     db = get_db()
 
     plugin = db.query_one("SELECT * FROM plugins WHERE slug = %s", (slug,))
     if not plugin:
-        raise HTTPException(404, f"Plugin không tồn tại: {slug}")
+        raise HTTPException(404, f"Không tồn tại: {slug}")
 
-    # Convert datetime
     if plugin.get("created_at"):
         plugin["created_at"] = plugin["created_at"].isoformat()
     if plugin.get("updated_at"):
         plugin["updated_at"] = plugin["updated_at"].isoformat()
 
-    # Get versions
-    versions = db.query(
-        """SELECT version, changelog, created_at, file_size, downloads 
-           FROM plugin_versions WHERE plugin_id = %s ORDER BY created_at DESC""",
-        (plugin["id"],),
-    )
-    for v in versions:
-        if v.get("created_at"):
-            v["created_at"] = v["created_at"].isoformat()
+    # Versions (chỉ plugin mới có)
+    if plugin.get("type") == "theme":
+        versions = []
+    else:
+        versions = db.query(
+            """SELECT version, changelog, created_at, file_size, downloads 
+               FROM plugin_versions WHERE plugin_id = %s ORDER BY created_at DESC""",
+            (plugin["id"],),
+        )
+        for v in versions:
+            if v.get("created_at"):
+                v["created_at"] = v["created_at"].isoformat()
 
-    # Get reviews
+    # Reviews
     reviews = db.query(
         """SELECT id, user_id, user_name, rating, comment, helpful_count, created_at 
            FROM reviews WHERE plugin_id = %s 
@@ -327,8 +323,8 @@ async def upload_plugin(data: PluginUpload):
             INSERT INTO plugins (
                 slug, name, description, long_description,
                 author, author_email, category, tags, icon,
-                homepage, repository, license, latest_version
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                homepage, repository, license, latest_version, type
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'plugin')
             RETURNING id
             """,
             (
@@ -360,7 +356,7 @@ async def upload_plugin(data: PluginUpload):
 
 
 # ============================================================
-# INSTALL PLUGIN (Track download)
+# INSTALL PLUGIN
 # ============================================================
 
 @router.post("/install/{slug}")
@@ -370,7 +366,7 @@ async def install_plugin(slug: str):
 
     plugin = db.query_one("SELECT id, name, latest_version FROM plugins WHERE slug = %s", (slug,))
     if not plugin:
-        raise HTTPException(404, f"Plugin không tồn tại: {slug}")
+        raise HTTPException(404, f"Không tồn tại: {slug}")
 
     db.execute(
         "UPDATE plugins SET installs = installs + 1, downloads = downloads + 1 WHERE id = %s",
@@ -392,17 +388,17 @@ async def install_plugin(slug: str):
 
 
 # ============================================================
-# REVIEWS — Submit / List / Helpful (v2.1)
+# REVIEWS
 # ============================================================
 
 @router.post("/reviews/{slug}")
 async def submit_review(slug: str, review: ReviewSubmit):
-    """Submit hoặc update đánh giá cho plugin"""
+    """Submit hoặc update đánh giá — tự động recompute rating"""
     db = get_db()
 
     plugin = db.query_one("SELECT id, name FROM plugins WHERE slug = %s", (slug,))
     if not plugin:
-        raise HTTPException(404, f"Plugin '{slug}' không tồn tại")
+        raise HTTPException(404, f"'{slug}' không tồn tại")
 
     plugin_id = plugin["id"]
 
@@ -431,6 +427,7 @@ async def submit_review(slug: str, review: ReviewSubmit):
         )
         action = "created"
 
+    # Recompute rating
     stats = db.query_one(
         """
         SELECT 
@@ -463,12 +460,12 @@ async def submit_review(slug: str, review: ReviewSubmit):
 
 @router.get("/reviews/{slug}")
 async def get_reviews(slug: str, limit: int = 50, offset: int = 0):
-    """Lấy danh sách reviews của plugin"""
+    """Lấy danh sách reviews"""
     db = get_db()
 
     plugin = db.query_one("SELECT id FROM plugins WHERE slug = %s", (slug,))
     if not plugin:
-        raise HTTPException(404, f"Plugin '{slug}' không tồn tại")
+        raise HTTPException(404, f"'{slug}' không tồn tại")
 
     reviews = db.query(
         """
@@ -507,7 +504,7 @@ async def get_reviews(slug: str, limit: int = 50, offset: int = 0):
 
 @router.post("/reviews/{review_id}/helpful")
 async def mark_helpful(review_id: str):
-    """Tăng helpful_count cho review"""
+    """Tăng helpful_count"""
     db = get_db()
 
     result = db.execute_returning(
@@ -535,12 +532,13 @@ async def mark_helpful(review_id: str):
 
 @router.get("/categories")
 async def list_categories():
-    """List all categories với count"""
+    """List all categories với count (chỉ đếm plugin, không đếm theme)"""
     db = get_db()
 
     db.execute("""
         UPDATE categories SET plugin_count = (
-            SELECT COUNT(*) FROM plugins WHERE category = categories.id
+            SELECT COUNT(*) FROM plugins 
+            WHERE category = categories.id AND type = 'plugin'
         )
     """)
 
@@ -553,16 +551,32 @@ async def list_categories():
 
 @router.get("/stats")
 async def get_stats():
-    """Store statistics"""
+    """Store statistics — tách plugin và theme"""
     db = get_db()
 
-    total = db.query_one("SELECT COUNT(*) as c FROM plugins")["c"]
-    categories = db.query_one("SELECT COUNT(DISTINCT category) as c FROM plugins")["c"]
-    downloads = db.query_one("SELECT SUM(downloads) as s FROM plugins")["s"] or 0
-    avg_rating = db.query_one("SELECT AVG(rating) as a FROM plugins WHERE review_count > 0")["a"] or 0
+    total_plugins = db.query_one(
+        "SELECT COUNT(*) as c FROM plugins WHERE type = 'plugin'"
+    )["c"]
+
+    total_themes = db.query_one(
+        "SELECT COUNT(*) as c FROM plugins WHERE type = 'theme'"
+    )["c"]
+
+    categories = db.query_one(
+        "SELECT COUNT(DISTINCT category) as c FROM plugins WHERE type = 'plugin'"
+    )["c"]
+
+    downloads = db.query_one(
+        "SELECT SUM(downloads) as s FROM plugins WHERE type = 'plugin'"
+    )["s"] or 0
+
+    avg_rating = db.query_one(
+        "SELECT AVG(rating) as a FROM plugins WHERE review_count > 0 AND type = 'plugin'"
+    )["a"] or 0
 
     return {
-        "total_plugins": total,
+        "total_plugins": total_plugins,
+        "total_themes": total_themes,
         "categories": categories,
         "total_downloads": downloads,
         "avg_rating": round(float(avg_rating), 2),
@@ -570,7 +584,7 @@ async def get_stats():
 
 
 # ============================================================
-# USER + AUTHOR PROFILES (Phase 2.3)
+# USER + AUTHOR PROFILES
 # ============================================================
 
 @router.get("/users/{username}")
@@ -584,7 +598,7 @@ async def get_user_profile(username: str):
         """
         SELECT 
             r.id, r.user_name, r.rating, r.comment, r.helpful_count, r.created_at,
-            p.slug AS plugin_slug, p.name AS plugin_name, p.icon AS plugin_icon
+            p.slug AS plugin_slug, p.name AS plugin_name, p.icon AS plugin_icon, p.type AS item_type
         FROM reviews r
         JOIN plugins p ON p.id = r.plugin_id
         WHERE r.user_id = %s OR LOWER(REPLACE(r.user_name, ' ', '_')) = %s
@@ -631,7 +645,7 @@ async def get_user_profile(username: str):
 
 @router.get("/authors/{username}")
 async def get_author_profile(username: str):
-    """Get author profile — plugins đã publish + stats"""
+    """Get author profile — plugins + themes đã publish"""
     db = get_db()
 
     plugins = db.query(
@@ -639,7 +653,8 @@ async def get_author_profile(username: str):
         SELECT 
             id, slug, name, description, icon, category,
             latest_version, downloads, installs, rating, review_count,
-            verified, featured, created_at
+            verified, featured, created_at, type,
+            price_vnd, is_paid
         FROM plugins
         WHERE LOWER(author) = LOWER(%s)
         ORDER BY downloads DESC

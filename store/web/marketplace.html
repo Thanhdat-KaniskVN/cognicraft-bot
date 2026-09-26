@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketplace — CogniCraft Themes</title>
+  <link rel="stylesheet" href="themes.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="marketplace.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Canvas particle background -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Navbar -->
+  <nav class="mk-nav">
+    <div class="mk-logo">
+      <span class="icon">🏛️</span>
+      <span>COGNICRAFT · MARKETPLACE</span>
+    </div>
+    <div class="mk-nav-links">
+      <a href="index.html">🏪 Store</a>
+      <a href="theme-editor.html">🎨 Editor</a>
+      <a href="dashboard.html">📊 Dashboard</a>
+      <a href="settings.html">⚙️ Settings</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="mk-hero">
+    <div class="hero-cards-3d">
+      <div class="hero-float-card c1">
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+      </div>
+      <div class="hero-float-card c2">
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+      </div>
+      <div class="hero-float-card c3">
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+        <div class="mini-bar"></div>
+      </div>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        <span>Chợ theme cộng đồng</span>
+      </div>
+      <h1 class="hero-title">THẾ GIỚI THEME</h1>
+      <p class="hero-subtitle">
+        Khám phá hàng trăm theme độc đáo từ cộng đồng.<br>
+        Áp dụng 1 click — không cần code, không cần tài khoản trả phí.
+      </p>
+      <div class="hero-cta">
+        <button class="btn-hero primary" id="cta-explore">
+          🚀 Khám phá ngay
+        </button>
+        <a href="theme-editor.html" class="btn-hero secondary">
+          🎨 Tạo theme của bạn
+        </a>
+      </div>
+    </div>
+
+    <div class="scroll-indicator">
+      <span>Cuộn xuống</span>
+      <div class="arrow"></div>
+    </div>
+  </section>
+
+  <!-- FILTER BAR -->
+  <div class="mk-filter-bar">
+    <input
+      type="text"
+      class="mk-search"
+      id="mk-search"
+      placeholder="🔍 Tìm theme, author, tag..."
+    >
+    <select class="mk-select" id="mk-sort">
+      <option value="downloads">📥 Nhiều tải nhất</option>
+      <option value="likes">❤️ Nhiều like nhất</option>
+      <option value="created_at">🆕 Mới nhất</option>
+      <option value="trending">🔥 Trending</option>
+    </select>
+  </div>
+
+  <div class="tag-chips" id="tag-chips"></div>
+
+  <!-- FEATURED CAROUSEL -->
+  <section class="mk-section">
+    <h2 class="mk-section-title">⭐ Theme nổi bật</h2>
+    <p class="mk-section-sub">Những theme được yêu thích nhất tuần này</p>
+    <div class="featured-3d">
+      <div class="carousel-stage" id="carousel-stage"></div>
+    </div>
+  </section>
+
+  <!-- THEME GRID -->
+  <section class="mk-section" id="section-grid">
+    <h2 class="mk-section-title">🌌 Tất cả theme</h2>
+    <p class="mk-section-sub">Khám phá và áp dụng miễn phí</p>
+    <div class="mk-grid" id="theme-grid"></div>
+  </section>
+
+  <!-- MODAL -->
+  <div class="mk-modal" id="modal">
+    <div class="mk-modal-backdrop"></div>
+    <div class="mk-modal-content">
+      <button class="modal-close">✕</button>
+      <div class="modal-preview">
+        <iframe id="modal-preview-frame" class="modal-preview-frame"></iframe>
+      </div>
+      <div class="modal-info"></div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="theme-switcher.js"></script>
+  <script src="user-theme.js"></script>
+  <script src="presence.js"></script>
+  <script src="marketplace.js"></script>
+
+</body>
+</html>

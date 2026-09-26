@@ -13,6 +13,7 @@ from backend.github_oauth import router as github_router
 from backend.github_sync import router as github_sync_router
 from backend.presence import router as presence_router
 from backend.theme import router as theme_router
+from backend.theme_marketplace import router as marketplace_router
 
 
 _root = Path(__file__).parent.parent
@@ -42,6 +43,8 @@ app.include_router(github_router, prefix="/api/auth", tags=["github"])
 app.include_router(github_sync_router, prefix="/api/github", tags=["github-sync"])
 app.include_router(presence_router, prefix="/api/presence", tags=["presence"])
 app.include_router(theme_router, prefix="/api/theme", tags=["theme"])
+app.include_router(marketplace_router, prefix="/api/marketplace", tags=["marketplace"])
+
 
 
 _web_dir = Path(__file__).parent / "web"

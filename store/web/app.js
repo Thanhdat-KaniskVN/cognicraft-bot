@@ -1,5 +1,5 @@
 // ============================================================
-// COGNICRAFT STORE - Frontend v2.2 (Advanced Search)
+// COGNICRAFT STORE - Frontend v2.3 (Plugin + Theme split)
 // ============================================================
 
 const API_URL = window.STORE_API || "http://localhost:8001";
@@ -40,6 +40,8 @@ async function loadPlugins() {
         params.append("sort", currentFilters.sort);
         params.append("page", currentFilters.page);
         params.append("per_page", 50);
+        // ⭐ Chỉ lấy plugin, không lẫn theme
+        params.append("type", "plugin");
 
         const r = await fetch(`${API_URL}/api/store/plugins?${params}`);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -54,7 +56,6 @@ async function loadPlugins() {
         document.getElementById("last-update").textContent =
             "Cập nhật: " + new Date().toLocaleTimeString("vi-VN");
 
-        // Update active filter count
         updateFilterBadge();
 
         if (allPlugins.length === 0) {
@@ -178,6 +179,12 @@ function showSuggestions(suggestions) {
                 <span class="suggestion-text">${escapeHtml(s.text)}</span>
                 <span class="suggestion-type">plugin</span>
             </div>`;
+        } else if (s.type === "theme") {
+            return `<div class="suggestion-item" onclick="selectSuggestion('theme', '${escapeHtml(s.slug)}')">
+                <span class="suggestion-icon">🎨</span>
+                <span class="suggestion-text">${escapeHtml(s.text)}</span>
+                <span class="suggestion-type">theme</span>
+            </div>`;
         } else if (s.type === "author") {
             return `<div class="suggestion-item" onclick="selectSuggestion('author', '${escapeHtml(s.text)}')">
                 <span class="suggestion-icon">${escapeHtml(s.icon)}</span>
@@ -203,8 +210,10 @@ function hideSuggestions() {
 
 function selectSuggestion(type, value) {
     if (type === "plugin") {
-        // Navigate to plugin detail
         window.location.href = `plugin.html?slug=${value}`;
+        return;
+    } else if (type === "theme") {
+        window.location.href = `marketplace.html?theme=${value}`;
         return;
     } else if (type === "author") {
         currentFilters.author = value;
@@ -221,7 +230,7 @@ function selectSuggestion(type, value) {
 }
 
 // ============================================================
-// RENDER CATEGORIES
+// RENDER CATEGORIES — CÓ NAVIGATE THEMES
 // ============================================================
 
 function renderCategories(categories) {
@@ -243,6 +252,11 @@ function renderCategories(categories) {
         chip.className = "category-chip" + (currentFilters.category === cat.id ? " active" : "");
         chip.innerHTML = `${escapeHtml(cat.icon)} ${escapeHtml(cat.name)} <span class="cat-count">${escapeHtml(cat.plugin_count || 0)}</span>`;
         chip.onclick = () => {
+            // 🎨 Category Themes → navigate marketplace 3D
+            if (cat.id === "themes" || cat.id === "theme") {
+                window.location.href = "marketplace.html";
+                return;
+            }
             currentFilters.category = cat.id;
             loadPlugins();
         };
@@ -255,11 +269,16 @@ function renderCategories(categories) {
         categories.forEach(cat => {
             const option = document.createElement("option");
             option.value = cat.id;
-            option.textContent = `${cat.icon} ${cat.name}`;
+            if (cat.id === "themes" || cat.id === "theme") {
+                option.textContent = `🎨 Themes (chuyển trang)`;
+            } else {
+                option.textContent = `${cat.icon} ${cat.name}`;
+            }
             select.appendChild(option);
         });
     }
 }
+
 // ============================================================
 // RENDER FEATURED
 // ============================================================
@@ -309,8 +328,10 @@ function renderPluginCard(plugin) {
     const stars = "★".repeat(Math.round(plugin.rating || 0)) +
                   "☆".repeat(5 - Math.round(plugin.rating || 0));
 
+    const link = `plugin.html?slug=${escapeHtml(plugin.slug)}`;
+
     return `
-        <a href="plugin.html?slug=${escapeHtml(plugin.slug)}" class="plugin-card">
+        <a href="${link}" class="plugin-card">
             ${verifiedBadge}
             ${featuredBadge}
             <div class="plugin-icon">${escapeHtml(plugin.icon || "📦")}</div>
@@ -382,9 +403,7 @@ function resetFilters() {
 // ============================================================
 // HELPERS
 // ============================================================
-// ============================================================
-// SECURITY: Escape HTML
-// ============================================================
+
 function escapeHtml(str) {
     if (str === null || str === undefined) return "";
     return String(str)
@@ -415,7 +434,6 @@ function showToast(message, type = "info") {
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Search input with debounce + suggestions
     const searchInput = document.getElementById("search-input");
     if (searchInput) {
         searchInput.addEventListener("input", (e) => {
@@ -429,7 +447,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 loadPlugins();
             }, 300);
 
-            // Fetch suggestions
             clearTimeout(window.__suggestTimeout);
             window.__suggestTimeout = setTimeout(() => {
                 fetchSuggestions(val);
@@ -441,23 +458,26 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Hide suggestions when click outside
     document.addEventListener("click", (e) => {
         if (!e.target.closest(".search-box")) {
             hideSuggestions();
         }
     });
 
-    // Category filter
     const catFilter = document.getElementById("category-filter");
     if (catFilter) {
         catFilter.addEventListener("change", (e) => {
-            currentFilters.category = e.target.value;
+            const val = e.target.value;
+            // 🎨 Category Themes → navigate
+            if (val === "themes" || val === "theme") {
+                window.location.href = "marketplace.html";
+                return;
+            }
+            currentFilters.category = val;
             loadPlugins();
         });
     }
 
-    // Sort filter
     const sortFilter = document.getElementById("sort-filter");
     if (sortFilter) {
         sortFilter.addEventListener("change", (e) => {
@@ -466,7 +486,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Initial load
     loadStats();
     loadCategories();
     loadTags();
