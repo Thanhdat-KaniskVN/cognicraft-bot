@@ -15,6 +15,7 @@ from backend.publish import router as publish_router
 from backend.auth import router as auth_router
 from backend.github_oauth import router as github_router
 from backend.github_sync import router as github_sync_router
+from backend.presence import router as presence_router   # ← NEW
 
 
 # Load env
@@ -45,6 +46,7 @@ app.include_router(publish_router, prefix="/api/store", tags=["publish"])
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(github_router, prefix="/api/auth", tags=["github"])
 app.include_router(github_sync_router, prefix="/api/github", tags=["github-sync"])
+app.include_router(presence_router, prefix="/api/presence", tags=["presence"])   # ← NEW
 
 
 # ============================================================
@@ -55,6 +57,7 @@ if _web_dir.exists():
     app.mount("/store", StaticFiles(directory=str(_web_dir), html=True), name="store-ui")
     print(f"📦 Store UI mounted at /store → {_web_dir}")
 
+
 @app.get("/")
 async def root():
     return {
@@ -63,6 +66,7 @@ async def root():
         "status": "running",
         "docs": "/docs",
     }
+
 
 @app.get("/debug/env")
 async def debug_env():
@@ -76,6 +80,8 @@ async def debug_env():
         "SB_URL_value": os.environ.get("SB_URL", "")[:50],
         "all_sb_keys": [k for k in os.environ.keys() if "SB" in k.upper()],
     }
+
+
 @app.get("/health")
 async def health():
     from datetime import datetime
