@@ -210,75 +210,80 @@ async def update_me(
 
 
 # ============================================================
-# GET /me/dashboard — User dashboard stats
+# GET /me/dashboard — User dashboard stats (FIXED v2)
 # ============================================================
 @router.get("/me/dashboard")
 async def get_dashboard(user: dict = Depends(get_current_user)):
-    """Get user dashboard summary"""
+    """Get user dashboard summary — matches by github_username, name, id"""
     db = get_db()
 
     db_user = db.query_one("SELECT * FROM public.users WHERE id = %s", (user["sub"],))
     if not db_user:
         raise HTTPException(404, "User không tồn tại")
 
-    user_name = db_user.get("name", "")
-    github_username = db_user.get("github_username", "")
+    user_id         = str(db_user["id"])
+    github_username = (db_user.get("github_username") or "").strip()
+    user_name       = (db_user.get("name") or "").strip()
 
-    # My plugins (published by user)
+    # Danh sách biến thể author có thể gặp
+    candidates = [c for c in {github_username, user_name, user_id} if c]
+    if not candidates:
+        candidates = ["__none__"]
+
+    # --- My plugins ---
     my_plugins = db.query(
         """
         SELECT id, slug, name, icon, description, category,
-               downloads, installs, rating, review_count, 
-               latest_version, created_at
+               downloads, installs, rating, review_count,
+               latest_version, created_at, author
         FROM plugins
-        WHERE author = %s OR author = %s
+        WHERE LOWER(author) = ANY(%s)
         ORDER BY downloads DESC
         """,
-        (user_name, github_username),
+        ([c.lower() for c in candidates],),
     )
-
     for p in my_plugins:
         if p.get("created_at"):
             p["created_at"] = p["created_at"].isoformat()
 
-    # Stats
+    # --- Stats ---
     total_downloads = sum(p.get("downloads", 0) or 0 for p in my_plugins)
-    total_installs = sum(p.get("installs", 0) or 0 for p in my_plugins)
+    total_installs  = sum(p.get("installs", 0) or 0 for p in my_plugins)
     total_reviews_received = sum(p.get("review_count", 0) or 0 for p in my_plugins)
 
     if my_plugins:
         weights = sum(p.get("review_count", 0) or 0 for p in my_plugins)
-        if weights > 0:
-            avg_rating = round(
-                sum((p.get("rating", 0) or 0) * (p.get("review_count", 0) or 0) for p in my_plugins) / weights,
-                1
-            )
-        else:
-            avg_rating = 0
+        avg_rating = round(
+            sum((p.get("rating", 0) or 0) * (p.get("review_count", 0) or 0)
+                for p in my_plugins) / weights, 1
+        ) if weights > 0 else 0
     else:
         avg_rating = 0
 
-    # My reviews
+    # --- My reviews ---
     my_reviews = db.query(
         """
         SELECT r.id, r.rating, r.comment, r.helpful_count, r.created_at,
                p.slug AS plugin_slug, p.name AS plugin_name, p.icon AS plugin_icon
         FROM reviews r
         JOIN plugins p ON p.id = r.plugin_id
-        WHERE r.user_id = %s
+        WHERE r.user_id = ANY(%s)
+           OR LOWER(r.user_name) = ANY(%s)
         ORDER BY r.created_at DESC
         LIMIT 20
         """,
-        (user_name.lower().replace(" ", "_"),),
+        (
+            candidates,
+            [c.lower() for c in candidates],
+        ),
     )
-
     for r in my_reviews:
         if r.get("created_at"):
             r["created_at"] = r["created_at"].isoformat()
 
     return {
         "user": {
-            "id": str(db_user["id"]),
+            "id": user_id,
             "name": db_user.get("name"),
             "email": db_user.get("email"),
             "avatar_url": db_user.get("avatar_url"),
