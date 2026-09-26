@@ -1,0 +1,505 @@
+/* ============================================================
+   ZOMBIE APOCALYPSE — CSS OVERLAY
+   Film grain · Scanlines · Vignette đỏ · Flicker · Blood drips
+   ============================================================ */
+
+/* ============================================================
+   BODY: khi scene zombie active
+   ============================================================ */
+body.scene-zombie {
+  background: #050203 !important;
+}
+
+body.scene-zombie::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  /* Vignette đỏ pulse */
+  background:
+    radial-gradient(ellipse at center, transparent 20%, rgba(80, 0, 0, 0.35) 70%, rgba(30, 0, 0, 0.75) 100%);
+  animation: zombie-pulse 4s ease-in-out infinite;
+}
+
+@keyframes zombie-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+/* ============================================================
+   FILM GRAIN + SCANLINES
+   ============================================================ */
+body.scene-zombie::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9001;
+  pointer-events: none;
+  opacity: 0.15;
+  background:
+    /* Scanlines */
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.15) 0px,
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  animation: scanline-move 8s linear infinite;
+  mix-blend-mode: multiply;
+}
+
+@keyframes scanline-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100px; }
+}
+
+/* ============================================================
+   FILM GRAIN riêng — dùng element injected bởi JS
+   ============================================================ */
+.zombie-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 9002;
+  pointer-events: none;
+  opacity: 0.25;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.15 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 200px 200px;
+  animation: grain-shift 0.4s steps(4) infinite;
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-2%, 1%); }
+  50%  { transform: translate(1%, -2%); }
+  75%  { transform: translate(-1%, 2%); }
+  100% { transform: translate(2%, -1%); }
+}
+
+/* ============================================================
+   BLOOD DRIPS từ trên cùng
+   ============================================================ */
+.zombie-blood-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  z-index: 9003;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      rgba(120, 0, 0, 0.6) 0%,
+      rgba(80, 0, 0, 0.3) 30%,
+      rgba(60, 0, 0, 0.05) 60%,
+      transparent 100%
+    );
+}
+
+.zombie-blood-top::before,
+.zombie-blood-top::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 3px;
+  background: linear-gradient(180deg,
+    rgba(120, 0, 0, 0.8) 0%,
+    rgba(120, 0, 0, 0.4) 60%,
+    rgba(120, 0, 0, 0) 100%
+  );
+  animation: drip 6s ease-in infinite;
+}
+
+.zombie-blood-top::before {
+  left: 15%;
+  height: 80px;
+  animation-delay: 0s;
+}
+
+.zombie-blood-top::after {
+  left: 72%;
+  height: 120px;
+  animation-delay: -3s;
+}
+
+@keyframes drip {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(200px); opacity: 0; }
+}
+
+/* ============================================================
+   WARNING TAPE — 2 dải chéo góc màn hình
+   ============================================================ */
+.zombie-tape {
+  position: fixed;
+  width: 300px;
+  height: 24px;
+  z-index: 9004;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    #ffcc00 0px,
+    #ffcc00 15px,
+    #1a1a1a 15px,
+    #1a1a1a 30px
+  );
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  opacity: 0.85;
+  font-family: system-ui, sans-serif;
+  color: #1a1a1a;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 4px;
+  text-align: center;
+  line-height: 24px;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.zombie-tape.top-left {
+  top: 80px;
+  left: -80px;
+  transform: rotate(-42deg);
+}
+
+.zombie-tape.bottom-right {
+  bottom: 90px;
+  right: -80px;
+  transform: rotate(-42deg);
+}
+
+/* ============================================================
+   SIREN GLOW — ánh sáng đỏ/xanh nhấp nháy ở góc
+   ============================================================ */
+.zombie-siren {
+  position: fixed;
+  width: 200px;
+  height: 200px;
+  z-index: 9005;
+  pointer-events: none;
+  border-radius: 50%;
+  animation: siren-flash 2s ease-in-out infinite;
+  mix-blend-mode: screen;
+  opacity: 0.4;
+}
+
+.zombie-siren.left {
+  top: 100px;
+  left: -100px;
+  background: radial-gradient(circle, rgba(255, 30, 30, 0.8) 0%, transparent 70%);
+}
+
+.zombie-siren.right {
+  top: 100px;
+  right: -100px;
+  background: radial-gradient(circle, rgba(30, 80, 255, 0.8) 0%, transparent 70%);
+  animation-delay: -1s;
+}
+
+@keyframes siren-flash {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50%      { opacity: 0.7; transform: scale(1.15); }
+}
+
+/* ============================================================
+   FLICKER — toàn màn hình thỉnh thoảng chớp đen
+   ============================================================ */
+.zombie-flicker {
+  position: fixed;
+  inset: 0;
+  z-index: 9006;
+  pointer-events: none;
+  background: #000;
+  opacity: 0;
+  animation: flicker 8s linear infinite;
+}
+
+@keyframes flicker {
+  0%, 100%   { opacity: 0; }
+  47%        { opacity: 0; }
+  48%        { opacity: 0.15; }
+  49%        { opacity: 0; }
+  92%        { opacity: 0; }
+  93%        { opacity: 0.25; }
+  93.5%      { opacity: 0; }
+  94%        { opacity: 0.1; }
+  94.5%      { opacity: 0; }
+}
+
+/* ============================================================
+   TEXT FLICKER — tiêu đề chớp như đèn hỏng
+   ============================================================ */
+body.scene-zombie .mk-hero .hero-title,
+body.scene-zombie .hero-title {
+  animation: title-flicker 5s linear infinite !important;
+  text-shadow:
+    0 0 20px rgba(255, 60, 30, 0.7),
+    0 0 40px rgba(255, 30, 20, 0.4),
+    2px 2px 0 rgba(120, 0, 0, 0.6) !important;
+}
+
+@keyframes title-flicker {
+  0%, 100%      { opacity: 1; }
+  18%           { opacity: 1; }
+  19%           { opacity: 0.4; }
+  20%           { opacity: 1; }
+  62%           { opacity: 1; }
+  63%           { opacity: 0.3; }
+  63.5%         { opacity: 0.9; }
+  64%           { opacity: 0.4; }
+  64.5%         { opacity: 1; }
+}
+
+/* ============================================================
+   SCROLL INDICATOR — đổi màu đỏ máu
+   ============================================================ */
+body.scene-zombie .scroll-indicator {
+  color: #ff3030 !important;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
+}
+
+body.scene-zombie .scroll-indicator .arrow {
+  border-color: #ff3030 !important;
+  box-shadow: 0 0 12px rgba(255, 0, 0, 0.5);
+}
+
+/* ============================================================
+   TEXT khác — đổi màu đỏ máu
+   ============================================================ */
+body.scene-zombie .mk-section-title,
+body.scene-zombie .hero-badge {
+  text-shadow: 0 0 15px rgba(255, 40, 20, 0.6);
+}
+
+body.scene-zombie .mk-search,
+body.scene-zombie .mk-select {
+  border-color: rgba(180, 30, 30, 0.4) !important;
+  box-shadow: 0 0 10px rgba(180, 0, 0, 0.2);
+}
+
+body.scene-zombie .mk-search:focus {
+  border-color: #ff3030 !important;
+  box-shadow: 0 0 0 4px rgba(255, 30, 30, 0.15) !important;
+}
+
+/* ============================================================
+   NAVBAR — đổi tint đỏ
+   ============================================================ */
+body.scene-zombie .mk-nav {
+  background: rgba(10, 2, 5, 0.85) !important;
+  border-bottom-color: rgba(180, 30, 30, 0.3) !important;
+}
+
+/* ============================================================
+   THEME CARD — viền đỏ khi hover
+   ============================================================ */
+body.scene-zombie .theme-card:hover {
+  border-color: #ff3030 !important;
+  box-shadow: 0 30px 80px rgba(255, 30, 30, 0.4) !important;
+}
+
+/* ============================================================
+   CURSOR TRAIL đỏ máu
+   ============================================================ */
+body.scene-zombie .cursor-glow {
+  background: radial-gradient(circle, rgba(255, 30, 20, 0.25) 0%, transparent 70%) !important;
+  mix-blend-mode: screen !important;
+}
+
+/* ============================================================
+   PARTICLE BACKGROUND cũ — ẩn nếu còn
+   ============================================================ */
+body.scene-zombie #bg-canvas {
+  display: none !important;
+}
+
+/* ============================================================
+   BUTTONS — đổi sang đỏ máu
+   ============================================================ */
+body.scene-zombie .btn-hero.primary,
+body.scene-zombie .btn-modal.primary {
+  background: linear-gradient(135deg, #8a1010, #d02020) !important;
+  box-shadow: 0 10px 40px rgba(200, 30, 30, 0.5) !important;
+}
+
+body.scene-zombie .btn-hero.primary:hover,
+body.scene-zombie .btn-modal.primary:hover {
+  box-shadow: 0 20px 60px rgba(255, 50, 30, 0.7) !important;
+}
+/* ============================================================
+   🩸 BLOOD DRIP TRÊN CHỮ TITLE
+   ============================================================ */
+body.scene-zombie .hero-title {
+  position: relative;
+}
+
+/* Máu chảy từ chữ */
+body.scene-zombie .hero-title::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    /* Drip 1 - từ chữ T */
+    radial-gradient(ellipse 8px 40px at 8% 100%, rgba(140, 0, 0, 0.9) 0%, rgba(140, 0, 0, 0.6) 40%, transparent 100%),
+    /* Drip 2 - từ chữ H */
+    radial-gradient(ellipse 6px 60px at 22% 100%, rgba(120, 0, 0, 0.85) 0%, rgba(120, 0, 0, 0.5) 50%, transparent 100%),
+    /* Drip 3 - từ giữa */
+    radial-gradient(ellipse 10px 80px at 45% 100%, rgba(160, 0, 0, 0.9) 0%, rgba(160, 0, 0, 0.4) 60%, transparent 100%),
+    /* Drip 4 */
+    radial-gradient(ellipse 7px 50px at 68% 100%, rgba(140, 0, 0, 0.85) 0%, transparent 100%),
+    /* Drip 5 - từ chữ E cuối */
+    radial-gradient(ellipse 9px 70px at 88% 100%, rgba(120, 0, 0, 0.9) 0%, transparent 100%);
+  filter: blur(0.5px);
+  animation: blood-flow 5s ease-in infinite;
+  z-index: -1;
+}
+
+@keyframes blood-flow {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  15%  { opacity: 1; }
+  50%  { transform: translateY(20%); opacity: 1; }
+  80%  { transform: translateY(60%); opacity: 0.6; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+/* Vệt máu chảy chậm hơn */
+body.scene-zombie .hero-title::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 4px 100px at 33% 100%, rgba(100, 0, 0, 0.7) 0%, transparent 100%),
+    radial-gradient(ellipse 5px 120px at 78% 100%, rgba(100, 0, 0, 0.7) 0%, transparent 100%);
+  filter: blur(1.2px);
+  animation: blood-flow-slow 8s ease-in infinite;
+  z-index: -1;
+}
+
+@keyframes blood-flow-slow {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(150%); opacity: 0; }
+}
+
+/* ============================================================
+   🧟 ZOMBIE HAND — bàn tay vồ chữ
+   ============================================================ */
+.zombie-hand {
+  position: fixed;
+  width: 140px;
+  height: 180px;
+  z-index: 9007;
+  pointer-events: none;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.zombie-hand.left-hand {
+  top: 30%;
+  left: -180px;
+  animation: hand-grab-left 8s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(140, 0, 0, 0.7));
+}
+
+.zombie-hand.right-hand {
+  top: 30%;
+  right: -180px;
+  animation: hand-grab-right 8s ease-in-out infinite;
+  animation-delay: 1.5s;
+  filter: drop-shadow(0 0 20px rgba(140, 0, 0, 0.7));
+  transform: scaleX(-1);
+}
+
+@keyframes hand-grab-left {
+  0%, 100% { transform: translateX(0) rotate(-15deg); opacity: 0; }
+  20%      { opacity: 0.9; }
+  45%      { transform: translateX(500px) rotate(-25deg); opacity: 1; }
+  55%      { transform: translateX(520px) rotate(-20deg); opacity: 1; }
+  75%      { transform: translateX(480px) rotate(-30deg); opacity: 0.9; }
+  90%      { transform: translateX(0) rotate(-15deg); opacity: 0; }
+}
+
+@keyframes hand-grab-right {
+  0%, 100% { transform: scaleX(-1) translateX(0) rotate(-15deg); opacity: 0; }
+  20%      { opacity: 0.9; }
+  45%      { transform: scaleX(-1) translateX(500px) rotate(-25deg); opacity: 1; }
+  55%      { transform: scaleX(-1) translateX(520px) rotate(-20deg); opacity: 1; }
+  75%      { transform: scaleX(-1) translateX(480px) rotate(-30deg); opacity: 0.9; }
+  90%      { transform: scaleX(-1) translateX(0) rotate(-15deg); opacity: 0; }
+}
+
+/* ============================================================
+   🧟 ZOMBIE CLIMBING — trèo từ dưới lên
+   ============================================================ */
+.zombie-climber {
+  position: fixed;
+  bottom: -180px;
+  width: 100px;
+  height: 180px;
+  z-index: 9008;
+  pointer-events: none;
+  animation: climb-up 12s linear infinite;
+  filter: drop-shadow(0 -10px 20px rgba(140, 0, 0, 0.5));
+}
+
+@keyframes climb-up {
+  0%   { transform: translateY(0) rotate(-5deg); opacity: 0; }
+  10%  { opacity: 0.9; }
+  50%  { transform: translateY(-45vh) rotate(5deg); opacity: 1; }
+  85%  { transform: translateY(-80vh) rotate(-3deg); opacity: 0.8; }
+  100% { transform: translateY(-110vh) rotate(0deg); opacity: 0; }
+}
+
+/* Lắc lư khi trèo */
+.zombie-climber.climb-sway {
+  animation:
+    climb-up 14s linear infinite,
+    zombie-sway 2s ease-in-out infinite;
+}
+
+@keyframes zombie-sway {
+  0%, 100% { margin-left: 0; }
+  25%      { margin-left: -8px; }
+  75%      { margin-left: 8px; }
+}
+
+/* ============================================================
+   🎬 TITLE SHAKE — khi zombie vồ
+   ============================================================ */
+body.scene-zombie.attacked .hero-title {
+  animation:
+    title-flicker 5s linear infinite,
+    title-shake 8s ease-in-out infinite !important;
+}
+
+@keyframes title-shake {
+  0%, 100%   { transform: translate(0, 0) rotate(0); }
+  44%        { transform: translate(0, 0) rotate(0); }
+  46%        { transform: translate(-4px, 2px) rotate(-1.5deg); }
+  48%        { transform: translate(5px, -3px) rotate(2deg); }
+  50%        { transform: translate(-3px, 1px) rotate(-1deg); }
+  52%        { transform: translate(2px, -1px) rotate(0.5deg); }
+  54%        { transform: translate(0, 0) rotate(0); }
+}
+
+/* ============================================================
+   HỖ TRỢ — ZOMBIE EYE GLOW
+   ============================================================ */
+body.scene-zombie .hero-title .blood-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -2;
+  filter: blur(30px);
+  background: radial-gradient(ellipse at center, rgba(255, 30, 20, 0.6) 0%, transparent 60%);
+  animation: blood-pulse 3s ease-in-out infinite;
+}
+
+@keyframes blood-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%      { opacity: 0.8; transform: scale(1.1); }
+}
