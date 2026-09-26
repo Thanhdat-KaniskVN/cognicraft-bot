@@ -1299,3 +1299,78 @@ body::after {
   opacity: 0.6;
   cursor: not-allowed;
 }
+/* ============================================================
+   RESPONSIVE MODAL — Mobile fix
+   ============================================================ */
+@media (max-width: 768px) {
+  .mk-modal {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .mk-modal-content {
+    grid-template-columns: 1fr !important;
+    max-height: 95vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    grid-template-rows: 40vh 1fr !important;
+  }
+
+  .modal-preview {
+    min-height: 0 !important;
+    padding: 16px !important;
+  }
+
+  .modal-preview-frame {
+    border-radius: 10px !important;
+  }
+
+  .modal-info {
+    padding: 20px !important;
+    max-height: 55vh !important;
+    overflow-y: auto !important;
+  }
+
+  .modal-close {
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 100 !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+
+  .modal-title {
+    font-size: 20px !important;
+  }
+
+  .modal-actions {
+    position: sticky !important;
+    bottom: 0 !important;
+    background: linear-gradient(180deg, transparent, rgba(20, 8, 45, 0.98) 20%) !important;
+    padding: 16px 0 4px !important;
+    margin: 0 -20px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  .btn-modal {
+    padding: 12px !important;
+    font-size: 13px !important;
+  }
+
+  .modal-delete-btn {
+    padding: 12px 14px !important;
+  }
+}
+
+/* Purchase modal mobile */
+@media (max-width: 768px) {
+  .purchase-modal {
+    padding: 20px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+  .purchase-modal h2 {
+    font-size: 18px !important;
+  }
+}
