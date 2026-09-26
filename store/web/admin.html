@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="cyberpunk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — CogniCraft</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+<style>
+  /* ============================================================
+     ADMIN PANEL SPECIFIC
+     ============================================================ */
+  body {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  .admin-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  .admin-sidebar {
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .admin-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    color: var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 900;
+  }
+
+  .admin-logo .shield {
+    font-size: 1.5rem;
+    filter: drop-shadow(0 0 10px var(--cyan));
+  }
+
+  .admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    width: 100%;
+  }
+
+  .admin-nav-item:hover {
+    background: rgba(var(--primary-rgb), 0.05);
+    color: var(--text);
+  }
+
+  .admin-nav-item.active {
+    background: rgba(var(--primary-rgb), 0.1);
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.15);
+  }
+
+  .admin-nav-item .icon { font-size: 1.1rem; }
+  .admin-nav-item .badge {
+    margin-left: auto;
+    background: var(--red);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  /* MAIN */
+  .admin-main {
+    padding: 2rem;
+    overflow-x: hidden;
+  }
+
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .admin-header h1 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--cyan);
+    font-size: 1.8rem;
+    margin: 0;
+  }
+
+  .admin-header .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--dim);
+  }
+
+  .admin-header .user-info img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--cyan);
+  }
+
+  /* STATS GRID */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: linear-gradient(135deg, var(--bg-elev), var(--card));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.3rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 3px;
+    background: linear-gradient(90deg, var(--cyan), transparent);
+  }
+
+  .stat-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(var(--primary-rgb), 0.15);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--cyan);
+    line-height: 1;
+  }
+
+  .stat-sub {
+    font-size: 0.75rem;
+    color: var(--dim);
+    margin-top: 0.4rem;
+  }
+
+  /* SECTION */
+  .admin-section {
+    display: none;
+  }
+
+  .admin-section.active {
+    display: block;
+    animation: fadeIn 0.3s;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-toolbar {
+    display: flex;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .toolbar-input, .toolbar-select {
+    padding: 0.7rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.85rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .toolbar-input { flex: 1; min-width: 200px; }
+  .toolbar-input:focus, .toolbar-select:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.2);
+  }
+
+  /* TABLE */
+  .admin-table {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 0.85rem;
+  }
+
+  .admin-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .admin-table th {
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .admin-table td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  .admin-table tr:last-child td { border-bottom: none; }
+
+  .admin-table tr:hover { background: rgba(var(--primary-rgb), 0.03); }
+
+  .admin-table .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .admin-table .user-cell img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+  }
+
+  .admin-table .user-cell .name {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .admin-table .user-cell .email {
+    font-size: 0.75rem;
+    color: var(--dim);
+  }
+
+  /* TAGS */
+  .tag-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  .tag-pill.admin { background: rgba(181, 55, 242, 0.2); color: var(--purple); border: 1px solid rgba(181, 55, 242, 0.4); }
+  .tag-pill.banned { background: rgba(239, 68, 68, 0.15); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.4); }
+  .tag-pill.active { background: rgba(0, 255, 136, 0.15); color: var(--green); border: 1px solid rgba(0, 255, 136, 0.4); }
+  .tag-pill.theme { background: rgba(236, 72, 153, 0.15); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.4); }
+  .tag-pill.plugin { background: rgba(6, 182, 212, 0.15); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.4); }
+  .tag-pill.pending { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); }
+  .tag-pill.resolved { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.4); }
+
+  /* ACTION BUTTONS */
+  .action-btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--text);
+    font-size: 0.75rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+
+  .action-btn:hover {
+    border-color: var(--cyan);
+    background: rgba(var(--primary-rgb), 0.1);
+  }
+
+  .action-btn.danger {
+    color: var(--red);
+    border-color: rgba(239, 68, 68, 0.4);
+  }
+  .action-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: var(--red);
+  }
+
+  .action-btn.success {
+    color: var(--green);
+    border-color: rgba(0, 255, 136, 0.4);
+  }
+  .action-btn.success:hover {
+    background: rgba(0, 255, 136, 0.1);
+  }
+
+  .action-btn.warn {
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.4);
+  }
+  .action-btn.warn:hover {
+    background: rgba(251, 191, 36, 0.15);
+  }
+
+  /* LOADING / EMPTY */
+  .admin-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--dim);
+  }
+
+  .admin-loading {
+    text-align: center;
+    padding: 3rem;
+    color: var(--dim);
+  }
+
+  .admin-spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: admin-spin 0.8s linear infinite;
+  }
+
+  @keyframes admin-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* TOAST */
+  .admin-toast {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    z-index: 999999;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: all 0.3s;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .admin-toast.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .admin-toast.success { background: linear-gradient(135deg, #22c55e, #16a34a); }
+  .admin-toast.error   { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .admin-toast.info    { background: linear-gradient(135deg, #a855f7, #ec4899); }
+
+  /* ACCESS DENIED */
+  .access-denied {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .access-denied .icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 20px var(--red));
+  }
+
+  .access-denied h1 {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--red);
+    margin-bottom: 0.5rem;
+  }
+
+  .access-denied p { color: var(--dim); margin-bottom: 1.5rem; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .admin-layout { grid-template-columns: 1fr; }
+    .admin-sidebar { position: relative; height: auto; }
+    .admin-nav { flex-direction: row; overflow-x: auto; }
+    .admin-nav-item { white-space: nowrap; }
+    .admin-main { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ACCESS DENIED (ẩn mặc định) -->
+<div id="access-denied" class="access-denied" style="display:none;">
+  <div class="icon">🚫</div>
+  <h1>ACCESS DENIED</h1>
+  <p>Bạn không có quyền truy cập trang này.</p>
+  <a href="index.html" class="action-btn" style="padding: 0.8rem 1.5rem; text-decoration: none;">← Về trang chủ</a>
+</div>
+
+<!-- ADMIN LAYOUT (ẩn cho tới khi verify) -->
+<div id="admin-root" class="admin-layout" style="display:none;">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <span class="shield">🛡️</span>
+      <span>ADMIN</span>
+    </div>
+    <nav class="admin-nav">
+      <button class="admin-nav-item active" data-section="overview">
+        <span class="icon">📊</span> Tổng quan
+      </button>
+      <button class="admin-nav-item" data-section="users">
+        <span class="icon">👥</span> Users
+      </button>
+      <button class="admin-nav-item" data-section="themes">
+        <span class="icon">🎨</span> Themes / Plugins
+      </button>
+      <button class="admin-nav-item" data-section="reports">
+        <span class="icon">🚨</span> Reports
+        <span class="badge" id="reports-badge" style="display:none;">0</span>
+      </button>
+      <button class="admin-nav-item" data-section="orders">
+        <span class="icon">💰</span> Orders
+      </button>
+      <a href="index.html" class="admin-nav-item" style="margin-top: 1rem; color: var(--cyan);">
+        <span class="icon">←</span> Về Store
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+
+    <div class="admin-header">
+      <h1 id="section-title">📊 Tổng quan</h1>
+      <div class="user-info">
+        <span id="admin-name">Admin</span>
+        <img id="admin-avatar" src="" alt="">
+      </div>
+    </div>
+
+    <!-- OVERVIEW SECTION -->
+    <section id="section-overview" class="admin-section active">
+      <div class="stats-grid" id="stats-grid">
+        <div class="admin-loading"><div class="admin-spinner"></div></div>
+      </div>
+    </section>
+
+    <!-- USERS SECTION -->
+    <section id="section-users" class="admin-section">
+      <div class="section-toolbar">
+        <input type="text" class="toolbar-input" id="users-search" placeholder="🔍 Tìm theo tên, email, github...">
+        <select class="toolbar-select" id="users-filter">
+          <option value="all">Tất cả</option>
+          <option value="admin">👑 Admin</option>
+          <option value="banned">🚫 Bị ban</option>
+          <option value="normal">👤 Bình thường</option>
+        </select>
+        <button class="action-btn" onclick="loadUsers()">🔄 Refresh</button>
+      </div>
+      <div class="admin-table" id="users-table">
+        <div class="admin-loading"><div class="admin-spinner"></div></div>
+      </div>
+    </section>
+
+    <!-- THEMES SECTION -->
+    <section id="section-themes" class="admin-section">
+      <div class="section-toolbar">
+        <input type="text" class="toolbar-input" id="themes-search" placeholder="🔍 Tìm theme/plugin...">
+        <select class="toolbar-select" id="themes-filter">
+          <option value="">Tất cả</option>
+          <option value="theme">🎨 Chỉ Themes</option>
+          <option value="plugin">📦 Chỉ Plugins</option>
+        </select>
+        <button class="action-btn" onclick="loadThemes()">🔄 Refresh</button>
+      </div>
+      <div class="admin-table" id="themes-table">
+        <div class="admin-loading"><div class="admin-spinner"></div></div>
+      </div>
+    </section>
+
+    <!-- REPORTS SECTION -->
+    <section id="section-reports" class="admin-section">
+      <div class="section-toolbar">
+        <select class="toolbar-select" id="reports-filter">
+          <option value="">Tất cả</option>
+          <option value="pending">⏳ Chờ xử lý</option>
+          <option value="resolved">✅ Đã xử lý</option>
+          <option value="dismissed">❌ Bỏ qua</option>
+        </select>
+        <button class="action-btn" onclick="loadReports()">🔄 Refresh</button>
+      </div>
+      <div class="admin-table" id="reports-table">
+        <div class="admin-loading"><div class="admin-spinner"></div></div>
+      </div>
+    </section>
+
+    <!-- ORDERS SECTION -->
+    <section id="section-orders" class="admin-section">
+      <div class="admin-empty">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">💰</div>
+        <h3>Orders sắp ra mắt</h3>
+        <p>Tính năng này sẽ available sau Phase 7 (Payment).</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div id="admin-toast" class="admin-toast"></div>
+
+<!-- SCRIPTS -->
+<script src="config.js"></script>
+<script src="theme-switcher.js"></script>
+<script src="auth.js"></script>
+<script src="admin.js"></script>
+
+</body>
+</html>

@@ -325,13 +325,31 @@ function renderPluginCard(plugin) {
         ? '<span class="plugin-badge badge-featured" style="top: 3rem;">⭐ FEATURED</span>'
         : "";
 
-    const stars = "★".repeat(Math.round(plugin.rating || 0)) +
-                  "☆".repeat(5 - Math.round(plugin.rating || 0));
+    // ⭐ Rating hiển thị thông minh
+    let ratingHTML = '';
+    const reviewCount = plugin.review_count || 0;
+    const rating = plugin.rating || 0;
 
-    const link = `plugin.html?slug=${escapeHtml(plugin.slug)}`;
+    if (reviewCount === 0 || rating === 0) {
+        ratingHTML = '<span class="plugin-rating no-rating" style="opacity:0.5;font-style:italic;font-size:0.75rem;">Chưa có đánh giá</span>';
+    } else {
+        const stars = "★".repeat(Math.round(rating)) + "☆".repeat(5 - Math.round(rating));
+        ratingHTML = `<span class="plugin-rating">${stars} ${rating.toFixed(1)}</span>`;
+    }
+
+    // ⭐ Giá (FREE/PAID)
+    let priceHTML = '';
+    if (plugin.is_paid && plugin.price_vnd > 0) {
+        const price = plugin.price_vnd >= 1000
+            ? (plugin.price_vnd / 1000).toFixed(0) + 'K'
+            : plugin.price_vnd + 'đ';
+        priceHTML = `<span class="plugin-price paid">💎 ${price}</span>`;
+    } else {
+        priceHTML = `<span class="plugin-price free">FREE</span>`;
+    }
 
     return `
-        <a href="${link}" class="plugin-card">
+        <a href="plugin.html?slug=${escapeHtml(plugin.slug)}" class="plugin-card">
             ${verifiedBadge}
             ${featuredBadge}
             <div class="plugin-icon">${escapeHtml(plugin.icon || "📦")}</div>
@@ -339,8 +357,11 @@ function renderPluginCard(plugin) {
             <div class="plugin-author">${escapeHtml(plugin.author)}</div>
             <div class="plugin-desc">${escapeHtml(plugin.description || "")}</div>
             <div class="plugin-meta">
-                <span class="plugin-rating">${stars} ${escapeHtml(plugin.rating || "0.0")}</span>
+                ${ratingHTML}
                 <span class="plugin-downloads">📥 ${escapeHtml(formatNumber(plugin.downloads || 0))}</span>
+            </div>
+            <div class="plugin-price-row">
+                ${priceHTML}
             </div>
         </a>
     `;
