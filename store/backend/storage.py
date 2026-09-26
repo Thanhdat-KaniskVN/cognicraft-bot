@@ -20,6 +20,13 @@ async def upload_file(file_bytes: bytes, filename: str, content_type: str = "app
 
     url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{filename}"
 
+    # DEBUG — XÓA sau khi fix
+    print(f"[Storage DEBUG] SUPABASE_URL = {repr(SUPABASE_URL)}")
+    print(f"[Storage DEBUG] URL = {repr(url)}")
+    print(f"[Storage DEBUG] Bucket = {repr(BUCKET)}")
+    print(f"[Storage DEBUG] Filename = {repr(filename)}")
+    print(f"[Storage DEBUG] Key prefix = {SUPABASE_SERVICE_KEY[:20] if SUPABASE_SERVICE_KEY else 'EMPTY'}")
+
     async with httpx.AsyncClient(timeout=60.0) as client:
         r = await client.post(
             url,
