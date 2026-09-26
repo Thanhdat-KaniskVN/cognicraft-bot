@@ -19,11 +19,8 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 # Add path để import cogni_package
-# - Local: parent.parent.parent = root project
-# - Deploy (store = root): parent.parent = /app
 _root = Path(__file__).parent.parent.parent.resolve()
 if not (_root / "cogni_package").exists():
-    # Fallback cho Railway: cogni_package đã copy vào store/
     _root = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(_root))
 
@@ -70,7 +67,6 @@ def _check_auth(authorization: Optional[str]) -> str:
     if not authorization:
         raise HTTPException(401, "Missing Authorization header")
 
-    # Format: "Bearer <token>:<author>"
     parts = authorization.replace("Bearer ", "").split(":", 1)
     if len(parts) != 2:
         raise HTTPException(401, "Invalid Authorization format. Use: Bearer <token>:<author>")
@@ -110,7 +106,6 @@ async def _save_upload(file: UploadFile) -> Path:
     if ext not in ALLOWED_EXT:
         raise HTTPException(400, f"Chỉ chấp nhận file {ALLOWED_EXT}")
 
-    # Save to temp
     tmp_path = UPLOAD_DIR / f".tmp-{datetime.now().timestamp()}-{file.filename}"
     size = 0
 
@@ -127,13 +122,66 @@ async def _save_upload(file: UploadFile) -> Path:
 
 
 # ============================================================
+# 🛡️ SECURITY SCAN — tích hợp scanner
+# ============================================================
+def _scan_or_raise(tmp: Path, filename: str) -> dict:
+    """
+    Quét file .cogni trước khi publish.
+    - Nếu có threat critical/high → raise HTTPException
+    - Nếu OK → trả về scan_report dict
+    """
+    try:
+        from .security import scan_cogni_package
+    except ImportError:
+        # Scanner chưa có → skip (không block)
+        print('⚠️ Security scanner chưa available — skip scan')
+        return {'skipped': True, 'reason': 'scanner_unavailable'}
+
+    try:
+        report = scan_cogni_package(str(tmp))
+        report_dict = report.to_dict()
+
+        # Nếu KHÔNG an toàn → block
+        if not report.is_safe():
+            # Log chi tiết
+            print(f'🚨 SECURITY BLOCK: {filename}')
+            print(f'   Risk: {report.risk_level()} (score {report.score}/100)')
+            for t in report.threats[:5]:
+                print(f'   - [{t["severity"]}] {t["message"]}')
+
+            raise HTTPException(
+                400,
+                detail={
+                    'error': 'File chứa mã độc hoặc nội dung nguy hiểm',
+                    'risk_level': report.risk_level(),
+                    'score': report.score,
+                    'threats': report.threats[:5],
+                    'warnings': report.warnings[:3],
+                }
+            )
+
+        # Log kết quả OK
+        print(f'✅ Security scan PASS: {filename} — score {report.score}/100, '
+              f'warnings {len(report.warnings)}')
+
+        return report_dict
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Scanner crash → không block, chỉ log
+        print(f'⚠️ Scanner error (không block): {e}')
+        return {'skipped': True, 'reason': str(e)[:200]}
+
+
+# ============================================================
 # POST /publish — Upload plugin mới
 # ============================================================
 @router.post("/publish", response_model=PublishResponse)
 async def publish_plugin(
     file: UploadFile = File(...),
     category: Optional[str] = Form(None),
-    tags: Optional[str] = Form(None),  # comma-separated
+    tags: Optional[str] = Form(None),
     authorization: Optional[str] = Header(None),
 ):
     """
@@ -153,6 +201,9 @@ async def publish_plugin(
     tmp = await _save_upload(file)
 
     try:
+        # 🛡️ 1.5 SECURITY SCAN
+        scan_report = _scan_or_raise(tmp, file.filename or 'unknown.cogni')
+
         # 2. Read manifest
         manifest = _read_manifest_from_cogni(tmp)
 
@@ -161,7 +212,6 @@ async def publish_plugin(
         if errors:
             raise HTTPException(400, "Manifest không hợp lệ:\n  - " + "\n  - ".join(errors))
 
-        # Override author từ auth (tránh giả mạo)
         manifest.author = author
 
         # 4. Check duplicate
@@ -193,7 +243,6 @@ async def publish_plugin(
         checksum = _compute_sha256(tmp)
         file_size = len(file_bytes)
 
-        # Xóa file tmp
         tmp.unlink(missing_ok=True)
 
         # 7. Insert DB
@@ -251,7 +300,7 @@ async def publish_plugin(
             success=True,
             slug=manifest.id,
             version=manifest.version,
-            message=f"✅ Đã publish {manifest.name} v{manifest.version}",
+            message=f"✅ Đã publish {manifest.name} v{manifest.version} (scan: {scan_report.get('score', '?')}/100)",
             download_url=f"/api/store/download/{manifest.id}",
         )
 
@@ -277,6 +326,9 @@ async def publish_version(
     tmp = await _save_upload(file)
 
     try:
+        # 🛡️ SECURITY SCAN
+        scan_report = _scan_or_raise(tmp, file.filename or 'unknown.cogni')
+
         manifest = _read_manifest_from_cogni(tmp)
         errors = validate_manifest(manifest)
         if errors:
@@ -293,7 +345,6 @@ async def publish_version(
         if plugin["author"] != author:
             raise HTTPException(403, "Bạn không phải tác giả plugin này")
 
-        # Check version chưa tồn tại
         dup = db.query_one(
             "SELECT id FROM plugin_versions WHERE plugin_id = %s AND version = %s",
             (plugin["id"], manifest.version),
@@ -301,7 +352,6 @@ async def publish_version(
         if dup:
             raise HTTPException(409, f"Version {manifest.version} đã tồn tại")
 
-        # Upload to Supabase Storage
         from .storage import upload_file
 
         final_name = f"{manifest.id}-{manifest.version}.cogni"
@@ -317,7 +367,6 @@ async def publish_version(
 
         tmp.unlink(missing_ok=True)
 
-        # Insert version
         db.execute(
             """
             INSERT INTO plugin_versions (
@@ -335,7 +384,6 @@ async def publish_version(
             ),
         )
 
-        # Update latest_version
         db.execute(
             "UPDATE plugins SET latest_version = %s WHERE id = %s",
             (manifest.version, plugin["id"]),
@@ -345,7 +393,7 @@ async def publish_version(
             success=True,
             slug=manifest.id,
             version=manifest.version,
-            message=f"✅ Đã publish version {manifest.version}",
+            message=f"✅ Đã publish version {manifest.version} (scan: {scan_report.get('score', '?')}/100)",
             download_url=f"/api/store/download/{manifest.id}",
         )
 
@@ -394,7 +442,6 @@ async def download_plugin(slug: str, version: Optional[str] = None):
     if not file_path.exists():
         raise HTTPException(500, "File vật lý bị mất — cần re-upload")
 
-    # Increment downloads
     db.execute(
         "UPDATE plugins SET downloads = downloads + 1 WHERE id = %s",
         (plugin["id"],),

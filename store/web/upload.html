@@ -9,10 +9,7 @@
 <link rel="stylesheet" href="themes.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
-    .upload-container {
-        max-width: 900px;
-        margin: 0 auto;
-    }
+    .upload-container { max-width: 900px; margin: 0 auto; }
 
     .drop-zone {
         border: 3px dashed var(--border);
@@ -56,15 +53,8 @@
         gap: 1rem;
     }
 
-    .form-field {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-    }
-
-    .form-field.full {
-        grid-column: 1 / -1;
-    }
+    .form-field { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-field.full { grid-column: 1 / -1; }
 
     .form-field label {
         color: var(--dim);
@@ -95,19 +85,10 @@
         box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.2);
     }
 
-    .form-field textarea {
-        resize: vertical;
-        min-height: 80px;
-    }
+    .form-field textarea { resize: vertical; min-height: 80px; }
 
-    .progress-container {
-        margin-top: 1.5rem;
-        display: none;
-    }
-
-    .progress-container.active {
-        display: block;
-    }
+    .progress-container { margin-top: 1.5rem; display: none; }
+    .progress-container.active { display: block; }
 
     .progress-bar-bg {
         height: 10px;
@@ -135,9 +116,7 @@
         margin-top: 1rem;
     }
 
-    .file-info-icon {
-        font-size: 2.5rem;
-    }
+    .file-info-icon { font-size: 2.5rem; }
 
     .publish-btn {
         background: linear-gradient(135deg, var(--green), var(--cyan));
@@ -161,13 +140,226 @@
         box-shadow: 0 0 50px rgba(0, 255, 136, 0.7);
     }
 
-    .publish-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+    .publish-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ============================================================
+       SECURITY BLOCK MODAL
+       ============================================================ */
+    .security-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.88);
+        backdrop-filter: blur(12px);
+        z-index: 999999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .security-modal.open { display: flex; }
+
+    .security-modal-content {
+        max-width: 640px;
+        width: 100%;
+        background: linear-gradient(135deg, rgba(26, 10, 14, 0.98), rgba(10, 1, 4, 0.98));
+        border: 2px solid #ef4444;
+        border-radius: 18px;
+        padding: 28px;
+        color: #fff;
+        box-shadow:
+            0 40px 100px rgba(239, 68, 68, 0.5),
+            inset 0 0 60px rgba(239, 68, 68, 0.08);
+        animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(40px) scale(0.95); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .security-modal-header {
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .security-modal-icon {
+        font-size: 64px;
+        margin-bottom: 12px;
+        filter: drop-shadow(0 0 20px #ef4444);
+        animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+        0%, 100% { filter: drop-shadow(0 0 20px #ef4444); }
+        50%      { filter: drop-shadow(0 0 40px #ef4444); }
+    }
+
+    .security-modal-title {
+        margin: 0;
+        color: #ef4444;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+    }
+
+    .security-modal-subtitle {
+        margin: 8px 0 0;
+        color: #fca5a5;
+        font-size: 0.9rem;
+    }
+
+    .security-score {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .security-score-item {
+        flex: 1;
+        min-width: 120px;
+        padding: 12px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .security-score-item .label {
+        font-size: 0.7rem;
+        color: #fca5a5;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+    }
+
+    .security-score-item .value {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: #ef4444;
+        margin-top: 4px;
+    }
+
+    .security-threats {
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .security-threats-title {
+        font-size: 0.85rem;
+        color: #fca5a5;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .security-threat-item {
+        display: flex;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(239, 68, 68, 0.15);
+        font-size: 0.85rem;
+    }
+
+    .security-threat-item:last-child { border-bottom: none; }
+
+    .security-threat-severity {
+        flex: 0 0 auto;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        height: fit-content;
+    }
+
+    .security-threat-severity.critical {
+        background: #ef4444;
+        color: #fff;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+    }
+
+    .security-threat-severity.high {
+        background: #f97316;
+        color: #fff;
+    }
+
+    .security-threat-severity.medium {
+        background: #fbbf24;
+        color: #1a1a1a;
+    }
+
+    .security-threat-severity.low {
+        background: #6b7280;
+        color: #fff;
+    }
+
+    .security-threat-body { flex: 1; min-width: 0; }
+
+    .security-threat-message {
+        color: #fff;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .security-threat-location {
+        color: #fca5a5;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        word-break: break-all;
+        opacity: 0.8;
+    }
+
+    .security-modal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .security-modal-btn {
+        padding: 14px 36px;
+        background: linear-gradient(135deg, #7a0e0e, #b01c1c);
+        border: none;
+        border-radius: 10px;
+        color: #fff;
+        font-weight: 900;
+        font-size: 0.95rem;
+        cursor: pointer;
+        font-family: inherit;
+        letter-spacing: 0.08em;
+        transition: all 0.2s;
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+    }
+
+    .security-modal-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(239, 68, 68, 0.6);
     }
 
     @media (max-width: 600px) {
         .form-grid { grid-template-columns: 1fr; }
+        .security-modal-content { padding: 20px; }
+        .security-modal-title { font-size: 1.2rem; }
+        .security-modal-icon { font-size: 48px; }
     }
 </style>
 </head>
@@ -313,6 +505,24 @@
     </div>
 </main>
 
+<!-- SECURITY BLOCK MODAL -->
+<div class="security-modal" id="security-modal">
+    <div class="security-modal-content">
+        <div class="security-modal-header">
+            <div class="security-modal-icon">🛡️</div>
+            <h2 class="security-modal-title">MÃ ĐỘC BỊ CHẶN</h2>
+            <p class="security-modal-subtitle">File chứa mã độc hoặc nội dung nguy hiểm</p>
+        </div>
+
+        <div class="security-score" id="security-score"></div>
+        <div class="security-threats" id="security-threats"></div>
+
+        <div class="security-modal-actions">
+            <button class="security-modal-btn" onclick="closeSecurityModal()">ĐÃ HIỂU</button>
+        </div>
+    </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script src="config.js"></script>
@@ -384,7 +594,6 @@ async function handleFile(file) {
 
     selectedFile = file;
 
-    // Show file info
     document.getElementById("drop-icon").textContent = "✅";
     document.getElementById("drop-text").innerHTML = `
         <div style="color: var(--green); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">
@@ -408,7 +617,6 @@ async function handleFile(file) {
         </div>
     `;
 
-    // Parse manifest
     try {
         showToast("📖 Đang đọc manifest...", "info");
         const zip = await JSZip.loadAsync(file);
@@ -423,7 +631,6 @@ async function handleFile(file) {
         const manifestText = await manifestFile.async("string");
         parsedManifest = JSON.parse(manifestText);
 
-        // Auto-fill form
         document.getElementById("plugin-id").value = parsedManifest.id || "";
         document.getElementById("plugin-version").value = parsedManifest.version || "";
         document.getElementById("plugin-name").value = parsedManifest.name || "";
@@ -431,7 +638,6 @@ async function handleFile(file) {
         document.getElementById("plugin-description").value = parsedManifest.description || "";
         document.getElementById("override-tags").value = (parsedManifest.tags || []).join(",");
 
-        // Show metadata section
         document.getElementById("metadata-section").style.display = "block";
 
         showToast("✅ Đã đọc manifest: " + parsedManifest.name, "success");
@@ -478,7 +684,6 @@ async function publishPlugin() {
         return;
     }
 
-    // Save auth
     localStorage.setItem("cognicraft_token", token);
     localStorage.setItem("cognicraft_author_name", author);
 
@@ -486,18 +691,15 @@ async function publishPlugin() {
     const category = document.getElementById("override-category").value;
     const tags = document.getElementById("override-tags").value.trim();
 
-    // Build endpoint
     const endpoint = mode === "new"
         ? `${API_URL}/api/store/publish`
         : `${API_URL}/api/store/publish/version`;
 
-    // Form data
     const formData = new FormData();
     formData.append("file", selectedFile, selectedFile.name);
     if (category) formData.append("category", category);
     if (tags) formData.append("tags", tags);
 
-    // Show progress
     const progress = document.getElementById("progress-container");
     const bar = document.getElementById("progress-bar");
     const percent = document.getElementById("progress-percent");
@@ -506,11 +708,11 @@ async function publishPlugin() {
     progress.classList.add("active");
     document.getElementById("publish-btn").disabled = true;
     bar.style.width = "0%";
+    bar.style.background = "";
     percent.textContent = "0%";
     label.textContent = "Đang upload...";
 
     try {
-        // Use fetch with XHR fallback for progress
         await uploadWithProgress(endpoint, formData, token, author, (pct) => {
             bar.style.width = pct + "%";
             percent.textContent = Math.round(pct) + "%";
@@ -535,17 +737,23 @@ async function publishPlugin() {
     } catch (e) {
         label.textContent = "❌ Lỗi";
         bar.style.background = "var(--red)";
-        showToast(`❌ ${e.message}`, "error");
         setTimeout(() => {
             progress.classList.remove("active");
             bar.style.background = "";
         }, 2000);
         document.getElementById("publish-btn").disabled = false;
+
+        // Nếu là security block → hiện modal
+        if (e.isSecurityBlock) {
+            showSecurityModal(e.securityData);
+        } else {
+            showToast(`❌ ${e.message}`, "error");
+        }
     }
 }
 
 // ============================================================
-// UPLOAD WITH PROGRESS (XHR)
+// UPLOAD WITH PROGRESS (XHR) — UPDATED for object detail
 // ============================================================
 function uploadWithProgress(url, formData, token, author, onProgress) {
     return new Promise((resolve, reject) => {
@@ -565,12 +773,28 @@ function uploadWithProgress(url, formData, token, author, onProgress) {
                     resolve(xhr.responseText);
                 }
             } else {
-                let errMsg = `HTTP ${xhr.status}`;
+                // Parse error response
+                let errorObj = null;
                 try {
-                    const data = JSON.parse(xhr.responseText);
-                    errMsg = data.detail || errMsg;
+                    errorObj = JSON.parse(xhr.responseText);
                 } catch {}
-                reject(new Error(errMsg));
+
+                const detail = errorObj?.detail;
+
+                // Check security block: detail là object có key 'error'
+                if (detail && typeof detail === 'object' && detail.error) {
+                    const err = new Error(detail.error);
+                    err.isSecurityBlock = true;
+                    err.securityData = detail;
+                    reject(err);
+                    return;
+                }
+
+                // Normal error
+                const msg = typeof detail === 'string'
+                    ? detail
+                    : (detail ? JSON.stringify(detail) : `HTTP ${xhr.status}`);
+                reject(new Error(msg));
             }
         });
 
@@ -583,8 +807,82 @@ function uploadWithProgress(url, formData, token, author, onProgress) {
 }
 
 // ============================================================
+// SECURITY MODAL
+// ============================================================
+function showSecurityModal(data) {
+    const modal = document.getElementById('security-modal');
+    const scoreEl = document.getElementById('security-score');
+    const threatsEl = document.getElementById('security-threats');
+
+    // Score section
+    const riskLabel = (data.risk_level || 'unknown').toUpperCase();
+    const score = data.score ?? 0;
+
+    scoreEl.innerHTML = `
+        <div class="security-score-item">
+            <div class="label">Mức độ nguy hiểm</div>
+            <div class="value">${riskLabel}</div>
+        </div>
+        <div class="security-score-item">
+            <div class="label">Điểm an toàn</div>
+            <div class="value">${score}/100</div>
+        </div>
+        <div class="security-score-item">
+            <div class="label">Số mối nguy</div>
+            <div class="value">${(data.threats || []).length}</div>
+        </div>
+    `;
+
+    // Threats section
+    const threats = data.threats || [];
+    if (threats.length === 0) {
+        threatsEl.innerHTML = '<div style="color: #fca5a5; text-align: center; padding: 12px;">Không có chi tiết threat</div>';
+    } else {
+        threatsEl.innerHTML = `
+            <div class="security-threats-title">🚨 Các mối nguy hiểm phát hiện</div>
+            ${threats.map((t) => `
+                <div class="security-threat-item">
+                    <div class="security-threat-severity ${t.severity || 'medium'}">
+                        ${t.severity || 'medium'}
+                    </div>
+                    <div class="security-threat-body">
+                        <div class="security-threat-message">${escapeHtml(t.message || '')}</div>
+                        ${t.location ? `<div class="security-threat-location">${escapeHtml(t.location)}</div>` : ''}
+                    </div>
+                </div>
+            `).join('')}
+        `;
+    }
+
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Close on backdrop click
+    modal.onclick = (e) => {
+        if (e.target === modal) closeSecurityModal();
+    };
+}
+
+function closeSecurityModal() {
+    const modal = document.getElementById('security-modal');
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// ESC key closes modal
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSecurityModal();
+});
+
+// ============================================================
 // HELPERS
 // ============================================================
+function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, (c) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+    );
+}
+
 function formatBytes(bytes) {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
