@@ -1,10 +1,9 @@
 // store/web/marketplace.js
 /**
- * CogniCraft Marketplace 3D (v2 — Fixed)
+ * CogniCraft Marketplace 3D
  * - Particle background
  * - 3D tilt cards
- * - Live hover preview
- * - Modal detail
+ * - Modal detail + delete button for owner
  * - Filter + search
  */
 
@@ -160,7 +159,6 @@
     state.themes = data.themes || [];
     state.total = data.total || 0;
 
-    // Featured: ưu tiên theme có featured=true, fallback 5 theme đầu
     state.featured = state.themes.filter((t) => t.featured);
     if (state.featured.length === 0) {
       state.featured = state.themes.slice(0, Math.min(5, state.themes.length));
@@ -217,15 +215,14 @@
   }
 
   // ============================================================
-  // RENDER: FEATURED CAROUSEL (auto-adapt 1/2/3+ themes)
+  // RENDER: FEATURED CAROUSEL
   // ============================================================
-   function renderFeatured() {
+  function renderFeatured() {
     const stage = document.getElementById('carousel-stage');
     if (!stage) return;
 
     const section = stage.closest('.featured-3d');
 
-    // Nhánh 1: Không có theme → ẩn section
     if (state.featured.length === 0) {
       stage.innerHTML = '';
       if (section) section.style.display = 'none';
@@ -234,7 +231,7 @@
 
     if (section) section.style.display = '';
 
-    // Nhánh 2: 1-2 theme → grid layout
+    // 1-2 theme → grid mode
     if (state.featured.length < 3) {
       if (section) section.classList.add('grid-mode');
 
@@ -290,7 +287,7 @@
       return;
     }
 
-    // Nhánh 3: ≥3 themes → carousel 3D
+    // ≥3 themes → carousel 3D
     if (section) section.classList.remove('grid-mode');
 
     stage.style.display = 'flex';
@@ -499,8 +496,14 @@
 
     const tags = (theme.tags || []).map((t) => `<span class="modal-tag">#${escapeHtml(t)}</span>`).join('');
 
+    // Check owner
+    const isOwner = checkIsOwner(theme);
+
     info.innerHTML = `
-      <div class="modal-title">${escapeHtml(theme.name)}</div>
+      <div class="modal-title">
+        ${escapeHtml(theme.name)}
+        ${isOwner ? '<span class="owner-badge">👑 Của bạn</span>' : ''}
+      </div>
       <div class="modal-author">
         <img src="${escapeAttr(theme.author_avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + theme.author_name)}" alt="">
         <div>
@@ -517,17 +520,74 @@
       <div class="modal-actions">
         <button class="btn-modal primary" id="btn-apply">✨ Áp dụng theme</button>
         <button class="btn-modal secondary" id="btn-like">❤️ Thích</button>
+        ${isOwner ? '<button class="modal-delete-btn" id="btn-delete" title="Xóa theme">🗑️</button>' : ''}
       </div>
     `;
 
     document.getElementById('btn-apply').addEventListener('click', () => applyTheme(theme.slug));
     document.getElementById('btn-like').addEventListener('click', () => likeTheme(theme.slug));
+
+    document.getElementById('btn-delete')?.addEventListener('click', () => {
+      if (!confirm(`Xóa theme "${theme.name}"?\n\nHành động này KHÔNG THỂ hoàn tác.`)) return;
+      deleteTheme(theme.slug);
+    });
   }
 
   function closeModal() {
     const modal = document.getElementById('modal');
     modal.classList.remove('open');
     document.body.style.overflow = '';
+  }
+
+  // ============================================================
+  // CHECK OWNER — user hiện tại có phải tác giả theme không
+  // ============================================================
+  function checkIsOwner(theme) {
+    try {
+      const token = getToken();
+      if (!token) return false;
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const myName = (payload.name || '').toLowerCase().trim();
+      const myEmail = (payload.email || '').toLowerCase().trim();
+      const authorName = (theme.author_name || '').toLowerCase().trim();
+
+      return myName === authorName || myEmail === authorName;
+    } catch (e) {
+      console.warn('checkIsOwner error:', e);
+      return false;
+    }
+  }
+
+  // ============================================================
+  // DELETE THEME
+  // ============================================================
+  async function deleteTheme(slug) {
+    try {
+      const res = await fetch(API_BASE + '/api/marketplace/themes/' + slug, {
+        method: 'DELETE',
+        headers: {
+          Authorization: 'Bearer ' + getToken(),
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast(data.detail || `Lỗi xóa theme (${res.status})`, 'error');
+        return;
+      }
+
+      toast('🗑️ Đã xóa theme!', 'success');
+
+      setTimeout(() => {
+        closeModal();
+        fetchThemes();
+      }, 800);
+    } catch (e) {
+      toast('Lỗi: ' + e.message, 'error');
+    }
   }
 
   // ============================================================
@@ -579,7 +639,7 @@
   }
 
   // ============================================================
-  // TOAST — INLINE STYLES (không bị user theme override)
+  // TOAST — INLINE STYLES
   // ============================================================
   function toast(msg, type = 'success') {
     document.querySelectorAll('.mk-toast-fixed').forEach(el => el.remove());
