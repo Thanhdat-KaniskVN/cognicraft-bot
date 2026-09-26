@@ -1,0 +1,434 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Editor — CogniCraft</title>
+  <link rel="stylesheet" href="themes.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .editor-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    @media (max-width: 900px) {
+      .editor-container { grid-template-columns: 1fr; }
+    }
+
+    .editor-panel {
+      background: var(--card-bg, #1a0b2e);
+      border: 1px solid var(--border, rgba(168, 85, 247, 0.3));
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-panel h2 {
+      margin: 0 0 12px;
+      color: var(--primary, #a855f7);
+      font-size: 18px;
+    }
+
+    .editor-panel .hint {
+      color: var(--text-muted, #a78bfa);
+      font-size: 12px;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    #css-editor {
+      width: 100%;
+      min-height: 500px;
+      padding: 14px;
+      background: #0f0524;
+      color: #e0d5ff;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 10px;
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      tab-size: 2;
+    }
+
+    #css-editor:focus {
+      border-color: var(--primary, #a855f7);
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6d28d9, #a855f7);
+      color: #fff;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4); }
+
+    .btn-secondary {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c4b5fd;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+    .btn-secondary:hover { background: rgba(168, 85, 247, 0.25); }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .btn-danger:hover { background: rgba(239, 68, 68, 0.25); }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+    .status-badge.on  { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .status-badge.off { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+
+    #preview-frame {
+      width: 100%;
+      height: 500px;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 10px;
+      background: #0f0524;
+    }
+
+    .variables-cheatsheet {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    .var-chip {
+      padding: 6px 10px;
+      background: rgba(168, 85, 247, 0.1);
+      border-radius: 6px;
+      color: #c4b5fd;
+      font-family: 'Courier New', monospace;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .var-chip:hover { background: rgba(168, 85, 247, 0.25); }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 10000;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: linear-gradient(135deg, #16a34a, #22c55e); }
+    .toast.error   { background: linear-gradient(135deg, #dc2626, #ef4444); }
+  </style>
+</head>
+<body>
+  <div class="editor-container">
+    <!-- LEFT: Editor -->
+    <div class="editor-panel">
+      <h2>🎨 CSS Editor <span id="status-badge" class="status-badge off">OFF</span></h2>
+      <p class="hint">
+        Viết CSS của riêng bạn. Chỉ áp dụng cho <strong>tài khoản của bạn</strong>.<br>
+        ⛔ Không được phép dùng: <code>@import</code>, <code>url()</code>, <code>javascript:</code>
+      </p>
+
+      <textarea id="css-editor" spellcheck="false" placeholder="/* Ví dụ: */
+:root {
+  --primary: #ff00ff;
+  --bg: #000000;
+  --card-bg: #1a1a1a;
+  --text: #00ff00;
+}
+
+body {
+  background: linear-gradient(135deg, #000, #111);
+}
+
+.card {
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+}"></textarea>
+
+      <div class="editor-actions">
+        <button class="btn btn-primary" onclick="saveTheme()">💾 Lưu</button>
+        <button class="btn btn-secondary" onclick="toggleTheme()" id="toggle-btn">⏸ Tắt</button>
+        <button class="btn btn-secondary" onclick="applyPreview()">👁 Preview</button>
+        <button class="btn btn-danger" onclick="resetTheme()">🗑 Reset</button>
+      </div>
+
+      <p class="hint" style="margin-top:20px; margin-bottom: 6px;">
+        <strong>Variables có sẵn</strong> (click để chèn):
+      </p>
+      <div class="variables-cheatsheet" id="var-chips"></div>
+    </div>
+
+    <!-- RIGHT: Preview -->
+    <div class="editor-panel">
+      <h2>👁 Preview</h2>
+      <p class="hint">Xem trước CSS trên page demo.</p>
+      <iframe id="preview-frame"></iframe>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
+  <script src="theme-switcher.js"></script>
+  <script src="user-theme.js"></script>
+  <script>
+    const API_BASE = window.COGNI_API_BASE ||
+      (location.hostname === 'localhost'
+        ? 'http://localhost:8001'
+        : 'https://web-production-8b760.up.railway.app');
+
+    const getToken = () =>
+      localStorage.getItem('cognicraft_token') ||
+      localStorage.getItem('token') ||
+      localStorage.getItem('cogni_token') ||
+      '';
+
+    const editor = document.getElementById('css-editor');
+    const badge = document.getElementById('status-badge');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const previewFrame = document.getElementById('preview-frame');
+
+    let currentState = { css_content: '', is_active: false };
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+    function toast(msg, type = 'success') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show ' + type;
+      setTimeout(() => el.className = 'toast ' + type, 2500);
+    }
+
+    // ============================================================
+    // LOAD THEME
+    // ============================================================
+    async function loadTheme() {
+      try {
+        const res = await fetch(API_BASE + '/api/theme/me', {
+          headers: { Authorization: 'Bearer ' + getToken() },
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        const data = await res.json();
+        currentState = data;
+        editor.value = data.css_content || '';
+        updateBadge(data.is_active);
+        updatePreview();
+      } catch (err) {
+        toast('Không load được theme: ' + err.message, 'error');
+      }
+    }
+
+    function updateBadge(active) {
+      if (active) {
+        badge.className = 'status-badge on';
+        badge.textContent = 'ON';
+        toggleBtn.textContent = '⏸ Tắt';
+      } else {
+        badge.className = 'status-badge off';
+        badge.textContent = 'OFF';
+        toggleBtn.textContent = '▶ Bật';
+      }
+    }
+
+    // ============================================================
+    // SAVE
+    // ============================================================
+    async function saveTheme() {
+      try {
+        const res = await fetch(API_BASE + '/api/theme/me', {
+          method: 'PUT',
+          headers: {
+            Authorization: 'Bearer ' + getToken(),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ css_content: editor.value }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          toast(data.detail || 'Lỗi save', 'error');
+          return;
+        }
+
+        toast('✅ Đã lưu theme (' + data.length + ' chars)');
+        currentState.css_content = editor.value;
+        currentState.is_active = true;
+        updateBadge(true);
+
+        // Reload theme trên chính trang này
+        if (window.reloadUserTheme) window.reloadUserTheme();
+      } catch (err) {
+        toast('Lỗi kết nối: ' + err.message, 'error');
+      }
+    }
+
+    // ============================================================
+    // TOGGLE
+    // ============================================================
+    async function toggleTheme() {
+      const newState = !currentState.is_active;
+      try {
+        const res = await fetch(API_BASE + '/api/theme/me/toggle', {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + getToken(),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ is_active: newState }),
+        });
+
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        currentState.is_active = newState;
+        updateBadge(newState);
+        toast(newState ? '▶ Đã bật theme' : '⏸ Đã tắt theme');
+
+        if (window.reloadUserTheme) window.reloadUserTheme();
+      } catch (err) {
+        toast('Lỗi: ' + err.message, 'error');
+      }
+    }
+
+    // ============================================================
+    // RESET
+    // ============================================================
+    async function resetTheme() {
+      if (!confirm('Xóa toàn bộ theme? Không thể hoàn tác.')) return;
+
+      try {
+        const res = await fetch(API_BASE + '/api/theme/me', {
+          method: 'DELETE',
+          headers: { Authorization: 'Bearer ' + getToken() },
+        });
+
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        editor.value = '';
+        currentState = { css_content: '', is_active: false };
+        updateBadge(false);
+        toast('🗑 Đã reset theme');
+
+        if (window.reloadUserTheme) window.reloadUserTheme();
+      } catch (err) {
+        toast('Lỗi: ' + err.message, 'error');
+      }
+    }
+
+    // ============================================================
+    // PREVIEW
+    // ============================================================
+    function updatePreview() {
+      const css = editor.value;
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <link rel="stylesheet" href="${location.origin}/store/themes.css">
+          <style>${css}</style>
+        </head>
+        <body style="padding:20px;font-family:system-ui;">
+          <h1>Demo Heading</h1>
+          <div class="card" style="padding:20px;border:1px solid #a855f7;border-radius:12px;margin:16px 0;">
+            <h3>Card Title</h3>
+            <p>Đây là text demo để bạn xem theme thế nào.</p>
+            <button style="padding:8px 16px;border-radius:8px;background:#a855f7;color:#fff;border:none;cursor:pointer;">
+              Demo Button
+            </button>
+          </div>
+          <a href="#">Demo link</a>
+        </body>
+        </html>
+      `;
+      previewFrame.srcdoc = html;
+    }
+
+    function applyPreview() {
+      updatePreview();
+      toast('👁 Đã update preview');
+    }
+
+    // Live preview khi gõ
+    let previewTimer;
+    editor.addEventListener('input', () => {
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(updatePreview, 500);
+    });
+
+    // ============================================================
+    // VARIABLE CHIPS
+    // ============================================================
+    const VARS = [
+      '--primary', '--bg', '--card-bg', '--text', '--text-muted',
+      '--border', '--accent', '--success', '--error', '--warning',
+      '--radius', '--font', '--shadow',
+    ];
+
+    const chipsEl = document.getElementById('var-chips');
+    VARS.forEach(v => {
+      const chip = document.createElement('div');
+      chip.className = 'var-chip';
+      chip.textContent = v;
+      chip.onclick = () => {
+        const pos = editor.selectionStart;
+        const before = editor.value.substring(0, pos);
+        const after = editor.value.substring(pos);
+        const insert = `${v}: ;`;
+        editor.value = before + insert + after;
+        editor.focus();
+        editor.selectionStart = editor.selectionEnd = pos + insert.length - 1;
+        updatePreview();
+      };
+      chipsEl.appendChild(chip);
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    loadTheme();
+    updatePreview();
+  </script>
+</body>
+</html>

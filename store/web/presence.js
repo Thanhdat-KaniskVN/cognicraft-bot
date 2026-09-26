@@ -1,10 +1,11 @@
-// store/web/presence.js
+﻿// store/web/presence.js
 /**
  * CogniCraft Presence Widget
  * - Auto-inject floating widget
  * - Heartbeat mỗi 30s
  * - Hiển thị list online/offline
  * - Toggle status: online / away / invisible
+ * - Nút "Theme Editor" trong panel
  */
 (function () {
   'use strict';
@@ -18,11 +19,11 @@
       ? 'http://localhost:8001'
       : 'https://web-production-8b760.up.railway.app');
 
-  const HEARTBEAT_MS = 30_000;   // 30s
-  const REFRESH_MS   = 20_000;   // refresh list mỗi 20s
+  const HEARTBEAT_MS = 30_000;
+  const REFRESH_MS   = 20_000;
 
   // ============================================================
-  // TOKEN HELPERS — thử nhiều key để tương thích
+  // TOKEN HELPERS
   // ============================================================
   function getToken() {
     return (
@@ -82,7 +83,7 @@
   }
 
   // ============================================================
-  // CSS — inject 1 lần
+  // CSS
   // ============================================================
   function injectStyles() {
     if (document.getElementById('presence-styles')) return;
@@ -137,8 +138,8 @@
         position: absolute;
         bottom: 60px;
         right: 0;
-        width: 320px;
-        max-height: 480px;
+        width: 340px;
+        max-height: 560px;
         background: #1a0b2e;
         border: 1px solid rgba(168, 85, 247, 0.3);
         border-radius: 16px;
@@ -172,18 +173,62 @@
         font-size: 14px;
       }
 
-      .presence-settings-btn {
+      .presence-header-actions {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
+
+      .presence-icon-btn {
         background: transparent;
         border: none;
         color: #a855f7;
         cursor: pointer;
-        font-size: 18px;
-        padding: 4px 8px;
+        font-size: 16px;
+        padding: 5px 8px;
         border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: background 0.15s;
       }
 
-      .presence-settings-btn:hover {
+      .presence-icon-btn:hover {
         background: rgba(168, 85, 247, 0.15);
+      }
+
+      .presence-quick-links {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+        background: rgba(168, 85, 247, 0.03);
+      }
+
+      .presence-quick-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 12px;
+        background: rgba(168, 85, 247, 0.1);
+        border: 1px solid rgba(168, 85, 247, 0.2);
+        border-radius: 10px;
+        color: #c4b5fd;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.15s;
+      }
+
+      .presence-quick-link:hover {
+        background: rgba(168, 85, 247, 0.2);
+        border-color: rgba(168, 85, 247, 0.4);
+        transform: translateY(-1px);
+      }
+
+      .presence-quick-link .icon {
+        font-size: 16px;
       }
 
       .presence-settings {
@@ -203,8 +248,7 @@
         font-weight: 600;
       }
 
-      .presence-settings select,
-      .presence-settings input[type=checkbox] {
+      .presence-settings select {
         width: 100%;
         padding: 8px 10px;
         background: #2d1b4e;
@@ -224,6 +268,7 @@
         flex: 1;
         overflow-y: auto;
         padding: 8px 0;
+        min-height: 100px;
       }
 
       .presence-section-title {
@@ -325,11 +370,32 @@
     let html = `
       <div class="presence-header">
         <div class="presence-title">👥 Cộng đồng CogniCraft</div>
-        <button class="presence-settings-btn" id="presence-settings-btn" title="Cài đặt">⚙️</button>
+        <div class="presence-header-actions">
+          <button class="presence-icon-btn" id="presence-settings-btn" title="Cài đặt">⚙️</button>
+        </div>
+      </div>
+
+      <div class="presence-quick-links">
+        <a href="theme-editor.html" class="presence-quick-link">
+          <span class="icon">🎨</span>
+          <span>Theme Editor</span>
+        </a>
+        <a href="upload.html" class="presence-quick-link">
+          <span class="icon">📤</span>
+          <span>Publish</span>
+        </a>
+        <a href="dashboard.html" class="presence-quick-link">
+          <span class="icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="settings.html" class="presence-quick-link">
+          <span class="icon">⚙️</span>
+          <span>Settings</span>
+        </a>
       </div>
 
       <div class="presence-settings" id="presence-settings">
-        <label>Trạng thái của em</label>
+        <label>Trạng thái của bạn</label>
         <select id="presence-status-select">
           <option value="online"    ${me.status === 'online' ? 'selected' : ''}>🟢 Online</option>
           <option value="away"      ${me.status === 'away' ? 'selected' : ''}>🟡 Away</option>
@@ -464,7 +530,6 @@
       updateToggleCount(list.online_count || 0);
     } catch (err) {
       if (err.message === 'UNAUTHORIZED' || err.message === 'NO_TOKEN') {
-        // Không login → ẩn widget
         const w = document.getElementById('presence-widget');
         if (w) w.style.display = 'none';
         return;
@@ -477,36 +542,29 @@
   // INIT
   // ============================================================
   async function init() {
-    if (!isLoggedIn()) return;   // Chỉ chạy khi đã login
+    if (!isLoggedIn()) return;
 
     injectStyles();
     injectWidget();
 
-    // Ping lần đầu
     try {
       await ping();
     } catch (err) {
       console.warn('presence ping first time:', err.message);
     }
 
-    // Heartbeat mỗi 30s
     setInterval(async () => {
       try { await ping(); } catch (_) {}
     }, HEARTBEAT_MS);
 
-    // Refresh list mỗi 20s
     setInterval(refreshData, REFRESH_MS);
 
-    // Lần đầu load list sau 1s
     setTimeout(refreshData, 1000);
 
-    // Khi rời trang → báo offline
     window.addEventListener('beforeunload', () => {
       try {
         const token = getToken();
         if (!token) return;
-        const blob = new Blob([], { type: 'application/json' });
-        // sendBeacon không set được header → dùng fetch keepalive
         fetch(API_BASE + '/api/presence/offline', {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token },
@@ -518,7 +576,6 @@
     console.log('✅ Presence widget loaded');
   }
 
-  // Chạy sau khi DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
