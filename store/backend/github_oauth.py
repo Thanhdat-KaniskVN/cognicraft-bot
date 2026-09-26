@@ -51,7 +51,7 @@ async def github_login():
         raise HTTPException(500, "GITHUB_CLIENT_ID chưa cấu hình")
 
     callback = f"{BACKEND_URL}/api/auth/github/callback"
-    scope = "read:user user:email"
+    scope = "read:user user:email public_repo"
     url = (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={GITHUB_CLIENT_ID}"
@@ -140,8 +140,13 @@ async def github_callback(
 
     if user:
         db.execute(
-            "UPDATE public.users SET last_login = NOW(), name = %s, avatar_url = %s, github_username = %s WHERE id = %s",
-            (name, avatar, login, user["id"]),
+            """
+            UPDATE public.users 
+            SET last_login = NOW(), name = %s, avatar_url = %s, 
+                github_username = %s, github_access_token = %s 
+            WHERE id = %s
+            """,
+            (name, avatar, login, access_token, user["id"]),
         )
         user_id = user["id"]
     else:
@@ -155,11 +160,14 @@ async def github_callback(
         else:
             new_user = db.execute_returning(
                 """
-                INSERT INTO public.users (github_id, github_username, email, name, avatar_url, created_at, last_login)
-                VALUES (%s, %s, %s, %s, %s, NOW(), NOW())
+                INSERT INTO public.users (
+                    github_id, github_username, email, name, avatar_url, 
+                    github_access_token, created_at, last_login
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
                 RETURNING id
                 """,
-                (github_id, login, email, name, avatar),
+                (github_id, login, email, name, avatar, access_token),
             )
             user_id = new_user["id"]
 

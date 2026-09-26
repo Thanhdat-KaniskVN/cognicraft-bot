@@ -14,6 +14,7 @@ from backend.api import router as store_router
 from backend.publish import router as publish_router
 from backend.auth import router as auth_router
 from backend.github_oauth import router as github_router
+from backend.github_sync import router as github_sync_router
 
 
 # Load env
@@ -43,6 +44,9 @@ app.include_router(store_router, prefix="/api/store", tags=["store"])
 app.include_router(publish_router, prefix="/api/store", tags=["publish"])
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(github_router, prefix="/api/auth", tags=["github"])
+app.include_router(github_sync_router, prefix="/api/github", tags=["github-sync"])
+
+
 # ============================================================
 # SERVE STORE UI (dev + prod fallback)
 # ============================================================
