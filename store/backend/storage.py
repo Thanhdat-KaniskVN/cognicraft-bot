@@ -23,8 +23,15 @@ def _get_env(name: str, default: str = "") -> str:
     return default
 
 
-SUPABASE_URL = _get_env("SUPABASE_URL", "https://mqgcvrojhafewfokpwtx.supabase.co")
-SUPABASE_SERVICE_KEY = _get_env("SUPABASE_SERVICE_KEY")
+SUPABASE_URL = (
+    _get_env("SB_URL") or
+    _get_env("SUPABASE_URL") or
+    "https://mqgcvrojhafewfokpwtx.supabase.co"
+)
+SUPABASE_SERVICE_KEY = (
+    _get_env("SB_SERVICE_KEY") or
+    _get_env("SUPABASE_SERVICE_KEY")
+)
 BUCKET = "plugins"
 
 
