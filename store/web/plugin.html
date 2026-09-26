@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="vi" data-theme="cyberpunk">
-<head><script src="https://accounts.google.com/gsi/client" async defer></script>
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plugin Detail · CogniCraft Store</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="themes.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -39,7 +40,6 @@
 
 <div id="toast" class="toast"></div>
 
-<script src="config.js"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script src="theme-switcher.js"></script>
@@ -114,9 +114,10 @@ function renderDetail(data, reviewsData) {
 
     detail.innerHTML = `
         <div style="max-width: 900px; margin: 0 auto;">
-            <div class="plugin-detail-header" style="display: flex; gap: 2rem; align-items: flex-start; padding: 2rem; background: linear-gradient(135deg, var(--bg-elev) 0%, var(--card) 100%); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 2rem;">
+            <!-- HEADER -->
+            <div class="plugin-detail-header" style="display: flex; gap: 2rem; align-items: flex-start; padding: 2rem; background: linear-gradient(135deg, var(--bg-elev) 0%, var(--card) 100%); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 2rem; flex-wrap: wrap;">
                 <div style="font-size: 5rem;">${escapeHtml(p.icon || "📦")}</div>
-                <div style="flex: 1;">
+                <div style="flex: 1; min-width: 250px;">
                     <h2 class="font-display" style="font-size: 2rem; color: var(--cyan); margin-bottom: 0.5rem;">${escapeHtml(p.name)}</h2>
                     <p style="color: var(--dim); margin-bottom: 1rem;">${escapeHtml(p.description || "")}</p>
                     <div style="display: flex; gap: 2rem; font-size: 0.9rem; color: var(--dim); flex-wrap: wrap; align-items: center;">
@@ -126,9 +127,13 @@ function renderDetail(data, reviewsData) {
                         <span>📥 ${escapeHtml(p.downloads)} downloads</span>
                     </div>
                 </div>
-                <button onclick="installPlugin('${escapeJs(p.slug)}')" style="padding: 1rem 2rem; background: var(--green); color: var(--bg); border: none; border-radius: 8px; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 0 20px var(--green); transition: all 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">📥 INSTALL</button>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; min-width: 180px;">
+                    <button onclick="installPlugin('${escapeJs(p.slug)}')" style="padding: 1rem 1.5rem; background: var(--green); color: var(--bg); border: none; border-radius: 8px; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 0 20px var(--green); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.4rem;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">📥 INSTALL</button>
+                    <button onclick="syncToGitHub('${escapeJs(p.slug)}', '${escapeJs(p.name)}')" style="padding: 0.7rem 1.5rem; background: #24292e; color: white; border: 1px solid #444d56; border-radius: 8px; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.4rem;" onmouseover="this.style.background='#2f363d'; this.style.transform='scale(1.03)'" onmouseout="this.style.background='#24292e'; this.style.transform='scale(1)'">🐙 Sync to GitHub</button>
+                </div>
             </div>
 
+            <!-- DESCRIPTION -->
             ${p.long_description ? `
                 <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
                     <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem;">📝 MÔ TẢ</h3>
@@ -136,6 +141,7 @@ function renderDetail(data, reviewsData) {
                 </div>
             ` : ""}
 
+            <!-- VERSIONS -->
             ${versions.length > 0 ? `
                 <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
                     <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem;">📋 PHIÊN BẢN</h3>
@@ -151,17 +157,18 @@ function renderDetail(data, reviewsData) {
                 </div>
             ` : ""}
 
+            <!-- REVIEWS -->
             <div class="section" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
                 <h3 class="font-heading" style="color: var(--cyan); margin-bottom: 1.5rem;">⭐ ĐÁNH GIÁ (${escapeHtml(reviews.length)})</h3>
 
                 ${reviews.length > 0 ? `
-                    <div style="display: flex; gap: 2rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; gap: 2rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); flex-wrap: wrap;">
                         <div style="text-align: center; min-width: 100px;">
                             <div class="font-display" style="font-size: 3rem; color: var(--yellow); line-height: 1;">${escapeHtml(p.rating || "0.0")}</div>
                             <div style="color: var(--yellow); font-size: 1.2rem; margin: 0.3rem 0;">${stars}</div>
                             <div style="color: var(--dim); font-size: 0.8rem;">${escapeHtml(reviews.length)} đánh giá</div>
                         </div>
-                        <div style="flex: 1;">
+                        <div style="flex: 1; min-width: 250px;">
                             ${[5,4,3,2,1].map(star => {
                                 const count = breakdown[star] || 0;
                                 const pct = reviews.length > 0 ? (count / reviews.length * 100) : 0;
@@ -179,6 +186,7 @@ function renderDetail(data, reviewsData) {
                     </div>
                 ` : ""}
 
+                <!-- Review Form -->
                 <div style="background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 2rem;">
                     <h4 class="font-heading" style="color: var(--cyan); margin-bottom: 1rem; font-size: 0.95rem;">✍️ VIẾT ĐÁNH GIÁ</h4>
 
@@ -203,11 +211,12 @@ function renderDetail(data, reviewsData) {
                     <button onclick="submitReview('${escapeJs(p.slug)}')" style="background: var(--green); color: var(--bg); border: none; border-radius: 6px; padding: 0.6rem 1.5rem; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px var(--green);">🚀 GỬI ĐÁNH GIÁ</button>
                 </div>
 
+                <!-- Review List -->
                 ${reviews.length === 0
                     ? '<p style="color: var(--dim); text-align: center; padding: 1rem;">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>'
                     : reviews.map(r => `
                         <div style="padding: 1rem; border-bottom: 1px solid var(--border);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; align-items: center;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <a href="user.html?username=${encodeURIComponent((r.user_name || 'anonymous').toLowerCase().replace(/\s+/g, '_'))}" style="text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
                                         <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--bg);">${escapeHtml((r.user_name || "A").charAt(0).toUpperCase())}</div>
@@ -232,6 +241,9 @@ function renderDetail(data, reviewsData) {
     setTimeout(initStarRating, 50);
 }
 
+// ============================================================
+// STAR RATING
+// ============================================================
 function initStarRating() {
     const container = document.getElementById('review-stars');
     if (!container) return;
@@ -262,9 +274,12 @@ function initStarRating() {
     });
 }
 
+// ============================================================
+// SUBMIT REVIEW
+// ============================================================
 async function submitReview(slug) {
     const sessionUser = window.CogniAuth && window.CogniAuth.getUser();
-const name = sessionUser ? sessionUser.name : document.getElementById('review-name').value.trim();
+    const name = sessionUser ? sessionUser.name : document.getElementById('review-name').value.trim();
     const rating = parseInt(document.getElementById('review-rating').value);
     const comment = document.getElementById('review-comment').value.trim();
 
@@ -297,6 +312,9 @@ const name = sessionUser ? sessionUser.name : document.getElementById('review-na
     }
 }
 
+// ============================================================
+// MARK HELPFUL
+// ============================================================
 async function markHelpful(reviewId, btn) {
     try {
         const r = await fetch(`${API_URL}/api/store/reviews/${reviewId}/helpful`, { method: 'POST' });
@@ -310,9 +328,12 @@ async function markHelpful(reviewId, btn) {
     } catch (e) { console.error(e); }
 }
 
+// ============================================================
+// INSTALL PLUGIN
+// ============================================================
 async function installPlugin(slug) {
     try {
-        const r = await fetch(`${API_URL}/api/store/install/${slug}`, { method: "POST" });
+        const r = await fetch(`${API_URL}/api/store/install/${encodeURIComponent(slug)}`, { method: "POST" });
         const data = await r.json();
         if (data.success) {
             showToast(`✅ Đã install ${data.name} v${data.version}!`, "success");
@@ -324,6 +345,65 @@ async function installPlugin(slug) {
     }
 }
 
+// ============================================================
+// SYNC TO GITHUB (Phase B)
+// ============================================================
+async function syncToGitHub(slug, pluginName) {
+    const token = window.CogniAuth && window.CogniAuth.getToken();
+    const user = window.CogniAuth && window.CogniAuth.getUser();
+
+    if (!token || !user) {
+        showToast('❌ Bạn cần đăng nhập để sync', 'error');
+        return;
+    }
+
+    const repoName = prompt(
+        `Tên repo GitHub cho "${pluginName}":`,
+        slug.replace(/_/g, '-')
+    );
+    if (!repoName) return;
+
+    if (!confirm(`Sync "${pluginName}" lên github.com/${repoName}?\n\nRepo sẽ được tạo (public) và push file .cogni.`)) {
+        return;
+    }
+
+    showToast('⏳ Đang sync lên GitHub...', 'info');
+
+    try {
+        const r = await fetch(`${API_URL}/api/github/sync/${encodeURIComponent(slug)}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                repo_name: repoName,
+                private: false,
+            }),
+        });
+
+        const data = await r.json();
+
+        if (!r.ok) {
+            throw new Error(data.detail || `HTTP ${r.status}`);
+        }
+
+        showToast(`✅ Đã sync lên GitHub!`, 'success');
+
+        setTimeout(() => {
+            if (confirm(`✅ Thành công!\n\nRepo: ${data.repo_url}\n\nMở repo?`)) {
+                window.open(data.repo_url, '_blank');
+            }
+        }, 500);
+
+    } catch (e) {
+        showToast(`❌ ${e.message}`, 'error');
+    }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
 function showToast(message, type = "info") {
     const toast = document.getElementById("toast");
     toast.textContent = message;
@@ -331,6 +411,7 @@ function showToast(message, type = "info") {
     setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
+// INIT
 loadPluginDetail();
 </script>
 </body>

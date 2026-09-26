@@ -26,6 +26,7 @@ switch/credentials.json
 switch/token.json
 switch/.env
 CONTEXT.md
+STRUCTURE.md
 
 # ─── Database ─────────────────────────────────────────────
 *.db
@@ -110,3 +111,4 @@ github-app-key.json
 code_room/plugins/
 store/examples/
 test_ml_event.json
+store/openapi.json
