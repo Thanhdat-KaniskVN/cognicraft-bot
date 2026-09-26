@@ -119,6 +119,7 @@
                         `}
                         <span style="color: var(--text); font-size: 0.8rem; font-weight: 700;">${escapeHtml(user.name)}</span>
                     </a>
+                                        <a href="dashboard.html" title="Dashboard" style="background: transparent; border: 1px solid var(--border); color: var(--dim); padding: 0.4rem 0.7rem; border-radius: 6px; text-decoration: none; font-family: inherit; font-size: 0.75rem; transition: all 0.2s;" onmouseover="this.style.color='var(--cyan)'; this.style.borderColor='var(--cyan)'" onmouseout="this.style.color='var(--dim)'; this.style.borderColor='var(--border)'">📊</a>
                     <a href="settings.html" title="Cài đặt" style="background: transparent; border: 1px solid var(--border); color: var(--dim); padding: 0.4rem 0.7rem; border-radius: 6px; text-decoration: none; font-family: inherit; font-size: 0.75rem; transition: all 0.2s;" onmouseover="this.style.color='var(--cyan)'; this.style.borderColor='var(--cyan)'" onmouseout="this.style.color='var(--dim)'; this.style.borderColor='var(--border)'">⚙️</a>
                     <button onclick="CogniAuth.logout()" style="background: transparent; border: 1px solid var(--border); color: var(--dim); padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.75rem; transition: all 0.2s;" onmouseover="this.style.color='var(--red)'; this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--dim)'; this.style.borderColor='var(--border)'">Logout</button>
                 </div>

@@ -207,3 +207,93 @@ async def update_me(
             "bio": clean(bio),
         },
     }
+
+
+# ============================================================
+# GET /me/dashboard — User dashboard stats
+# ============================================================
+@router.get("/me/dashboard")
+async def get_dashboard(user: dict = Depends(get_current_user)):
+    """Get user dashboard summary"""
+    db = get_db()
+
+    db_user = db.query_one("SELECT * FROM public.users WHERE id = %s", (user["sub"],))
+    if not db_user:
+        raise HTTPException(404, "User không tồn tại")
+
+    user_name = db_user.get("name", "")
+    github_username = db_user.get("github_username", "")
+
+    # My plugins (published by user)
+    my_plugins = db.query(
+        """
+        SELECT id, slug, name, icon, description, category,
+               downloads, installs, rating, review_count, 
+               latest_version, created_at
+        FROM plugins
+        WHERE author = %s OR author = %s
+        ORDER BY downloads DESC
+        """,
+        (user_name, github_username),
+    )
+
+    for p in my_plugins:
+        if p.get("created_at"):
+            p["created_at"] = p["created_at"].isoformat()
+
+    # Stats
+    total_downloads = sum(p.get("downloads", 0) or 0 for p in my_plugins)
+    total_installs = sum(p.get("installs", 0) or 0 for p in my_plugins)
+    total_reviews_received = sum(p.get("review_count", 0) or 0 for p in my_plugins)
+
+    if my_plugins:
+        weights = sum(p.get("review_count", 0) or 0 for p in my_plugins)
+        if weights > 0:
+            avg_rating = round(
+                sum((p.get("rating", 0) or 0) * (p.get("review_count", 0) or 0) for p in my_plugins) / weights,
+                1
+            )
+        else:
+            avg_rating = 0
+    else:
+        avg_rating = 0
+
+    # My reviews
+    my_reviews = db.query(
+        """
+        SELECT r.id, r.rating, r.comment, r.helpful_count, r.created_at,
+               p.slug AS plugin_slug, p.name AS plugin_name, p.icon AS plugin_icon
+        FROM reviews r
+        JOIN plugins p ON p.id = r.plugin_id
+        WHERE r.user_id = %s
+        ORDER BY r.created_at DESC
+        LIMIT 20
+        """,
+        (user_name.lower().replace(" ", "_"),),
+    )
+
+    for r in my_reviews:
+        if r.get("created_at"):
+            r["created_at"] = r["created_at"].isoformat()
+
+    return {
+        "user": {
+            "id": str(db_user["id"]),
+            "name": db_user.get("name"),
+            "email": db_user.get("email"),
+            "avatar_url": db_user.get("avatar_url"),
+            "github_username": db_user.get("github_username"),
+            "bio": db_user.get("bio"),
+            "created_at": db_user.get("created_at").isoformat() if db_user.get("created_at") else None,
+        },
+        "stats": {
+            "total_plugins": len(my_plugins),
+            "total_downloads": total_downloads,
+            "total_installs": total_installs,
+            "total_reviews_received": total_reviews_received,
+            "avg_rating": avg_rating,
+            "total_reviews_written": len(my_reviews),
+        },
+        "my_plugins": my_plugins,
+        "my_reviews": my_reviews,
+    }

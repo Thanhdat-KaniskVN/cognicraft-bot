@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="cyberpunk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · CogniCraft Store</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div id="cyberpunk-scene"></div>
+<div id="sakura-container"></div>
+
+<header class="header">
+    <div class="logo">
+        <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 1rem;">
+            <span class="logo-icon">🏛️</span>
+            <div>
+                <h1 class="font-display">COGNICRAFT STORE</h1>
+                <p class="subtitle">← Quay lại</p>
+            </div>
+        </a>
+    </div>
+    <div class="status-bar">
+        <div id="auth-container" class="auth-container"></div>
+        <div id="theme-switcher" class="theme-switcher"></div>
+    </div>
+</header>
+
+<main class="main">
+    <div class="loading-state" id="loading">
+        <span class="spinner"></span> Đang tải dashboard...
+    </div>
+
+    <div id="dashboard-container" style="display:none; max-width: 1200px; margin: 0 auto;"></div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="theme-switcher.js"></script>
+<script>
+const API_URL = window.STORE_API || "http://localhost:8001";
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+        .replace(/`/g, "&#96;");
+}
+
+function formatNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+    if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+    return String(num);
+}
+
+function showToast(msg, type = "info") {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.className = `toast show ${type}`;
+    setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+// ============================================================
+// LOAD
+// ============================================================
+async function loadDashboard() {
+    const token = window.CogniAuth && window.CogniAuth.getToken();
+    if (!token) {
+        document.getElementById("loading").innerHTML = `
+            <div style="text-align: center; padding: 4rem 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🔐</div>
+                <h2 class="font-display" style="color: var(--cyan); margin-bottom: 1rem;">Cần đăng nhập</h2>
+                <p style="color: var(--dim); margin-bottom: 2rem;">Đăng nhập để xem dashboard của bạn</p>
+                <a href="index.html" style="color: var(--cyan); text-decoration: none; border: 1px solid var(--cyan); padding: 0.8rem 2rem; border-radius: 8px; font-weight: 700;">← Về trang chủ</a>
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        const r = await fetch(`${API_URL}/api/auth/me/dashboard`, {
+            headers: { "Authorization": `Bearer ${token}` },
+        });
+
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        renderDashboard(data);
+    } catch (e) {
+        document.getElementById("loading").innerHTML =
+            `<div style="color: var(--red); text-align: center; padding: 2rem;">❌ ${escapeHtml(e.message)}</div>`;
+    }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderDashboard(data) {
+    document.getElementById("loading").style.display = "none";
+    const c = document.getElementById("dashboard-container");
+    c.style.display = "block";
+
+    const u = data.user;
+    const s = data.stats;
+    const initial = escapeHtml((u.name || "?").charAt(0).toUpperCase());
+    const username = (u.name || 'user').toLowerCase().replace(/\s+/g, '_');
+
+    c.innerHTML = `
+        <!-- PROFILE HEADER -->
+        <div style="background: linear-gradient(135deg, var(--bg-elev), var(--card)); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--cyan), var(--purple), var(--cyan));"></div>
+
+            <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+                ${u.avatar_url ? `
+                    <img src="${escapeHtml(u.avatar_url)}" alt="" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--cyan);" referrerpolicy="no-referrer">
+                ` : `
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: var(--bg); font-family: 'Orbitron', sans-serif;">${initial}</div>
+                `}
+
+                <div style="flex: 1; min-width: 250px;">
+                    <h2 class="font-display" style="color: var(--cyan); font-size: 1.8rem; margin-bottom: 0.3rem;">${escapeHtml(u.name)}</h2>
+                    <p style="color: var(--dim); font-size: 0.85rem;">${escapeHtml(u.email)}</p>
+                    ${u.github_username ? `<p style="color: var(--dim); font-size: 0.8rem; margin-top: 0.3rem;">🐙 @${escapeHtml(u.github_username)}</p>` : ""}
+                </div>
+
+                <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                    <a href="user.html?username=${encodeURIComponent(username)}" style="color: var(--cyan); text-decoration: none; border: 1px solid var(--cyan); padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700;">👤 Xem Profile</a>
+                    <a href="settings.html" style="color: var(--dim); text-decoration: none; border: 1px solid var(--border); padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.85rem; font-weight: 700;">⚙️ Settings</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS GRID -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+                <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">📦 Plugins</div>
+                <div class="font-display" style="color: var(--cyan); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(s.total_plugins)}</div>
+            </div>
+            <div style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+                <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">📥 Downloads</div>
+                <div class="font-display" style="color: var(--green); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(formatNumber(s.total_downloads))}</div>
+            </div>
+            <div style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+                <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">⭐ Rating</div>
+                <div class="font-display" style="color: var(--yellow); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(s.avg_rating || "—")}</div>
+            </div>
+            <div style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+                <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">💬 Reviews</div>
+                <div class="font-display" style="color: var(--purple); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(s.total_reviews_received)}</div>
+            </div>
+        </div>
+
+        <!-- MY PLUGINS -->
+        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                <h3 class="font-heading" style="color: var(--cyan); font-size: 1rem;">📦 MY PLUGINS</h3>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span style="color: var(--dim); font-size: 0.8rem;">${escapeHtml(data.my_plugins.length)} plugins</span>
+                    <a href="upload.html" style="background: linear-gradient(135deg, var(--green), var(--cyan)); color: var(--bg); text-decoration: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">+ Publish</a>
+                </div>
+            </div>
+
+            ${data.my_plugins.length === 0 ? `
+                <div style="text-align: center; padding: 3rem 1rem; color: var(--dim);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">📭</div>
+                    <p>Chưa publish plugin nào</p>
+                    <a href="upload.html" style="display: inline-block; margin-top: 1rem; color: var(--cyan); text-decoration: none; border: 1px solid var(--cyan); padding: 0.5rem 1.5rem; border-radius: 6px;">📤 Publish ngay</a>
+                </div>
+            ` : `
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                    ${data.my_plugins.map(p => `
+                        <a href="plugin.html?slug=${escapeHtml(p.slug)}" style="text-decoration: none; color: inherit; padding: 1rem; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; transition: all 0.2s; display: block;" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                                <div style="font-size: 2rem;">${escapeHtml(p.icon || "📦")}</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; color: var(--text); font-size: 0.95rem;">${escapeHtml(p.name)}</div>
+                                    <div style="color: var(--dim); font-size: 0.7rem;">v${escapeHtml(p.latest_version || "1.0.0")}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--dim); padding-top: 0.5rem; border-top: 1px solid var(--border);">
+                                <span style="color: var(--yellow);">${"★".repeat(Math.round(p.rating || 0))}${"☆".repeat(5 - Math.round(p.rating || 0))}</span>
+                                <span>📥 ${escapeHtml(formatNumber(p.downloads || 0))}</span>
+                            </div>
+                        </a>
+                    `).join("")}
+                </div>
+            `}
+        </div>
+
+        <!-- MY REVIEWS -->
+        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                <h3 class="font-heading" style="color: var(--cyan); font-size: 1rem;">⭐ MY REVIEWS</h3>
+                <span style="color: var(--dim); font-size: 0.8rem;">${escapeHtml(data.my_reviews.length)} reviews</span>
+            </div>
+
+            ${data.my_reviews.length === 0 ? `
+                <div style="text-align: center; padding: 3rem 1rem; color: var(--dim);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">💬</div>
+                    <p>Chưa viết đánh giá nào</p>
+                </div>
+            ` : `
+                ${data.my_reviews.map(r => `
+                    <div style="padding: 1rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start;">
+                        <div style="font-size: 2rem; min-width: 40px;">${escapeHtml(r.plugin_icon || "📦")}</div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; flex-wrap: wrap; gap: 0.5rem;">
+                                <a href="plugin.html?slug=${escapeHtml(r.plugin_slug)}" style="color: var(--cyan); text-decoration: none; font-weight: 700; font-size: 0.9rem;">${escapeHtml(r.plugin_name)}</a>
+                                <div style="color: var(--yellow); font-size: 0.85rem;">${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</div>
+                            </div>
+                            ${r.comment ? `<p style="color: var(--text); font-size: 0.85rem; line-height: 1.5; margin: 0.3rem 0;">${escapeHtml(r.comment)}</p>` : ""}
+                            <div style="display: flex; gap: 1rem; font-size: 0.7rem; color: var(--dim); margin-top: 0.4rem;">
+                                <span>👍 ${escapeHtml(r.helpful_count || 0)}</span>
+                                <span>${new Date(r.created_at).toLocaleDateString("vi-VN")}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join("")}
+            `}
+        </div>
+    `;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(loadDashboard, 300);
+});
+</script>
+</body>
+</html>
