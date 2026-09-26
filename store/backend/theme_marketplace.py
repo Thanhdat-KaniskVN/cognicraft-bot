@@ -1,9 +1,8 @@
 # store/backend/theme_marketplace.py
 """
-Theme Marketplace (v2 — merged into plugins table)
-- Themes là plugins có type='theme'
-- Query chung bảng plugins với type='theme'
-- Hỗ trợ free + paid (price_vnd)
+Theme Marketplace v3 — with Pricing backend
+- Free themes: apply trực tiếp
+- Paid themes: yêu cầu mua trước (Phase 9 — payment coming Phase 7)
 """
 import re
 from typing import Optional, List
@@ -28,9 +27,6 @@ DANGEROUS_PATTERNS = [
 ]
 
 
-# ============================================================
-# HELPERS
-# ============================================================
 def slugify(text: str) -> str:
     text = text.lower().strip()
     text = re.sub(r'[^a-z0-9]+', '-', text)
@@ -62,6 +58,10 @@ class PublishThemeRequest(BaseModel):
     price_vnd: Optional[int] = 0
 
 
+class PurchaseRequest(BaseModel):
+    payment_method: Optional[str] = "payos"
+
+
 # ============================================================
 # POST /api/marketplace/themes — Publish
 # ============================================================
@@ -70,7 +70,6 @@ async def publish_theme(
     req: PublishThemeRequest,
     user: dict = Depends(get_current_user),
 ):
-    """Publish theme lên marketplace (insert vào plugins với type='theme')"""
     db = get_db()
     user_id = user["sub"]
 
@@ -85,7 +84,6 @@ async def publish_theme(
     if not req.name or len(req.name.strip()) < 3:
         raise HTTPException(400, "Tên theme phải có ít nhất 3 ký tự")
 
-    # Generate unique slug
     base_slug = slugify(req.name)
     slug = base_slug
     counter = 1
@@ -97,7 +95,6 @@ async def publish_theme(
 
     tags = [t.strip().lower() for t in (req.tags or []) if t and t.strip()][:10]
 
-    # Price logic
     price = max(0, int(req.price_vnd or 0))
     is_paid = price > 0
 
@@ -121,17 +118,14 @@ async def publish_theme(
         RETURNING id, slug
         """,
         (
-            slug,
-            req.name.strip(),
+            slug, req.name.strip(),
             (req.description or "")[:500],
             (req.long_description or "")[:5000],
             db_user.get("name") or "Anonymous",
-            tags,
-            clean_css,
+            tags, clean_css,
             req.preview_image or "",
             db_user.get("avatar_url") or "",
-            price,
-            is_paid,
+            price, is_paid,
         ),
     )
 
@@ -159,7 +153,6 @@ async def list_themes(
     page: int = Query(1, ge=1),
     per_page: int = Query(24, ge=1, le=100),
 ):
-    """List themes (từ bảng plugins với type='theme')"""
     db = get_db()
 
     conditions = ["type = 'theme'"]
@@ -191,11 +184,9 @@ async def list_themes(
 
     where = " AND ".join(conditions)
 
-    # Count
     total_row = db.query_one(f"SELECT COUNT(*) AS c FROM plugins WHERE {where}", tuple(params))
     total = total_row["c"] if total_row else 0
 
-    # Order
     order_map = {
         "downloads": "downloads DESC",
         "likes": "likes DESC",
@@ -268,7 +259,6 @@ async def get_theme(slug: str):
     if row.get("updated_at"):
         row["updated_at"] = row["updated_at"].isoformat()
 
-    # Themes khác của cùng author
     other_themes = db.query(
         """
         SELECT slug, name, preview_image, downloads, price_vnd, is_paid
@@ -287,31 +277,189 @@ async def get_theme(slug: str):
 
 
 # ============================================================
-# POST /api/marketplace/themes/{slug}/apply — Apply (chỉ free)
+# 🆕 CHECK PURCHASE — user đã mua theme chưa?
+# ============================================================
+@router.get("/themes/{slug}/check-purchase")
+async def check_purchase(
+    slug: str,
+    user: dict = Depends(get_current_user),
+):
+    db = get_db()
+    user_id = user["sub"]
+
+    theme = db.query_one(
+        "SELECT is_paid, price_vnd, author, slug FROM plugins WHERE slug = %s AND type = 'theme'",
+        (slug,),
+    )
+    if not theme:
+        raise HTTPException(404, "Theme không tồn tại")
+
+    # Nếu FREE → không cần mua
+    if not theme.get("is_paid"):
+        return {"owned": True, "is_paid": False, "reason": "free"}
+
+    # Kiểm tra user có phải author không
+    db_user = db.query_one("SELECT name FROM public.users WHERE id = %s", (user_id,))
+    if db_user and theme.get("author") == db_user.get("name"):
+        return {"owned": True, "is_paid": True, "reason": "owner"}
+
+    # Check đã mua chưa
+    order = db.query_one(
+        """
+        SELECT id, status FROM orders 
+        WHERE user_id = %s AND theme_slug = %s AND status = 'paid'
+        LIMIT 1
+        """,
+        (user_id, slug),
+    )
+
+    if order:
+        return {"owned": True, "is_paid": True, "reason": "purchased", "order_id": str(order["id"])}
+
+    return {"owned": False, "is_paid": True, "price_vnd": theme["price_vnd"]}
+
+
+# ============================================================
+# 🆕 PURCHASE — tạo order
+# ============================================================
+@router.post("/themes/{slug}/purchase")
+async def purchase_theme(
+    slug: str,
+    req: PurchaseRequest,
+    user: dict = Depends(get_current_user),
+):
+    db = get_db()
+    user_id = user["sub"]
+
+    theme = db.query_one(
+        "SELECT is_paid, price_vnd, author, name FROM plugins WHERE slug = %s AND type = 'theme'",
+        (slug,),
+    )
+    if not theme:
+        raise HTTPException(404, "Theme không tồn tại")
+
+    if not theme.get("is_paid"):
+        raise HTTPException(400, "Theme này miễn phí — không cần mua")
+
+    # Không tự mua theme của chính mình
+    db_user = db.query_one("SELECT name FROM public.users WHERE id = %s", (user_id,))
+    if db_user and theme.get("author") == db_user.get("name"):
+        raise HTTPException(400, "Bạn là tác giả — không cần mua")
+
+    # Check đã có order chưa
+    existing = db.query_one(
+        """
+        SELECT id, status FROM orders 
+        WHERE user_id = %s AND theme_slug = %s
+        ORDER BY created_at DESC LIMIT 1
+        """,
+        (user_id, slug),
+    )
+
+    if existing and existing["status"] == "paid":
+        return {
+            "success": True,
+            "message": "Bạn đã mua theme này rồi",
+            "order_id": str(existing["id"]),
+            "already_paid": True,
+        }
+
+    # Tạo order mới (pending)
+    result = db.execute_returning(
+        """
+        INSERT INTO orders (user_id, theme_slug, amount_vnd, status, payment_method)
+        VALUES (%s, %s, %s, 'pending', %s)
+        RETURNING id
+        """,
+        (user_id, slug, theme["price_vnd"], req.payment_method or "payos"),
+    )
+
+    return {
+        "success": True,
+        "order_id": str(result["id"]),
+        "amount_vnd": theme["price_vnd"],
+        "theme_name": theme["name"],
+        "status": "pending",
+        "payment_method": req.payment_method or "payos",
+        "message": "Order đã tạo — thanh toán sẽ available sớm (Phase 7)",
+    }
+
+
+# ============================================================
+# 🆕 MY PURCHASES — list theme đã mua
+# ============================================================
+@router.get("/my-purchases")
+async def my_purchases(user: dict = Depends(get_current_user)):
+    db = get_db()
+    user_id = user["sub"]
+
+    rows = db.query(
+        """
+        SELECT 
+            o.id AS order_id, o.theme_slug, o.amount_vnd, o.status, 
+            o.created_at, o.paid_at,
+            p.name AS theme_name, p.preview_image, p.author
+        FROM orders o
+        LEFT JOIN plugins p ON p.slug = o.theme_slug AND p.type = 'theme'
+        WHERE o.user_id = %s
+        ORDER BY o.created_at DESC
+        LIMIT 50
+        """,
+        (user_id,),
+    )
+
+    for r in rows:
+        r["order_id"] = str(r["order_id"])
+        if r.get("created_at"):
+            r["created_at"] = r["created_at"].isoformat()
+        if r.get("paid_at"):
+            r["paid_at"] = r["paid_at"].isoformat()
+
+    return {"purchases": rows, "total": len(rows)}
+
+
+# ============================================================
+# APPLY — check pricing trước khi apply
 # ============================================================
 @router.post("/themes/{slug}/apply")
 async def apply_theme(
     slug: str,
     user: dict = Depends(get_current_user),
 ):
-    """Copy CSS vào user_themes — CHẶN nếu là paid theme (chưa thanh toán)"""
     db = get_db()
 
     theme = db.query_one(
-        "SELECT css_content, is_paid, price_vnd FROM plugins WHERE slug = %s AND type = 'theme'",
+        "SELECT css_content, is_paid, price_vnd, author FROM plugins WHERE slug = %s AND type = 'theme'",
         (slug,),
     )
     if not theme:
         raise HTTPException(404, "Theme không tồn tại")
 
-    # Chưa có payment system → chỉ cho free
-    if theme.get("is_paid"):
-        raise HTTPException(
-            402,
-            f"Theme trả phí ({theme['price_vnd']}đ). Tính năng thanh toán đang phát triển."
-        )
-
     user_id = user["sub"]
+
+    # Nếu PAID theme → check ownership
+    if theme.get("is_paid"):
+        # Author → bỏ qua check
+        db_user = db.query_one("SELECT name FROM public.users WHERE id = %s", (user_id,))
+        is_owner = db_user and theme.get("author") == db_user.get("name")
+
+        if not is_owner:
+            # Check đã mua
+            order = db.query_one(
+                """
+                SELECT id FROM orders 
+                WHERE user_id = %s AND theme_slug = %s AND status = 'paid'
+                LIMIT 1
+                """,
+                (user_id, slug),
+            )
+
+            if not order:
+                raise HTTPException(
+                    402,
+                    f"Theme trả phí {theme['price_vnd']}đ. Vui lòng mua trước khi áp dụng."
+                )
+
     css_content = theme["css_content"]
 
     db.execute(
@@ -336,7 +484,7 @@ async def apply_theme(
 
 
 # ============================================================
-# POST /api/marketplace/themes/{slug}/like
+# LIKE
 # ============================================================
 @router.post("/themes/{slug}/like")
 async def like_theme(slug: str, user: dict = Depends(get_current_user)):
@@ -359,12 +507,11 @@ async def like_theme(slug: str, user: dict = Depends(get_current_user)):
 
 
 # ============================================================
-# GET /api/marketplace/tags
+# TAGS
 # ============================================================
 @router.get("/tags")
 async def popular_tags(limit: int = 20):
     db = get_db()
-
     rows = db.query(
         """
         SELECT tag, COUNT(*) AS count
@@ -377,12 +524,11 @@ async def popular_tags(limit: int = 20):
         """,
         (limit,),
     )
-
     return {"tags": rows}
 
 
 # ============================================================
-# GET /api/marketplace/authors/{name}
+# AUTHORS
 # ============================================================
 @router.get("/authors/{name}")
 async def author_themes(name: str):
@@ -422,7 +568,7 @@ async def author_themes(name: str):
 
 
 # ============================================================
-# DELETE /api/marketplace/themes/{slug}
+# DELETE
 # ============================================================
 @router.delete("/themes/{slug}")
 async def delete_theme(slug: str, user: dict = Depends(get_current_user)):
@@ -435,7 +581,6 @@ async def delete_theme(slug: str, user: dict = Depends(get_current_user)):
     if not theme:
         raise HTTPException(404, "Theme không tồn tại")
 
-    # Get current user name
     db_user = db.query_one("SELECT name FROM public.users WHERE id = %s", (user["sub"],))
     if not db_user or theme["author"] != db_user["name"]:
         raise HTTPException(403, "Bạn không có quyền xóa theme này")

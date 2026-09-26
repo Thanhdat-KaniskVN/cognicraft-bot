@@ -76,20 +76,22 @@
   </section>
 
   <!-- FILTER BAR -->
-  <div class="mk-filter-bar">
-    <input
-      type="text"
-      class="mk-search"
-      id="mk-search"
-      placeholder="🔍 Tìm theme, author, tag..."
-    >
-    <select class="mk-select" id="mk-sort">
-      <option value="downloads">📥 Nhiều tải nhất</option>
-      <option value="likes">❤️ Nhiều like nhất</option>
-      <option value="created_at">🆕 Mới nhất</option>
-      <option value="trending">🔥 Trending</option>
-    </select>
-  </div>
+ <div class="mk-filter-bar">
+  <input type="text" class="mk-search" id="mk-search" placeholder="🔍 Tìm theme, author, tag...">
+  <select class="mk-select" id="mk-sort">
+    <option value="downloads">📥 Nhiều tải nhất</option>
+    <option value="likes">❤️ Nhiều like nhất</option>
+    <option value="created_at">🆕 Mới nhất</option>
+    <option value="trending">🔥 Trending</option>
+    <option value="price_asc">💰 Giá thấp → cao</option>
+    <option value="price_desc">💎 Giá cao → thấp</option>
+  </select>
+  <select class="mk-select" id="mk-price-filter">
+    <option value="">💵 Tất cả</option>
+    <option value="free">🆓 Miễn phí</option>
+    <option value="paid">💎 Trả phí</option>
+  </select>
+</div>
 
   <div class="tag-chips" id="tag-chips"></div>
 

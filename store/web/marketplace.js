@@ -1,10 +1,9 @@
 // store/web/marketplace.js
 /**
- * CogniCraft Marketplace 3D
- * - Particle background
- * - 3D tilt cards
- * - Modal detail + delete button for owner
- * - Filter + search
+ * CogniCraft Marketplace 3D v3
+ * - Free/Paid pricing UI
+ * - Purchase modal
+ * - Owner badge + delete
  */
 
 (function () {
@@ -25,13 +24,33 @@
   let state = {
     themes: [],
     featured: [],
-    currentFilter: { search: '', sort: 'downloads', tag: '' },
+    currentFilter: { search: '', sort: 'downloads', tag: '', price_type: '' },
     currentPage: 1,
     total: 0,
   };
 
   let carouselIdx = 0;
   let carouselTimer = null;
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+    );
+  }
+
+  function escapeAttr(s) {
+    return String(s || '').replace(/[<>"'&]/g, '');
+  }
+
+  function formatPrice(vnd) {
+    if (!vnd || vnd <= 0) return 'FREE';
+    if (vnd >= 1000000) return (vnd / 1000000).toFixed(1) + 'M';
+    if (vnd >= 1000) return (vnd / 1000).toFixed(0) + 'K';
+    return vnd + 'đ';
+  }
 
   // ============================================================
   // PARTICLE CANVAS
@@ -81,7 +100,6 @@
       particles.forEach((p) => {
         p.x += p.vx;
         p.y += p.vy;
-
         if (p.x < 0 || p.x > W) p.vx *= -1;
         if (p.y < 0 || p.y > H) p.vy *= -1;
 
@@ -102,9 +120,6 @@
     });
   }
 
-  // ============================================================
-  // CURSOR GLOW
-  // ============================================================
   function initCursorGlow() {
     const glow = document.createElement('div');
     glow.className = 'cursor-glow';
@@ -115,9 +130,6 @@
     });
   }
 
-  // ============================================================
-  // HERO 3D TILT
-  // ============================================================
   function initHeroTilt() {
     const heroContent = document.querySelector('.hero-content');
     if (!heroContent) return;
@@ -145,13 +157,14 @@
   }
 
   // ============================================================
-  // FETCH THEMES
+  // FETCH
   // ============================================================
   async function fetchThemes() {
     const p = new URLSearchParams();
     if (state.currentFilter.search) p.set('search', state.currentFilter.search);
     if (state.currentFilter.sort) p.set('sort', state.currentFilter.sort);
     if (state.currentFilter.tag) p.set('tag', state.currentFilter.tag);
+    if (state.currentFilter.price_type) p.set('price_type', state.currentFilter.price_type);
     p.set('page', state.currentPage);
     p.set('per_page', 24);
 
@@ -168,9 +181,6 @@
     renderGrid();
   }
 
-  // ============================================================
-  // FETCH TAGS
-  // ============================================================
   async function fetchTags() {
     try {
       const data = await api('/api/marketplace/tags');
@@ -215,12 +225,21 @@
   }
 
   // ============================================================
-  // RENDER: FEATURED CAROUSEL
+  // PRICE BADGE
+  // ============================================================
+  function priceBadgeHTML(theme) {
+    if (!theme.is_paid || !theme.price_vnd) {
+      return `<span class="price-badge free">FREE</span>`;
+    }
+    return `<span class="price-badge paid">💎 ${formatPrice(theme.price_vnd)}</span>`;
+  }
+
+  // ============================================================
+  // RENDER: FEATURED
   // ============================================================
   function renderFeatured() {
     const stage = document.getElementById('carousel-stage');
     if (!stage) return;
-
     const section = stage.closest('.featured-3d');
 
     if (state.featured.length === 0) {
@@ -231,10 +250,8 @@
 
     if (section) section.style.display = '';
 
-    // 1-2 theme → grid mode
     if (state.featured.length < 3) {
       if (section) section.classList.add('grid-mode');
-
       stage.style.position = 'relative';
       stage.style.display = 'grid';
       stage.style.gridTemplateColumns = `repeat(${state.featured.length}, minmax(280px, 360px))`;
@@ -260,6 +277,7 @@
                   <div class="mock-dot"></div>
                 </div>
               </div>
+              ${priceBadgeHTML(t)}
             </div>
             <div class="card-info">
               <div class="card-name">${escapeHtml(t.name)}</div>
@@ -283,13 +301,10 @@
         setupCardTilt(card);
         card.addEventListener('click', () => openModal(card.dataset.slug));
       });
-
       return;
     }
 
-    // ≥3 themes → carousel 3D
     if (section) section.classList.remove('grid-mode');
-
     stage.style.display = 'flex';
     stage.style.position = 'absolute';
     stage.style.gridTemplateColumns = '';
@@ -301,7 +316,9 @@
       .map(
         (t, i) => `
         <div class="carousel-item" data-idx="${i}" data-slug="${escapeHtml(t.slug)}">
-          <div class="preview" style="background-image: url('${escapeAttr(t.preview_image || '')}');"></div>
+          <div class="preview" style="background-image: url('${escapeAttr(t.preview_image || '')}');">
+            ${priceBadgeHTML(t)}
+          </div>
           <div class="info">
             <div class="name">${escapeHtml(t.name)}</div>
             <div class="author">by ${escapeHtml(t.author_name || 'Anonymous')}</div>
@@ -340,7 +357,6 @@
     const len = items.length;
     items.forEach((item, i) => {
       item.classList.remove('center', 'left', 'right', 'hidden');
-
       const diff = (i - carouselIdx + len) % len;
       if (diff === 0) item.classList.add('center');
       else if (diff === 1 || (len > 2 && diff === len - 1)) {
@@ -387,6 +403,7 @@
                 <div class="mock-dot"></div>
               </div>
             </div>
+            ${priceBadgeHTML(t)}
           </div>
           <div class="card-info">
             <div class="card-name">${escapeHtml(t.name)}</div>
@@ -413,9 +430,6 @@
     });
   }
 
-  // ============================================================
-  // CARD 3D TILT
-  // ============================================================
   function setupCardTilt(card) {
     card.addEventListener('mousemove', (e) => {
       const rect = card.getBoundingClientRect();
@@ -456,13 +470,27 @@
 
     try {
       const data = await api('/api/marketplace/themes/' + slug);
-      renderModal(data.theme, data.other_themes || []);
+      const theme = data.theme;
+
+      // Check purchase status nếu đã login
+      let purchaseStatus = { owned: true, is_paid: false };
+      if (getToken() && theme.is_paid) {
+        try {
+          purchaseStatus = await api('/api/marketplace/themes/' + slug + '/check-purchase', {
+            headers: { Authorization: 'Bearer ' + getToken() },
+          });
+        } catch (e) {
+          console.warn('check-purchase failed:', e);
+        }
+      }
+
+      renderModal(theme, data.other_themes || [], purchaseStatus);
     } catch (e) {
       content.querySelector('.modal-info').innerHTML = `<p style="color:#f87171;">Lỗi tải theme: ${e.message}</p>`;
     }
   }
 
-  function renderModal(theme, otherThemes) {
+  function renderModal(theme, otherThemes, purchaseStatus) {
     const modal = document.getElementById('modal');
     const info = modal.querySelector('.modal-info');
     const previewFrame = document.getElementById('modal-preview-frame');
@@ -481,13 +509,12 @@
       </head>
       <body>
         <h1>Demo Theme</h1>
-        <p>Đây là preview trực tiếp của theme. Bạn có thể xem hiệu ứng ngay tại đây.</p>
+        <p>Đây là preview trực tiếp của theme.</p>
         <div class="demo-card">
           <h3>Card Title</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p>Lorem ipsum dolor sit amet.</p>
           <button>Demo Button</button>
         </div>
-        <a href="#">Demo Link →</a>
       </body>
       </html>
     `;
@@ -495,14 +522,45 @@
     previewFrame.srcdoc = previewHtml;
 
     const tags = (theme.tags || []).map((t) => `<span class="modal-tag">#${escapeHtml(t)}</span>`).join('');
-
-    // Check owner
     const isOwner = checkIsOwner(theme);
+
+    // Nút action dựa vào is_paid + owned
+    let actionButtons = '';
+    if (!theme.is_paid) {
+      // FREE
+      actionButtons = `
+        <button class="btn-modal primary" id="btn-apply">✨ Áp dụng theme</button>
+        <button class="btn-modal secondary" id="btn-like">❤️ Thích</button>
+      `;
+    } else if (isOwner) {
+      // PAID + OWNER
+      actionButtons = `
+        <button class="btn-modal primary" id="btn-apply">✨ Áp dụng (của bạn)</button>
+        <button class="btn-modal secondary" id="btn-like">❤️ Thích</button>
+      `;
+    } else if (purchaseStatus.owned) {
+      // PAID + ĐÃ MUA
+      actionButtons = `
+        <button class="btn-modal primary" id="btn-apply">✨ Áp dụng theme</button>
+        <button class="btn-modal secondary" id="btn-like">❤️ Thích</button>
+      `;
+    } else {
+      // PAID + CHƯA MUA
+      actionButtons = `
+        <button class="btn-modal primary btn-buy" id="btn-buy">💳 Mua ${formatPrice(theme.price_vnd)}</button>
+        <button class="btn-modal secondary" id="btn-like">❤️ Thích</button>
+      `;
+    }
+
+    if (isOwner) {
+      actionButtons += `<button class="modal-delete-btn" id="btn-delete" title="Xóa theme">🗑️</button>`;
+    }
 
     info.innerHTML = `
       <div class="modal-title">
         ${escapeHtml(theme.name)}
         ${isOwner ? '<span class="owner-badge">👑 Của bạn</span>' : ''}
+        ${theme.is_paid && !purchaseStatus.owned && !isOwner ? `<span class="lock-badge">🔒 ${formatPrice(theme.price_vnd)}</span>` : ''}
       </div>
       <div class="modal-author">
         <img src="${escapeAttr(theme.author_avatar || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + theme.author_name)}" alt="">
@@ -518,19 +576,96 @@
         <div class="modal-stat"><span class="num">${theme.likes || 0}</span><span class="label">Lượt thích</span></div>
       </div>
       <div class="modal-actions">
-        <button class="btn-modal primary" id="btn-apply">✨ Áp dụng theme</button>
-        <button class="btn-modal secondary" id="btn-like">❤️ Thích</button>
-        ${isOwner ? '<button class="modal-delete-btn" id="btn-delete" title="Xóa theme">🗑️</button>' : ''}
+        ${actionButtons}
       </div>
     `;
 
-    document.getElementById('btn-apply').addEventListener('click', () => applyTheme(theme.slug));
-    document.getElementById('btn-like').addEventListener('click', () => likeTheme(theme.slug));
-
+    document.getElementById('btn-apply')?.addEventListener('click', () => applyTheme(theme.slug));
+    document.getElementById('btn-like')?.addEventListener('click', () => likeTheme(theme.slug));
+    document.getElementById('btn-buy')?.addEventListener('click', () => showPurchaseConfirm(theme));
     document.getElementById('btn-delete')?.addEventListener('click', () => {
       if (!confirm(`Xóa theme "${theme.name}"?\n\nHành động này KHÔNG THỂ hoàn tác.`)) return;
       deleteTheme(theme.slug);
     });
+  }
+
+  // ============================================================
+  // PURCHASE CONFIRM MODAL
+  // ============================================================
+  function showPurchaseConfirm(theme) {
+    // Tạo modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'purchase-overlay';
+    overlay.innerHTML = `
+      <div class="purchase-modal">
+        <h2>💳 Xác nhận mua</h2>
+        <div class="purchase-info">
+          <div class="row">
+            <span>Theme:</span>
+            <strong>${escapeHtml(theme.name)}</strong>
+          </div>
+          <div class="row">
+            <span>Tác giả:</span>
+            <strong>${escapeHtml(theme.author_name)}</strong>
+          </div>
+          <div class="row highlight">
+            <span>Tổng:</span>
+            <strong>${formatPrice(theme.price_vnd)}</strong>
+          </div>
+        </div>
+        <div class="purchase-notice">
+          ⚠️ <strong>Payment sắp ra mắt</strong><br>
+          Hệ thống thanh toán (PayOS) sẽ available trong vài ngày tới.<br>
+          Bạn có thể tạo order ngay bây giờ — sẽ tự động kích hoạt khi payment ra mắt.
+        </div>
+        <div class="purchase-actions">
+          <button class="btn-cancel" id="purchase-cancel">Hủy</button>
+          <button class="btn-confirm" id="purchase-confirm">📦 Tạo order</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+
+    document.getElementById('purchase-cancel').onclick = () => {
+      overlay.remove();
+      document.body.style.overflow = '';
+    };
+
+    document.getElementById('purchase-confirm').onclick = async () => {
+      const btn = document.getElementById('purchase-confirm');
+      btn.disabled = true;
+      btn.textContent = '⏳ Đang tạo order...';
+
+      try {
+        const res = await fetch(API_BASE + '/api/marketplace/themes/' + theme.slug + '/purchase', {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + getToken(),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ payment_method: 'payos' }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          toast(data.detail || 'Lỗi tạo order', 'error');
+          btn.disabled = false;
+          btn.textContent = '📦 Tạo order';
+          return;
+        }
+
+        overlay.remove();
+        document.body.style.overflow = '';
+        closeModal();
+        toast('✅ Order đã tạo! Payment sẽ available sớm.', 'success');
+      } catch (e) {
+        toast('Lỗi: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.textContent = '📦 Tạo order';
+      }
+    };
   }
 
   function closeModal() {
@@ -540,7 +675,7 @@
   }
 
   // ============================================================
-  // CHECK OWNER — user hiện tại có phải tác giả theme không
+  // CHECK OWNER
   // ============================================================
   function checkIsOwner(theme) {
     try {
@@ -554,39 +689,7 @@
 
       return myName === authorName || myEmail === authorName;
     } catch (e) {
-      console.warn('checkIsOwner error:', e);
       return false;
-    }
-  }
-
-  // ============================================================
-  // DELETE THEME
-  // ============================================================
-  async function deleteTheme(slug) {
-    try {
-      const res = await fetch(API_BASE + '/api/marketplace/themes/' + slug, {
-        method: 'DELETE',
-        headers: {
-          Authorization: 'Bearer ' + getToken(),
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast(data.detail || `Lỗi xóa theme (${res.status})`, 'error');
-        return;
-      }
-
-      toast('🗑️ Đã xóa theme!', 'success');
-
-      setTimeout(() => {
-        closeModal();
-        fetchThemes();
-      }, 800);
-    } catch (e) {
-      toast('Lỗi: ' + e.message, 'error');
     }
   }
 
@@ -605,7 +708,11 @@
       const data = await res.json();
 
       if (!res.ok) {
-        toast(data.detail || 'Lỗi apply theme', 'error');
+        if (res.status === 402) {
+          toast('💎 Theme trả phí — vui lòng mua trước', 'error');
+        } else {
+          toast(data.detail || 'Lỗi apply theme', 'error');
+        }
         return;
       }
 
@@ -631,15 +738,40 @@
         toast(data.detail || 'Lỗi like', 'error');
         return;
       }
-
       toast('❤️ Đã thích theme!', 'success');
     } catch (e) {
       toast('Lỗi: ' + e.message, 'error');
     }
   }
 
+  async function deleteTheme(slug) {
+    try {
+      const res = await fetch(API_BASE + '/api/marketplace/themes/' + slug, {
+        method: 'DELETE',
+        headers: {
+          Authorization: 'Bearer ' + getToken(),
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast(data.detail || `Lỗi xóa theme (${res.status})`, 'error');
+        return;
+      }
+
+      toast('🗑️ Đã xóa theme!', 'success');
+      setTimeout(() => {
+        closeModal();
+        fetchThemes();
+      }, 800);
+    } catch (e) {
+      toast('Lỗi: ' + e.message, 'error');
+    }
+  }
+
   // ============================================================
-  // TOAST — INLINE STYLES
+  // TOAST
   // ============================================================
   function toast(msg, type = 'success') {
     document.querySelectorAll('.mk-toast-fixed').forEach(el => el.remove());
@@ -669,8 +801,6 @@
       z-index: 999999 !important;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
       max-width: 400px !important;
-      width: auto !important;
-      height: auto !important;
       opacity: 1 !important;
       transform: translateX(0) !important;
       transition: all 0.3s ease-out !important;
@@ -687,24 +817,12 @@
   }
 
   // ============================================================
-  // HELPERS
-  // ============================================================
-  function escapeHtml(s) {
-    return String(s || '').replace(/[&<>"']/g, (c) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
-    );
-  }
-
-  function escapeAttr(s) {
-    return String(s || '').replace(/[<>"'&]/g, '');
-  }
-
-  // ============================================================
-  // FILTER EVENTS
+  // FILTER
   // ============================================================
   function initFilters() {
     const searchInput = document.getElementById('mk-search');
     const sortSelect = document.getElementById('mk-sort');
+    const priceSelect = document.getElementById('mk-price-filter');
 
     let debounce;
     searchInput?.addEventListener('input', () => {
@@ -718,6 +836,12 @@
 
     sortSelect?.addEventListener('change', () => {
       state.currentFilter.sort = sortSelect.value;
+      state.currentPage = 1;
+      fetchThemes();
+    });
+
+    priceSelect?.addEventListener('change', () => {
+      state.currentFilter.price_type = priceSelect.value;
       state.currentPage = 1;
       fetchThemes();
     });
@@ -739,7 +863,10 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') {
+        closeModal();
+        document.querySelectorAll('.purchase-overlay').forEach(el => el.remove());
+      }
     });
 
     document.getElementById('cta-explore')?.addEventListener('click', () => {
@@ -754,7 +881,7 @@
       toast('Lỗi kết nối API', 'error');
     }
 
-    console.log('✨ Marketplace 3D loaded');
+    console.log('✨ Marketplace 3D v3 loaded');
   }
 
   if (document.readyState === 'loading') {
