@@ -400,7 +400,237 @@ async def admin_list_reports(
 
     return {"total": total, "reports": rows}
 
+# ============================================================
+# 📊 ANALYTICS ENDPOINTS (Phase 11)
+# ============================================================
 
+# ============================================================
+# GET /api/admin/analytics/overview — KPIs tổng hợp
+# ============================================================
+@router.get("/analytics/overview")
+async def analytics_overview(admin: dict = Depends(require_admin)):
+    db = get_db()
+
+    # Users
+    total_users = db.query_one("SELECT COUNT(*) AS c FROM public.users")["c"] or 0
+    users_7d = db.query_one(
+        "SELECT COUNT(*) AS c FROM public.users WHERE created_at > NOW() - INTERVAL '7 days'"
+    )["c"] or 0
+    users_30d = db.query_one(
+        "SELECT COUNT(*) AS c FROM public.users WHERE created_at > NOW() - INTERVAL '30 days'"
+    )["c"] or 0
+    users_prev_7d = db.query_one(
+        """SELECT COUNT(*) AS c FROM public.users 
+           WHERE created_at > NOW() - INTERVAL '14 days' 
+           AND created_at <= NOW() - INTERVAL '7 days'"""
+    )["c"] or 0
+
+    # Content
+    total_themes = db.query_one("SELECT COUNT(*) AS c FROM plugins WHERE type = 'theme'")["c"] or 0
+    total_plugins = db.query_one("SELECT COUNT(*) AS c FROM plugins WHERE type = 'plugin'")["c"] or 0
+    themes_7d = db.query_one(
+        """SELECT COUNT(*) AS c FROM plugins 
+           WHERE type = 'theme' AND created_at > NOW() - INTERVAL '7 days'"""
+    )["c"] or 0
+
+    # Engagement
+    total_downloads = db.query_one("SELECT COALESCE(SUM(downloads), 0) AS s FROM plugins")["s"] or 0
+    total_likes = db.query_one("SELECT COALESCE(SUM(likes), 0) AS s FROM plugins WHERE type = 'theme'")["s"] or 0
+    total_reviews = db.query_one("SELECT COUNT(*) AS c FROM reviews")["c"] or 0
+
+    # Revenue
+    total_revenue = db.query_one(
+        "SELECT COALESCE(SUM(amount_vnd), 0) AS s FROM orders WHERE status = 'paid'"
+    )["s"] or 0
+    pending_orders = db.query_one("SELECT COUNT(*) AS c FROM orders WHERE status = 'pending'")["c"] or 0
+
+    # Growth rates
+    user_growth = 0
+    if users_prev_7d > 0:
+        user_growth = round(((users_7d - users_prev_7d) / users_prev_7d) * 100, 1)
+    elif users_7d > 0:
+        user_growth = 100
+
+    return {
+        "users": {
+            "total": total_users,
+            "last_7d": users_7d,
+            "last_30d": users_30d,
+            "growth_7d_pct": user_growth,
+        },
+        "content": {
+            "themes": total_themes,
+            "plugins": total_plugins,
+            "themes_7d": themes_7d,
+        },
+        "engagement": {
+            "downloads": total_downloads,
+            "likes": total_likes,
+            "reviews": total_reviews,
+        },
+        "revenue": {
+            "total_vnd": int(total_revenue),
+            "pending_orders": pending_orders,
+        },
+    }
+
+
+# ============================================================
+# GET /api/admin/analytics/timeline — data theo ngày
+# ============================================================
+@router.get("/analytics/timeline")
+async def analytics_timeline(
+    days: int = Query(30, ge=7, le=90),
+    admin: dict = Depends(require_admin),
+):
+    """Trả về timeline theo ngày: users, themes, downloads"""
+    db = get_db()
+
+    # Users theo ngày
+    users_rows = db.query(
+        f"""
+        SELECT 
+            TO_CHAR(created_at::date, 'YYYY-MM-DD') AS day,
+            COUNT(*) AS count
+        FROM public.users
+        WHERE created_at > NOW() - INTERVAL '{days} days'
+        GROUP BY day
+        ORDER BY day
+        """,
+    )
+
+    # Themes/plugins theo ngày
+    items_rows = db.query(
+        f"""
+        SELECT 
+            TO_CHAR(created_at::date, 'YYYY-MM-DD') AS day,
+            COUNT(*) AS count,
+            SUM(CASE WHEN type = 'theme' THEN 1 ELSE 0 END) AS theme_count,
+            SUM(CASE WHEN type = 'plugin' THEN 1 ELSE 0 END) AS plugin_count
+        FROM plugins
+        WHERE created_at > NOW() - INTERVAL '{days} days'
+        GROUP BY day
+        ORDER BY day
+        """,
+    )
+
+    # Orders theo ngày
+    orders_rows = db.query(
+        f"""
+        SELECT 
+            TO_CHAR(created_at::date, 'YYYY-MM-DD') AS day,
+            COUNT(*) AS count,
+            COALESCE(SUM(CASE WHEN status = 'paid' THEN amount_vnd ELSE 0 END), 0) AS revenue
+        FROM orders
+        WHERE created_at > NOW() - INTERVAL '{days} days'
+        GROUP BY day
+        ORDER BY day
+        """,
+    )
+
+    # Build full timeline (fill missing days with 0)
+    from datetime import datetime, timedelta
+    today = datetime.utcnow().date()
+    days_list = [(today - timedelta(days=i)).isoformat() for i in range(days - 1, -1, -1)]
+
+    users_map = {r["day"]: r["count"] for r in users_rows}
+    items_map = {r["day"]: dict(r) for r in items_rows}
+    orders_map = {r["day"]: dict(r) for r in orders_rows}
+
+    timeline = []
+    for day in days_list:
+        items = items_map.get(day, {})
+        orders = orders_map.get(day, {})
+        timeline.append({
+            "date": day,
+            "users": users_map.get(day, 0),
+            "items": items.get("count", 0),
+            "themes": items.get("theme_count", 0),
+            "plugins": items.get("plugin_count", 0),
+            "orders": orders.get("count", 0),
+            "revenue": int(orders.get("revenue", 0)),
+        })
+
+    return {"timeline": timeline, "days": days}
+
+
+# ============================================================
+# GET /api/admin/analytics/top — top themes, authors
+# ============================================================
+@router.get("/analytics/top")
+async def analytics_top(
+    limit: int = Query(10, ge=5, le=50),
+    admin: dict = Depends(require_admin),
+):
+    db = get_db()
+
+    # Top themes by downloads
+    top_themes = db.query(
+        """
+        SELECT slug, name, type, author, downloads, likes, rating, 
+               review_count, price_vnd, is_paid
+        FROM plugins
+        WHERE type = 'theme'
+        ORDER BY downloads DESC, likes DESC
+        LIMIT %s
+        """,
+        (limit,),
+    )
+
+    # Top plugins by downloads
+    top_plugins = db.query(
+        """
+        SELECT slug, name, type, author, downloads, rating, review_count
+        FROM plugins
+        WHERE type = 'plugin'
+        ORDER BY downloads DESC
+        LIMIT %s
+        """,
+        (limit,),
+    )
+
+    # Top authors by total downloads
+    top_authors = db.query(
+        """
+        SELECT 
+            author,
+            COUNT(*) AS item_count,
+            SUM(downloads) AS total_downloads,
+            SUM(likes) AS total_likes,
+            AVG(rating) FILTER (WHERE review_count > 0) AS avg_rating
+        FROM plugins
+        GROUP BY author
+        ORDER BY total_downloads DESC NULLS LAST
+        LIMIT %s
+        """,
+        (limit,),
+    )
+
+    for a in top_authors:
+        a["total_downloads"] = int(a["total_downloads"] or 0)
+        a["total_likes"] = int(a["total_likes"] or 0)
+        a["avg_rating"] = round(float(a["avg_rating"] or 0), 2)
+
+    # Top tags
+    top_tags = db.query(
+        """
+        SELECT tag, COUNT(*) AS count
+        FROM (
+            SELECT unnest(tags) AS tag FROM plugins WHERE type = 'theme'
+        ) sub
+        GROUP BY tag
+        ORDER BY count DESC
+        LIMIT %s
+        """,
+        (limit,),
+    )
+
+    return {
+        "top_themes": top_themes,
+        "top_plugins": top_plugins,
+        "top_authors": top_authors,
+        "top_tags": top_tags,
+    }
 # ============================================================
 # POST /api/admin/reports/{id}/resolve
 # ============================================================

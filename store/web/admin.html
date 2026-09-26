@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi" data-theme="cyberpunk">
 <head>
 <meta charset="UTF-8">
@@ -445,6 +445,67 @@
     .admin-nav-item { white-space: nowrap; }
     .admin-main { padding: 1rem; }
   }
+    /* ============================================================
+     FIX: Analytics full width
+     ============================================================ */
+  .admin-section.active {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  #section-analytics {
+    width: 100% !important;
+  }
+
+  .analytics-kpis {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  @media (max-width: 900px) {
+    .analytics-kpis {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .analytics-kpis {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  .chart-container {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .chart-container canvas {
+    width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+  }
+
+  .analytics-grid-3 {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  @media (max-width: 1100px) {
+    .analytics-grid-3 {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .analytics-grid-3 {
+      grid-template-columns: 1fr !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -469,6 +530,9 @@
     <nav class="admin-nav">
       <button class="admin-nav-item active" data-section="overview">
         <span class="icon">📊</span> Tổng quan
+      </button>
+      <button class="admin-nav-item" data-section="analytics">
+        <span class="icon">📈</span> Analytics
       </button>
       <button class="admin-nav-item" data-section="users">
         <span class="icon">👥</span> Users
@@ -507,6 +571,67 @@
       </div>
     </section>
 
+
+    <!-- ANALYTICS SECTION -->
+    <section id="section-analytics" class="admin-section">
+      <div class="analytics-kpis" id="analytics-kpis">
+        <div class="admin-loading"><div class="admin-spinner"></div></div>
+      </div>
+
+      <div class="section-toolbar" style="margin-top: 1.5rem;">
+        <label style="color: var(--dim); font-size: 0.85rem;">Khoảng thời gian:</label>
+        <select class="toolbar-select" id="analytics-days">
+          <option value="7">7 ngày</option>
+          <option value="14">14 ngày</option>
+          <option value="30" selected>30 ngày</option>
+          <option value="60">60 ngày</option>
+          <option value="90">90 ngày</option>
+        </select>
+        <button class="action-btn" onclick="loadAnalytics()">🔄 Refresh</button>
+      </div>
+
+      <div class="chart-container" style="margin-top: 1rem;">
+        <div class="chart-header">
+          <h3>📈 Hoạt động theo ngày</h3>
+          <div class="chart-legend">
+            <span><span class="dot" style="background:#22c55e"></span>Users</span>
+            <span><span class="dot" style="background:#06b6d4"></span>Themes</span>
+            <span><span class="dot" style="background:#a855f7"></span>Plugins</span>
+          </div>
+        </div>
+        <canvas id="timeline-chart" height="240"></canvas>
+      </div>
+
+      <div class="chart-container" style="margin-top: 1.5rem;">
+        <div class="chart-header">
+          <h3>💰 Doanh thu theo ngày</h3>
+        </div>
+        <canvas id="revenue-chart" height="200"></canvas>
+      </div>
+
+      <div class="analytics-grid-3" style="margin-top: 1.5rem;">
+        <div class="analytics-card">
+          <h3>🎨 Top Themes</h3>
+          <div id="top-themes-list">
+            <div class="admin-loading"><div class="admin-spinner"></div></div>
+          </div>
+        </div>
+
+        <div class="analytics-card">
+          <h3>👑 Top Authors</h3>
+          <div id="top-authors-list">
+            <div class="admin-loading"><div class="admin-spinner"></div></div>
+          </div>
+        </div>
+
+        <div class="analytics-card">
+          <h3>🏷️ Popular Tags</h3>
+          <div id="top-tags-list">
+            <div class="admin-loading"><div class="admin-spinner"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
     <!-- USERS SECTION -->
     <section id="section-users" class="admin-section">
       <div class="section-toolbar">
