@@ -113,3 +113,14 @@ store/examples/
 test_ml_event.json
 store/openapi.json
 handoff/
+# Backup files (từ PowerShell scripts)
+*.bak
+*.backup
+
+# Test/malware files
+test-evil/
+test-evil-*.cogni
+test-*/
+*-evil*
+test-unpack/
+dist/test-*
