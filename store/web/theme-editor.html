@@ -6,6 +6,8 @@
   <title>Theme Editor — CogniCraft</title>
   <link rel="stylesheet" href="themes.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="mobile-styles.css">
+  <link rel="stylesheet" href="store-polish.css">
   <style>
     .editor-container {
       display: grid;
@@ -140,25 +142,33 @@
     .var-chip:hover { background: rgba(168, 85, 247, 0.25); }
 
     .toast {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 14px 20px;
-      border-radius: 10px;
-      color: #fff;
-      font-weight: 600;
-      font-size: 14px;
-      z-index: 10000;
-      opacity: 0;
-      transform: translateY(-20px);
-      transition: all 0.3s;
-      pointer-events: none;
+      position: fixed !important;
+      top: 80px !important;
+      right: 20px !important;
+      left: auto !important;
+      bottom: auto !important;
+      width: auto !important;
+      max-width: 340px !important;
+      height: auto !important;
+      padding: 12px 18px !important;
+      border-radius: 10px !important;
+      color: #fff !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      z-index: 10000 !important;
+      opacity: 0 !important;
+      transform: translateX(400px) !important;
+      transition: all 0.3s ease-out !important;
+      pointer-events: none !important;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+      display: block !important;
+      visibility: visible !important;
     }
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.success { background: linear-gradient(135deg, #16a34a, #22c55e); }
-    .toast.error   { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    .toast.show { opacity: 1 !important; transform: translateX(0) !important; }
+    .toast.success { background: linear-gradient(135deg, #16a34a, #22c55e) !important; }
+    .toast.error { background: linear-gradient(135deg, #dc2626, #ef4444) !important; }
   </style>
-  <link rel="stylesheet" href="mobile-styles.css">`n  <link rel="stylesheet" href="store-polish.css">`n</head>
+</head>
 <body>
   <div class="editor-container">
     <!-- LEFT: Editor -->
@@ -246,20 +256,20 @@ body {
     // LOAD THEME
     // ============================================================
     async function loadTheme() {
+      const token = getToken();
+      if (!token) { updateBadge(false); updatePreview(); return; }
       try {
         const res = await fetch(API_BASE + '/api/theme/me', {
-          headers: { Authorization: 'Bearer ' + getToken() },
+          headers: { Authorization: 'Bearer ' + token },
         });
+        if (res.status === 401) { updateBadge(false); updatePreview(); return; }
         if (!res.ok) throw new Error('HTTP ' + res.status);
-
         const data = await res.json();
         currentState = data;
         editor.value = data.css_content || '';
         updateBadge(data.is_active);
         updatePreview();
-      } catch (err) {
-        toast('Không load được theme: ' + err.message, 'error');
-      }
+      } catch (err) { console.warn('loadTheme:', err); updateBadge(false); updatePreview(); }
     }
 
     function updateBadge(active) {
@@ -299,7 +309,6 @@ body {
         currentState.is_active = true;
         updateBadge(true);
 
-        // Reload theme trên chính trang này
         if (window.reloadUserTheme) window.reloadUserTheme();
       } catch (err) {
         toast('Lỗi kết nối: ' + err.message, 'error');
@@ -363,39 +372,24 @@ body {
     // ============================================================
     function updatePreview() {
       const css = editor.value;
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <link rel="stylesheet" href="${location.origin}/store/themes.css">
-          <style>${css}</style>
-          <link rel="stylesheet" href="mobile-styles.css">`n  <link rel="stylesheet" href="store-polish.css">`n</head>
-        <body style="padding:20px;font-family:system-ui;">
-          <h1>Demo Heading</h1>
-          <div class="card" style="padding:20px;border:1px solid #a855f7;border-radius:12px;margin:16px 0;">
-            <h3>Card Title</h3>
-            <p>Đây là text demo để bạn xem theme thế nào.</p>
-            <button style="padding:8px 16px;border-radius:8px;background:#a855f7;color:#fff;border:none;cursor:pointer;">
-              Demo Button
-            </button>
-          </div>
-          <a href="#">Demo link</a>
-          <script src="admin-button.js"></script>
-<div class="legal-footer" style="text-align: center; padding: 2rem 1rem; margin-top: 3rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--dim); position: relative; z-index: 10;">
-  <div style="margin-bottom: 0.8rem;">
-    <a href="privacy.html" style="color: var(--dim); text-decoration: none; margin: 0 0.8rem; transition: color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--dim)'">Chính sách bảo mật</a>
-    ·
-    <a href="terms.html" style="color: var(--dim); text-decoration: none; margin: 0 0.8rem; transition: color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--dim)'">Điều khoản sử dụng</a>
-    ·
-    <a href="dmca.html" style="color: var(--dim); text-decoration: none; margin: 0 0.8rem; transition: color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--dim)'">Báo cáo bản quyền</a>
-  </div>
-  <div>© 2026 CogniCraft · Made with 💜 by Phạm Thành Đạt</div>
-</div>
-  <script src="mobile-menu.js"></script>
-  <script src="floating-balloons.js"></script>
-</body>
-        </html>
-      `;
+      const html = '<!DOCTYPE html>' +
+        '<html>' +
+        '<head>' +
+        '<link rel="stylesheet" href="' + location.origin + '/store/themes.css">' +
+        '<style>' + css + '</style>' +
+        '</head>' +
+        '<body style="padding:20px;font-family:system-ui;">' +
+          '<h1>Demo Heading</h1>' +
+          '<div class="card" style="padding:20px;border:1px solid #a855f7;border-radius:12px;margin:16px 0;">' +
+            '<h3>Card Title</h3>' +
+            '<p>Đây là text demo để bạn xem theme thế nào.</p>' +
+            '<button style="padding:8px 16px;border-radius:8px;background:#a855f7;color:#fff;border:none;cursor:pointer;">' +
+              'Demo Button' +
+            '</button>' +
+          '</div>' +
+          '<a href="#">Demo link</a>' +
+        '</body>' +
+        '</html>';
       previewFrame.srcdoc = html;
     }
 
@@ -404,7 +398,6 @@ body {
       toast('👁 Đã update preview');
     }
 
-    // Live preview khi gõ
     let previewTimer;
     editor.addEventListener('input', () => {
       clearTimeout(previewTimer);
@@ -429,7 +422,7 @@ body {
         const pos = editor.selectionStart;
         const before = editor.value.substring(0, pos);
         const after = editor.value.substring(pos);
-        const insert = `${v}: ;`;
+        const insert = v + ': ;';
         editor.value = before + insert + after;
         editor.focus();
         editor.selectionStart = editor.selectionEnd = pos + insert.length - 1;
@@ -445,17 +438,20 @@ body {
     updatePreview();
   </script>
   <script src="admin-button.js"></script>
-<div class="legal-footer" style="text-align: center; padding: 2rem 1rem; margin-top: 3rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--dim); position: relative; z-index: 10;">
-  <div style="margin-bottom: 0.8rem;">
-    <a href="privacy.html" style="color: var(--dim); text-decoration: none; margin: 0 0.8rem; transition: color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--dim)'">Chính sách bảo mật</a>
-    ·
-    <a href="terms.html" style="color: var(--dim); text-decoration: none; margin: 0 0.8rem; transition: color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--dim)'">Điều khoản sử dụng</a>
-    ·
-    <a href="dmca.html" style="color: var(--dim); text-decoration: none; margin: 0 0.8rem; transition: color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--dim)'">Báo cáo bản quyền</a>
-  </div>
-  <div>© 2026 CogniCraft · Made with 💜 by Phạm Thành Đạt</div>
-</div>
   <script src="mobile-menu.js"></script>
   <script src="floating-balloons.js"></script>
+
+  <!-- Legal footer -->
+  <div class="legal-footer" style="text-align: center; padding: 2rem 1rem; margin-top: 3rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--dim); position: relative; z-index: 10;">
+    <div style="margin-bottom: 0.8rem;">
+      <a href="privacy.html" style="color: var(--dim); text-decoration: none; margin: 0 0.8rem; transition: color 0.2s;">Chính sách bảo mật</a>
+      ·
+      <a href="terms.html" style="color: var(--dim); text-decoration: none; margin: 0 0.8rem; transition: color 0.2s;">Điều khoản sử dụng</a>
+      ·
+      <a href="dmca.html" style="color: var(--dim); text-decoration: none; margin: 0 0.8rem; transition: color 0.2s;">Báo cáo bản quyền</a>
+    </div>
+    <div>© 2026 CogniCraft · Made with 💜 by Phạm Thành Đạt</div>
+  </div>
+
 </body>
 </html>
