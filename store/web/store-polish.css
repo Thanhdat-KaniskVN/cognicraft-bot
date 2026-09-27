@@ -514,3 +514,10 @@
     opacity: 1;
   }
 }
+/* ===== Emoji fallback cho mobile (fix icon broken) ===== */
+body, button, input, span, div, p, h1, h2, h3, h4, a, li {
+  font-family: inherit;
+}
+body, .font-mono, code, pre {
+  font-family: 'Courier New', Consolas, 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Android Emoji', monospace !important;
+}

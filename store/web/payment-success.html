@@ -141,8 +141,21 @@ const themeSlug = params.get('theme') || params.get('theme_slug');
 const amount = params.get('amount');
 
 // Hiển thị info
-document.getElementById('themeSlug').textContent = themeSlug || '—';
-document.getElementById('amount').textContent = amount 
+// Uu tien URL params, fallback localStorage cache
+let displayTheme = themeSlug;
+let displayAmount = amount;
+if (orderCode) {
+  try {
+    const cached = localStorage.getItem('cc_order_' + orderCode);
+    if (cached) {
+      const info = JSON.parse(cached);
+      displayTheme = displayTheme || info.theme_name || info.theme_slug;
+      displayAmount = displayAmount || info.amount;
+    }
+  } catch (e) { console.warn('cache read:', e); }
+}
+document.getElementById('themeSlug').textContent = displayTheme || '—';
+document.getElementById('amount').textContent = displayAmount 
   ? parseInt(amount).toLocaleString('vi-VN') + ' VNĐ' 
   : '—';
 

@@ -657,6 +657,14 @@
         }
 
         toast('Đang chuyển sang PayOS...', 'success');
+        try {
+          localStorage.setItem('cc_order_' + data.order_code, JSON.stringify({
+            theme_slug: theme.slug,
+            theme_name: theme.name || theme.slug,
+            amount: data.amount,
+          }));
+        } catch (e) { console.warn('cache order:', e); }
+
         window.location.href = data.checkout_url;
       } catch (e) {
         toast('Lỗi: ' + e.message, 'error');
