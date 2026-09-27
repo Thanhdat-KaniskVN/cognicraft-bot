@@ -168,6 +168,67 @@
     document.getElementById('pub-price')?.addEventListener('input', updatePricePreview);
   }
 
+  // Cache admin check (prefetch khi load page)
+  var _isAdminCache = null;
+
+  function isAdminUser() {
+    // Neu da check xong -> tra cache
+    if (_isAdminCache !== null) return _isAdminCache;
+    // Fallback: check localStorage neu backend chua kip tra
+    try {
+      var u = JSON.parse(localStorage.getItem('cognicraft_user') || '{}');
+      return u.is_admin === true;
+    } catch (e) { return false; }
+  }
+
+  // Prefetch admin status tu backend
+  (function prefetchAdmin() {
+    var token = localStorage.getItem('cognicraft_token') || '';
+    if (!token) {
+      _isAdminCache = false;
+      return;
+    }
+    fetch(API_BASE + '/api/admin/me', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    })
+      .then(function(r) {
+        _isAdminCache = r.ok; // 200 = admin, 403 = khong
+        console.log('[admin check] is_admin:', _isAdminCache);
+        // Neu modal dang mo -> apply lai UI
+        var modal = document.getElementById('publish-modal');
+        if (modal && modal.style.display === 'flex') {
+          applyAdminUI();
+        }
+      })
+      .catch(function() { _isAdminCache = false; });
+  })();
+
+  function applyAdminUI() {
+    var isAdm = isAdminUser();
+    if (isAdm) return; // Admin giu nguyen form
+    // An Paid radio
+    var paidLabel = document.getElementById('pub-paid-label');
+    if (paidLabel) paidLabel.style.display = 'none';
+
+    // Force Free checked
+    var freeRadio = document.querySelector('input[name="pub-price"][value="0"]');
+    if (freeRadio) freeRadio.checked = true;
+
+    // An input gia
+    var wrap = document.getElementById('pub-price-input-wrap');
+    if (wrap) wrap.style.display = 'none';
+
+    // Chen notice (chi 1 lan)
+    var freeLabel = document.getElementById('pub-free-label');
+    if (freeLabel && !freeLabel.parentElement.parentElement.querySelector('.pub-free-notice')) {
+      var notice = document.createElement('div');
+      notice.className = 'pub-free-notice';
+      notice.style.cssText = 'margin-top:10px;padding:10px 12px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.4);border-radius:8px;font-size:12px;color:#93c5fd;line-height:1.4;';
+      notice.innerHTML = '\u2139\uFE0F B\u1EA1n ch\u1EC9 \u0111\u01B0\u1EE3c publish theme <b>FREE</b>. Li\u00EAn h\u1EC7 admin \u0111\u1EC3 b\u00E1n theme tr\u1EA3 ph\u00ED.';
+      freeLabel.parentElement.parentElement.appendChild(notice);
+    }
+  }
+
   function updatePricePreview() {
     const input = document.getElementById('pub-price');
     const preview = document.getElementById('pub-price-preview');
@@ -184,6 +245,7 @@
   function openPublishModal() {
     const modal = document.getElementById('publish-modal');
     if (modal) modal.style.display = 'flex';
+    applyAdminUI();
   }
 
   function closePublishModal() {
@@ -226,7 +288,12 @@
       .split(',')
       .map((t) => t.trim().toLowerCase())
       .filter((t) => t);
-    const isPaid = priceRadio?.value === 'paid';
+    let isPaid = priceRadio?.value === 'paid';
+    // Guard: user thuong khong duoc set paid
+    if (isPaid && !isAdminUser()) {
+      isPaid = false;
+      console.warn('Blocked: user thuong khong duoc publish paid');
+    }
     const priceVnd = isPaid ? parseInt(priceEl.value) || 0 : 0;
     const cssContent = cssEl?.value || '';
 

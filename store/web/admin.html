@@ -547,6 +547,10 @@
       <button class="admin-nav-item" data-section="orders">
         <span class="icon">💰</span> Orders
       </button>
+      <a href="moderation.html" class="admin-nav-item" style="border-color: rgba(251, 191, 36, 0.3);">
+        <span class="icon">⏳</span> Moderation
+        <span class="badge" id="moderation-badge" style="display:none;">0</span>
+      </a>
       <a href="index.html" class="admin-nav-item" style="margin-top: 1rem; color: var(--cyan);">
         <span class="icon">←</span> Về Store
       </a>
@@ -702,5 +706,30 @@
 <script src="auth.js"></script>
 <script src="admin.js"></script>
 
+  <script>
+    // Dem so luong pending cho badge Moderation
+    (function() {
+      var token = localStorage.getItem('cognicraft_token') || '';
+      if (!token) return;
+      var API_BASE = (window.CONFIG && window.CONFIG.API_BASE) ||
+        (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+          ? 'http://localhost:8001'
+          : 'https://web-production-8b760.up.railway.app');
+
+      fetch(API_BASE + '/api/admin/moderation/queue', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(d) {
+          if (!d || !d.count) return;
+          var b = document.getElementById('moderation-badge');
+          if (b) {
+            b.textContent = d.count;
+            b.style.display = 'inline-block';
+          }
+        })
+        .catch(function() {});
+    })();
+  </script>
 </body>
 </html>

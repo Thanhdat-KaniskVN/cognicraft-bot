@@ -74,7 +74,7 @@ async def publish_theme(
     user_id = user["sub"]
 
     db_user = db.query_one(
-        "SELECT name, avatar_url FROM public.users WHERE id = %s",
+        "SELECT name, avatar_url, is_admin FROM public.users WHERE id = %s",
         (user_id,),
     )
     if not db_user:
@@ -98,6 +98,14 @@ async def publish_theme(
     price = max(0, int(req.price_vnd or 0))
     is_paid = price > 0
 
+    # Check admin: user thuong chi duoc publish FREE
+    if is_paid and not db_user.get("is_admin", False):
+        raise HTTPException(
+            403,
+            "User thuong chi duoc publish theme FREE. "
+            "Lien he admin de ban theme tra phi.",
+        )
+
     result = db.execute_returning(
         """
         INSERT INTO plugins (
@@ -106,14 +114,14 @@ async def publish_theme(
             latest_version, type, css_content,
             preview_image, author_avatar,
             downloads, likes, rating, review_count,
-            verified, featured, price_vnd, is_paid
+            verified, featured, price_vnd, is_paid, moderation_status
         ) VALUES (
             %s, %s, %s, %s,
             %s, 'themes', %s, '🎨',
             '1.0.0', 'theme', %s,
             %s, %s,
             0, 0, 0, 0,
-            FALSE, FALSE, %s, %s
+            FALSE, FALSE, %s, %s, 'pending'
         )
         RETURNING id, slug
         """,
@@ -155,7 +163,7 @@ async def list_themes(
 ):
     db = get_db()
 
-    conditions = ["type = 'theme'"]
+    conditions = ["type = 'theme'", "moderation_status = 'approved'"]
     params = []
 
     if search:
