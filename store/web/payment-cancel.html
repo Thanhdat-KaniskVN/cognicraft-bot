@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thanh toán đã huỷ — CogniCraft</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+  background: linear-gradient(135deg, #1a0a0a 0%, #2e0a1a 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  color: #fff;
+  margin: 0;
+  padding: 20px;
+}
+.cancel-card {
+  max-width: 520px;
+  width: 100%;
+  background: rgba(40, 20, 20, 0.9);
+  border: 2px solid #dc2626;
+  border-radius: 16px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(220, 38, 38, 0.4);
+}
+.cancel-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+.cancel-card h1 {
+  color: #dc2626;
+  font-size: 28px;
+  margin: 0 0 10px;
+  text-shadow: 0 0 15px rgba(220, 38, 38, 0.6);
+}
+.cancel-card p {
+  color: #a0a0c0;
+  margin: 10px 0;
+  line-height: 1.6;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+}
+.btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn-primary {
+  background: linear-gradient(135deg, #f0f, #a855f7);
+  color: #fff;
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #666;
+  color: #fff;
+}
+</style>
+</head>
+<body>
+  <div class="cancel-card">
+    <div class="cancel-icon">❌</div>
+    <h1>Thanh toán đã huỷ</h1>
+    <p>Bạn đã huỷ giao dịch hoặc thanh toán không thành công.</p>
+    <p>Không có khoản tiền nào bị trừ.</p>
+    
+    <div class="actions">
+      <a href="marketplace.html" class="btn btn-primary">Thử lại</a>
+      <a href="index.html" class="btn btn-secondary">Về trang chủ</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// store/web/marketplace.js
+﻿// store/web/marketplace.js
 /**
  * CogniCraft Marketplace 3D v3
  * - Free/Paid pricing UI
@@ -636,30 +636,28 @@
     document.getElementById('purchase-confirm').onclick = async () => {
       const btn = document.getElementById('purchase-confirm');
       btn.disabled = true;
-      btn.textContent = '⏳ Đang tạo order...';
+      btn.textContent = '⏳ Đang tạo thanh toán...';
 
       try {
-        const res = await fetch(API_BASE + '/api/marketplace/themes/' + theme.slug + '/purchase', {
+        const res = await fetch(API_BASE + '/api/payment/create', {
           method: 'POST',
           headers: {
             Authorization: 'Bearer ' + getToken(),
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ payment_method: 'payos' }),
+          body: JSON.stringify({ theme_slug: theme.slug }),
         });
         const data = await res.json();
 
         if (!res.ok) {
-          toast(data.detail || 'Lỗi tạo order', 'error');
+          toast(data.detail || 'Không tạo được đơn hàng', 'error');
           btn.disabled = false;
           btn.textContent = '📦 Tạo order';
           return;
         }
 
-        overlay.remove();
-        document.body.style.overflow = '';
-        closeModal();
-        toast('✅ Order đã tạo! Payment sẽ available sớm.', 'success');
+        toast('Đang chuyển sang PayOS...', 'success');
+        window.location.href = data.checkout_url;
       } catch (e) {
         toast('Lỗi: ' + e.message, 'error');
         btn.disabled = false;

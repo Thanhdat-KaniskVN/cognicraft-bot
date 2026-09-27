@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thanh toán thành công — CogniCraft</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+<style>
+body {
+  background: linear-gradient(135deg, #0a0a1e 0%, #1a0a2e 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', monospace;
+  color: #fff;
+  margin: 0;
+  padding: 20px;
+}
+.success-card {
+  max-width: 520px;
+  width: 100%;
+  background: rgba(20, 20, 40, 0.9);
+  border: 2px solid #16a34a;
+  border-radius: 16px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(22, 163, 74, 0.4);
+}
+.success-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: bounce 1s ease infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.success-card h1 {
+  color: #16a34a;
+  font-size: 28px;
+  margin: 0 0 10px;
+  text-shadow: 0 0 15px rgba(22, 163, 74, 0.6);
+}
+.success-card p {
+  color: #a0a0c0;
+  margin: 10px 0;
+  line-height: 1.6;
+}
+.info-box {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: left;
+  font-size: 14px;
+}
+.info-box .row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #222;
+}
+.info-box .row:last-child { border-bottom: none; }
+.info-box .label { color: #888; }
+.info-box .value { color: #0ff; font-weight: bold; }
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn-primary {
+  background: linear-gradient(135deg, #0ff, #0af);
+  color: #000;
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #666;
+  color: #fff;
+}
+.status-loading { color: #fbbf24; }
+.status-done { color: #16a34a; }
+.status-error { color: #dc2626; }
+</style>
+</head>
+<body>
+  <div class="success-card">
+    <div class="success-icon">🎉</div>
+    <h1>Thanh toán thành công!</h1>
+    <p>Cảm ơn bạn đã mua theme trên CogniCraft</p>
+    
+    <div class="info-box">
+      <div class="row">
+        <span class="label">Theme:</span>
+        <span class="value" id="themeSlug">—</span>
+      </div>
+      <div class="row">
+        <span class="label">Số tiền:</span>
+        <span class="value" id="amount">—</span>
+      </div>
+      <div class="row">
+        <span class="label">Trạng thái:</span>
+        <span class="value status-loading" id="status">Đang xác nhận...</span>
+      </div>
+    </div>
+    
+    <div class="actions">
+      <a href="marketplace.html" class="btn btn-primary">Về Marketplace</a>
+      <a href="dashboard.html" class="btn btn-secondary">Xem đơn hàng</a>
+    </div>
+  </div>
+
+<script>
+const API_BASE = (window.CONFIG && window.CONFIG.API_BASE) || 
+  (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    ? 'http://localhost:8001'
+    : 'https://web-production-8b760.up.railway.app');
+
+function getToken() {
+  return localStorage.getItem('cc_token') || '';
+}
+
+// Parse query params
+const params = new URLSearchParams(location.search);
+const orderCode = params.get('orderCode') || params.get('order_code') || params.get('code');
+const status = params.get('status') || params.get('code');
+const themeSlug = params.get('theme') || params.get('theme_slug');
+const amount = params.get('amount');
+
+// Hiển thị info
+document.getElementById('themeSlug').textContent = themeSlug || '—';
+document.getElementById('amount').textContent = amount 
+  ? parseInt(amount).toLocaleString('vi-VN') + ' VNĐ' 
+  : '—';
+
+// Poll order status
+async function checkOrder() {
+  if (!orderCode) {
+    setStatus('Không tìm thấy mã đơn hàng', 'error');
+    return;
+  }
+  
+  const token = getToken();
+  if (!token) {
+    setStatus('Cần đăng nhập để xác nhận', 'error');
+    return;
+  }
+  
+  let attempts = 0;
+  const maxAttempts = 10;
+  
+  async function poll() {
+    attempts++;
+    try {
+      const res = await fetch(`${API_BASE}/api/payment/order/${orderCode}`, {
+        headers: { 'Authorization': 'Bearer ' + token },
+      });
+      
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      
+      if (data.status === 'paid') {
+        setStatus('Đã thanh toán ✓', 'done');
+        // Cập nhật theme slug nếu có
+        if (data.theme_slug) {
+          document.getElementById('themeSlug').textContent = data.theme_slug;
+        }
+        if (data.amount_vnd) {
+          document.getElementById('amount').textContent = 
+            data.amount_vnd.toLocaleString('vi-VN') + ' VNĐ';
+        }
+        return;
+      }
+      
+      if (attempts < maxAttempts) {
+        setTimeout(poll, 2000);
+      } else {
+        setStatus('Chưa xác nhận được — kiểm tra lại sau', 'error');
+      }
+    } catch (err) {
+      console.warn('poll error:', err);
+      if (attempts < maxAttempts) {
+        setTimeout(poll, 2000);
+      } else {
+        setStatus('Lỗi kết nối', 'error');
+      }
+    }
+  }
+  
+  poll();
+}
+
+function setStatus(text, cls) {
+  const el = document.getElementById('status');
+  el.textContent = text;
+  el.className = 'value status-' + cls;
+}
+
+checkOrder();
+</script>
+</body>
+</html>
