@@ -88,6 +88,18 @@ class SwitchBoard:
         except Exception as e:
             print(f"[Board] ⚠️ ML Sandbox skipped: {e}")
 
+        
+        # ✅ Store Sandbox — chạy plugin code isolated
+        try:
+            self.registry.register("store_sandbox", config={
+                "timeout": 5,
+                "max_memory_mb": 128,
+                "max_output": 10000,
+            })
+            print("[Board] 🔌 Store Sandbox plugged")
+        except Exception as e:
+            print(f"[Board] ⚠️ Store Sandbox skipped: {e}")    
+
     def _wire_events(self):
         """Nối dây giữa các sockets"""
         # Wire 1: CogniBot score.confirmed → GoogleCalendar add_event

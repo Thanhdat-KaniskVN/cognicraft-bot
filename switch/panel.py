@@ -344,6 +344,84 @@ async def sync_score_to_calendar(week: int, member: str, date: str = None):
 
     return {"status": "synced", "score": score, "routed": results}
 
+# ============================================================
+# 🔌 STORE SANDBOX API
+# ============================================================
+
+class ExecRequest(BaseModel):
+    code: str = ""
+    timeout: int = 5
+    entry: str = "__main__"
+
+
+class ValidateRequest(BaseModel):
+    code: str = ""
+
+
+@app.get("/api/switch/health")
+async def api_switch_health():
+    sandbox = board.registry.get("store_sandbox")
+    return {
+        "status": "ok",
+        "sockets": len(board.registry.sockets),
+        "sandbox": {
+            "registered": sandbox is not None,
+            "enabled": bool(sandbox and sandbox.info.enabled),
+            "status": sandbox.info.status.value if sandbox else "off",
+        },
+    }
+
+
+@app.get("/api/switch/sockets")
+async def api_switch_sockets():
+    return {
+        "sockets": board.registry.list_all(),
+        "total": len(board.registry.sockets),
+    }
+
+
+@app.post("/api/switch/exec")
+async def api_switch_exec(req: ExecRequest):
+    socket = board.registry.get("store_sandbox")
+
+    if not socket:
+        raise HTTPException(503, {
+            "error": "Store sandbox chưa đăng ký",
+            "code": "SANDBOX_NOT_REGISTERED",
+        })
+
+    if not socket.info.enabled:
+        ok = await socket.start()
+        if not ok:
+            raise HTTPException(503, {
+                "error": "Không bật được sandbox",
+                "code": "SANDBOX_START_FAILED",
+                "detail": socket.info.last_error,
+            })
+
+    try:
+        result = await socket.call(
+            "exec_plugin",
+            code=req.code,
+            timeout=req.timeout or 5,
+            entry=req.entry or "__main__",
+        )
+        return result
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)[:500],
+            "code": "SANDBOX_ERROR",
+        }
+
+
+@app.post("/api/switch/validate")
+async def api_switch_validate(req: ValidateRequest):
+    socket = board.registry.get("store_sandbox")
+    if not socket:
+        raise HTTPException(503, "Sandbox chưa đăng ký")
+    return socket._validate_only(req.code)
+
 
 # ============================================================
 # PLUGIN HUB API

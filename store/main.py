@@ -108,10 +108,11 @@ async def security_health():
     """Health check cho security layer"""
     sw = get_switch()
     available = await sw.is_available()
+    status_data = switch_status()
     return {
         'security_layer': 'active',
         'switch_board': {
-            'enabled': SWITCH_ENABLED if 'SWITCH_ENABLED' in globals() else False,
+            'enabled': status_data.get('switch_enabled', False),
             'available': available,
         }
     }
