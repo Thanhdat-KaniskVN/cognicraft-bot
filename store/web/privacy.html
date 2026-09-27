@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="cyberpunk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chính sách bảo mật · CogniCraft</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+<style>
+  .legal-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 10;
+  }
+  .legal-hero {
+    text-align: center;
+    padding: 3rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .legal-hero h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5rem;
+    color: var(--cyan);
+    text-shadow: 0 0 20px rgba(var(--primary-rgb), 0.5);
+    margin-bottom: 0.5rem;
+  }
+  .legal-hero .meta {
+    color: var(--dim);
+    font-size: 0.85rem;
+  }
+  .legal-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .legal-section h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    color: var(--cyan);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .legal-section h3 {
+    color: var(--text);
+    font-size: 1rem;
+    margin: 1rem 0 0.5rem;
+  }
+  .legal-section p, .legal-section li {
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 0.5rem;
+  }
+  .legal-section ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .legal-section strong { color: var(--cyan); }
+  .legal-section code {
+    background: var(--bg-elev);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--green);
+  }
+  .legal-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--cyan);
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+  .legal-back:hover {
+    border-color: var(--cyan);
+    background: rgba(var(--primary-rgb), 0.1);
+  }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div id="cyberpunk-scene"></div>
+
+<header class="header">
+  <div class="logo">
+    <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 1rem;">
+      <span class="logo-icon">🏛️</span>
+      <div>
+        <h1 class="font-display">COGNICRAFT</h1>
+        <p class="subtitle">← Về Store</p>
+      </div>
+    </a>
+  </div>
+  <div class="status-bar">
+    <div id="theme-switcher" class="theme-switcher"></div>
+  </div>
+</header>
+
+<main class="legal-page">
+
+  <div class="legal-hero">
+    <h1>CHÍNH SÁCH BẢO MẬT</h1>
+    <p class="meta">Cập nhật lần cuối: 27/09/2026 · Version 1.0</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>1. Giới thiệu</h2>
+    <p>
+      CogniCraft ("chúng tôi", "nền tảng") tôn trọng quyền riêng tư của người dùng.
+      Chính sách này giải thích cách chúng tôi thu thập, sử dụng, lưu trữ và bảo vệ
+      dữ liệu cá nhân của bạn khi bạn sử dụng dịch vụ tại
+      <code>cognicraft-store.pages.dev</code> và các subdomain liên quan.
+    </p>
+    <p>
+      Chính sách được xây dựng tuân thủ <strong>Nghị định 13/2023/NĐ-CP</strong> về bảo vệ
+      dữ liệu cá nhân của Việt Nam và tham khảo GDPR (EU).
+    </p>
+  </div>
+
+  <div class="legal-section">
+    <h2>2. Dữ liệu chúng tôi thu thập</h2>
+
+    <h3>2.1. Dữ liệu bạn cung cấp trực tiếp</h3>
+    <ul>
+      <li><strong>Tài khoản OAuth</strong>: Tên, email, ảnh đại diện từ Google hoặc GitHub khi bạn đăng nhập.</li>
+      <li><strong>Thông tin hồ sơ</strong> (tùy chọn): GitHub username, website, bio, Code Room slug.</li>
+      <li><strong>Nội dung bạn tạo</strong>: Plugin, theme, review, comment bạn đăng tải.</li>
+    </ul>
+
+    <h3>2.2. Dữ liệu thu thập tự động</h3>
+    <ul>
+      <li><strong>Định danh kỹ thuật</strong>: User ID (UUID), session JWT token lưu trong <code>localStorage</code>.</li>
+      <li><strong>Trạng thái presence</strong>: Online/offline, thời điểm hoạt động cuối.</li>
+      <li><strong>Hành động trên nền tảng</strong>: Download, install, review, apply theme.</li>
+    </ul>
+
+    <h3>2.3. Dữ liệu chúng tôi KHÔNG thu thập</h3>
+    <ul>
+      <li>Mật khẩu (chúng tôi dùng OAuth — bạn không cần tạo mật khẩu).</li>
+      <li>Thông tin thẻ tín dụng (chưa có tính năng thanh toán — sẽ cập nhật khi Phase 7 hoàn thành).</li>
+      <li>Vị trí địa lý chính xác, danh bạ, tin nhắn cá nhân.</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>3. Mục đích sử dụng dữ liệu</h2>
+    <ul>
+      <li><strong>Xác thực</strong>: Đăng nhập, duy trì session, bảo vệ tài khoản.</li>
+      <li><strong>Hiển thị</strong>: Avatar, tên, bio trên profile, review, và danh sách presence.</li>
+      <li><strong>Vận hành</strong>: Thống kê downloads, ratings, và cải thiện tính năng.</li>
+      <li><strong>Bảo mật</strong>: Phát hiện spam, malware, và hành vi vi phạm.</li>
+      <li><strong>Thông báo</strong>: Cập nhật về plugin/theme bạn quan tâm (nếu bật).</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>4. Lưu trữ và bảo mật</h2>
+
+    <h3>4.1. Nơi lưu trữ</h3>
+    <ul>
+      <li><strong>Database</strong>: Supabase PostgreSQL (AWS Singapore region).</li>
+      <li><strong>API hosting</strong>: Railway (US East region).</li>
+      <li><strong>Frontend</strong>: Cloudflare Pages (global CDN).</li>
+      <li><strong>File uploads</strong>: Railway filesystem (tạm thời).</li>
+    </ul>
+
+    <h3>4.2. Biện pháp bảo mật</h3>
+    <ul>
+      <li>Mã hóa HTTPS/TLS toàn bộ traffic.</li>
+      <li>JWT session với secret key riêng (không share).</li>
+      <li>Row-level security trên Supabase.</li>
+      <li>Malware scanner AST validation cho mọi plugin upload.</li>
+      <li>Rate limiting + circuit breaker cho API.</li>
+    </ul>
+
+    <h3>4.3. Thời gian lưu trữ</h3>
+    <p>
+      Dữ liệu được lưu cho đến khi bạn yêu cầu xóa tài khoản. Sau khi xóa:
+      dữ liệu cá nhân bị xóa vĩnh viễn trong <strong>30 ngày</strong>; log ẩn danh
+      có thể giữ lâu hơn cho mục đích thống kê.
+    </p>
+  </div>
+
+  <div class="legal-section">
+    <h2>5. Chia sẻ dữ liệu với bên thứ ba</h2>
+    <p>Chúng tôi <strong>KHÔNG bán</strong> dữ liệu của bạn. Chỉ chia sẻ với:</p>
+    <ul>
+      <li><strong>Google OAuth</strong>: Chỉ để xác thực khi bạn chọn đăng nhập Google.</li>
+      <li><strong>GitHub OAuth</strong>: Chỉ để xác thực + lấy username khi bạn chọn đăng nhập GitHub.</li>
+      <li><strong>Nhà cung cấp hạ tầng</strong>: Supabase, Railway, Cloudflare — chỉ để vận hành nền tảng.</li>
+      <li><strong>Cơ quan pháp luật</strong>: Khi có yêu cầu hợp pháp bằng văn bản.</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>6. Quyền của bạn</h2>
+    <ul>
+      <li><strong>Quyền truy cập</strong>: Yêu cầu bản copy dữ liệu cá nhân.</li>
+      <li><strong>Quyền chỉnh sửa</strong>: Cập nhật thông tin qua <a href="settings.html" style="color: var(--cyan);">trang Settings</a>.</li>
+      <li><strong>Quyền xóa</strong>: Yêu cầu xóa tài khoản và toàn bộ dữ liệu liên quan.</li>
+      <li><strong>Quyền phản đối</strong>: Từ chối nhận thông báo marketing.</li>
+      <li><strong>Quyền khiếu nại</strong>: Gửi khiếu nại tới cơ quan bảo vệ dữ liệu có thẩm quyền.</li>
+    </ul>
+    <p>
+      Để thực hiện quyền, gửi email tới <code>thanhdatp766@gmail.com</code> với tiêu đề
+      "Data Rights Request". Chúng tôi phản hồi trong <strong>7 ngày làm việc</strong>.
+    </p>
+  </div>
+
+  <div class="legal-section">
+    <h2>7. Cookies và LocalStorage</h2>
+    <p>Chúng tôi sử dụng:</p>
+    <ul>
+      <li><strong>localStorage</strong>: Lưu JWT token (đăng nhập), theme preference, token publish plugin.</li>
+      <li><strong>Không dùng cookies tracking</strong>: Chưa tích hợp Google Analytics hoặc ads.</li>
+    </ul>
+    <p>Bạn có thể xóa localStorage bất cứ lúc nào qua DevTools hoặc đăng xuất.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>8. Trẻ vị thành niên</h2>
+    <p>
+      Dịch vụ dành cho người <strong>từ 13 tuổi trở lên</strong>. Nếu bạn dưới 13 tuổi,
+      vui lòng không sử dụng dịch vụ. Nếu phát hiện user dưới 13 tuổi, chúng tôi sẽ
+      xóa tài khoản ngay lập tức.
+    </p>
+  </div>
+
+  <div class="legal-section">
+    <h2>9. Thay đổi chính sách</h2>
+    <p>
+      Chúng tôi có thể cập nhật chính sách này. Mọi thay đổi quan trọng sẽ được
+      thông báo qua:
+    </p>
+    <ul>
+      <li>Thông báo trên trang chủ (ít nhất 7 ngày trước).</li>
+      <li>Email cho user đã đăng ký (nếu có).</li>
+    </ul>
+    <p>Việc tiếp tục sử dụng sau ngày cập nhật đồng nghĩa bạn đồng ý với chính sách mới.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>10. Liên hệ</h2>
+    <p>Mọi câu hỏi về bảo mật dữ liệu, vui lòng liên hệ:</p>
+    <ul>
+      <li><strong>Email</strong>: thanhdatp766@gmail.com</li>
+      <li><strong>GitHub</strong>: <a href="https://github.com/Thanhdat-KaniskVN" style="color: var(--cyan);" target="_blank">Thanhdat-KaniskVN</a></li>
+      <li><strong>Owner</strong>: Phạm Thành Đạt</li>
+    </ul>
+  </div>
+
+  <a href="index.html" class="legal-back">← Về trang chủ</a>
+
+</main>
+
+<script src="theme-switcher.js"></script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="cyberpunk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DMCA · Báo cáo vi phạm bản quyền · CogniCraft</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+<style>
+  .legal-page { max-width: 900px; margin: 0 auto; padding: 2rem; position: relative; z-index: 10; }
+  .legal-hero { text-align: center; padding: 3rem 0 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+  .legal-hero h1 { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; color: var(--cyan); text-shadow: 0 0 20px rgba(var(--primary-rgb), 0.5); margin-bottom: 0.5rem; }
+  .legal-hero .meta { color: var(--dim); font-size: 0.85rem; }
+  .legal-section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+  .legal-section h2 { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--cyan); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+  .legal-section p, .legal-section li { color: var(--text); font-size: 0.9rem; line-height: 1.7; margin-bottom: 0.5rem; }
+  .legal-section ul, .legal-section ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+  .legal-section strong { color: var(--cyan); }
+  .legal-section code { background: var(--bg-elev); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; color: var(--green); }
+  .legal-back { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--cyan); text-decoration: none; font-size: 0.9rem; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; transition: all 0.2s; margin-top: 1rem; }
+  .legal-back:hover { border-color: var(--cyan); background: rgba(var(--primary-rgb), 0.1); }
+  .form-box { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; margin: 1rem 0; }
+  .form-box label { display: block; color: var(--dim); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; margin-top: 0.8rem; }
+  .form-box label:first-child { margin-top: 0; }
+  .form-box input, .form-box textarea { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; color: var(--text); font-family: inherit; font-size: 0.9rem; outline: none; }
+  .form-box input:focus, .form-box textarea:focus { border-color: var(--cyan); }
+  .copy-btn { background: linear-gradient(135deg, var(--cyan), var(--green)); color: var(--bg); border: none; border-radius: 8px; padding: 0.7rem 1.5rem; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 1rem; }
+  .copy-btn:hover { transform: translateY(-2px); }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div id="cyberpunk-scene"></div>
+
+<header class="header">
+  <div class="logo">
+    <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 1rem;">
+      <span class="logo-icon">🏛️</span>
+      <div>
+        <h1 class="font-display">COGNICRAFT</h1>
+        <p class="subtitle">← Về Store</p>
+      </div>
+    </a>
+  </div>
+  <div class="status-bar">
+    <div id="theme-switcher" class="theme-switcher"></div>
+  </div>
+</header>
+
+<main class="legal-page">
+
+  <div class="legal-hero">
+    <h1>⚖️ DMCA · BÁO CÁO BẢN QUYỀN</h1>
+    <p class="meta">Cập nhật lần cuối: 27/09/2026 · Version 1.0</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>1. Chính sách bản quyền</h2>
+    <p>
+      CogniCraft tôn trọng quyền sở hữu trí tuệ của tất cả mọi người. Chúng tôi
+      cam kết xử lý mọi khiếu nại về vi phạm bản quyền một cách <strong>nghiêm túc và nhanh chóng</strong>,
+      tuân thủ:
+    </p>
+    <ul>
+      <li><strong>Luật Sở hữu trí tuệ Việt Nam 2005</strong> (sửa đổi 2009, 2019, 2022).</li>
+      <li><strong>Digital Millennium Copyright Act (DMCA)</strong> — tham khảo chuẩn quốc tế.</li>
+      <li><strong>Luật An ninh mạng 2018</strong> về bảo vệ nội dung số.</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>2. Khi nào cần báo cáo?</h2>
+    <p>Bạn nên báo cáo khi phát hiện:</p>
+    <ul>
+      <li>Plugin/theme trên CogniCraft sao chép tác phẩm của bạn.</li>
+      <li>Ai đó giả mạo bạn là tác giả.</li>
+      <li>Nội dung sử dụng hình ảnh, code, văn bản có bản quyền của bạn mà không xin phép.</li>
+      <li>Thương hiệu của bạn bị sử dụng trái phép.</li>
+    </ul>
+    <p>
+      ⚠️ <strong>Lưu ý</strong>: Nếu bạn chỉ không thích plugin/theme của người khác
+      (không vi phạm bản quyền), đây là <strong>không phải</strong> trường hợp DMCA.
+      Hãy dùng nút Report thông thường.
+    </p>
+  </div>
+
+  <div class="legal-section">
+    <h2>3. Thông tin cần cung cấp</h2>
+    <p>Để xử lý DMCA, vui lòng cung cấp đầy đủ:</p>
+    <ol>
+      <li><strong>Thông tin liên hệ</strong>: Họ tên, email, số điện thoại (nếu có).</li>
+      <li><strong>Tác phẩm gốc</strong>: Mô tả tác phẩm của bạn (code, hình ảnh, văn bản...) kèm bằng chứng sở hữu (link gốc, ảnh chụp, timestamp...).</li>
+      <li><strong>URL vi phạm</strong>: Link chính xác đến plugin/theme vi phạm trên CogniCraft.</li>
+      <li><strong>Mô tả vi phạm</strong>: Giải thích rõ tại sao bạn cho rằng nội dung đó vi phạm.</li>
+      <li><strong>Tuyên bố trung thực</strong>: "Tôi tin rằng việc sử dụng tài liệu này không được phép bởi chủ sở hữu bản quyền, đại diện hoặc pháp luật."</li>
+      <li><strong>Tuyên bố chịu trách nhiệm</strong>: "Tôi cam kết thông tin cung cấp là chính xác và tôi chịu trách nhiệm pháp lý nếu có sai sót."</li>
+      <li><strong>Chữ ký</strong>: Ký tên điện tử hoặc gõ tên đầy đủ.</li>
+    </ol>
+  </div>
+
+  <div class="legal-section">
+    <h2>4. Template báo cáo</h2>
+    <p>Copy template dưới đây, điền thông tin, và gửi tới <code>thanhdatp766@gmail.com</code>:</p>
+
+    <div class="form-box">
+      <textarea id="dmca-template" rows="20" style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">DMCA TAKEDOWN NOTICE — CogniCraft
+
+=== THÔNG TIN LIÊN HỆ ===
+Họ tên: [Điền tên bạn]
+Email: [Điền email]
+Số điện thoại: [Tùy chọn]
+Địa chỉ: [Tùy chọn]
+
+=== TÁC PHẨM GỐC ===
+Mô tả tác phẩm: [VD: Plugin Python tên "X", bán tại shop ABC, mã nguồn đăng trên GitHub ABC]
+Bằng chứng sở hữu: [Link gốc, timestamp, screenshot ID]
+Giấy phép: [VD: proprietary / MIT / các license khác]
+
+=== NỘI DUNG VI PHẠM TRÊN COGNICRAFT ===
+URL vi phạm: https://cognicraft-store.pages.dev/plugin.html?slug=[slug]
+Mô tả vi phạm: [VD: Đây là bản sao trực tiếp plugin của tôi, đổi tên nhưng giữ nguyên code]
+
+=== TUYÊN BỐ ===
+Tôi tin rằng việc sử dụng tài liệu này không được phép bởi chủ sở hữu bản quyền, 
+đại diện của chủ sở hữu hoặc pháp luật.
+
+Tôi cam kết thông tin cung cấp là chính xác, và tôi chịu trách nhiệm pháp lý
+nếu có sai sót trong báo cáo này.
+
+=== CHỮ KÝ ===
+Tên đầy đủ: [Điền tên]
+Ngày: [DD/MM/YYYY]
+</textarea>
+      <button class="copy-btn" onclick="copyTemplate()">📋 Copy template</button>
+    </div>
+  </div>
+
+  <div class="legal-section">
+    <h2>5. Quy trình xử lý</h2>
+    <ol>
+      <li><strong>Trong 24 giờ</strong>: Chúng tôi xác nhận đã nhận báo cáo qua email.</li>
+      <li><strong>Trong 48 giờ</strong>: Chúng tôi xem xét sơ bộ và tạm ẩn nội dung bị báo cáo (nếu có căn cứ).</li>
+      <li><strong>Trong 7 ngày</strong>: Thông báo cho tác giả nội dung bị báo cáo, cho họ cơ hội phản hồi.</li>
+      <li><strong>Trong 14 ngày</strong>: Đưa ra quyết định cuối cùng:
+        <ul>
+          <li>Xóa vĩnh viễn nội dung vi phạm.</li>
+          <li>Hoặc khôi phục nếu báo cáo không có căn cứ.</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+
+  <div class="legal-section">
+    <h2>6. Counter-notice (Phản hồi của tác giả bị báo cáo)</h2>
+    <p>
+      Nếu bạn là tác giả bị báo cáo và tin rằng mình <strong>không vi phạm</strong>,
+      bạn có quyền gửi counter-notice trong <strong>10 ngày</strong> kể từ khi nhận thông báo:
+    </p>
+    <ul>
+      <li>Thông tin liên hệ của bạn.</li>
+      <li>URL nội dung bị xóa.</li>
+      <li>Lý do bạn cho rằng không vi phạm.</li>
+      <li>Cam kết chịu trách nhiệm pháp lý.</li>
+    </ul>
+    <p>Nếu counter-notice hợp lệ, chúng tôi có thể khôi phục nội dung sau 10-14 ngày.</p>
+  </div>
+
+  <div class="legal-section">
+    <h2>7. Repeat Infringer Policy</h2>
+    <p>
+      Chúng tôi áp dụng chính sách <strong>"3 strikes"</strong>:
+    </p>
+    <ul>
+      <li><strong>Lần 1</strong>: Cảnh cáo + xóa nội dung vi phạm.</li>
+      <li><strong>Lần 2</strong>: Tạm khóa tài khoản 7 ngày + xóa nội dung.</li>
+      <li><strong>Lần 3</strong>: Ban vĩnh viễn + đưa vào blacklist IP/email.</li>
+    </ul>
+    <p>
+      Nếu vi phạm nghiêm trọng (VD: bán plugin lậu quy mô lớn), có thể ban ngay
+      lần đầu mà không cần đủ 3 strikes.
+    </p>
+  </div>
+
+  <div class="legal-section">
+    <h2>8. Báo cáo sai sẽ bị xử lý</h2>
+    <p>
+      ⚠️ Nếu bạn gửi DMCA báo cáo sai sự thật với mục đích cạnh tranh không lành mạnh
+      hoặc quấy rối, chúng tôi có thể:
+    </p>
+    <ul>
+      <li>Khóa tài khoản của bạn.</li>
+      <li>Thông báo cho tác giả bị báo cáo để họ kiện nếu muốn.</li>
+      <li>Cung cấp thông tin cho cơ quan chức năng nếu cần.</li>
+    </ul>
+  </div>
+
+  <div class="legal-section">
+    <h2>9. Liên hệ DMCA</h2>
+    <p>Gửi báo cáo tới:</p>
+    <ul>
+      <li><strong>Email</strong>: thanhdatp766@gmail.com</li>
+      <li><strong>Subject</strong>: <code>[DMCA] - Tên tác phẩm bị vi phạm</code></li>
+      <li><strong>Response time</strong>: 24-48 giờ làm việc</li>
+    </ul>
+    <p>
+      <strong>Designated Agent</strong> (đại diện tiếp nhận):<br>
+      Phạm Thành Đạt<br>
+      Email: thanhdatp766@gmail.com<br>
+      GitHub: <a href="https://github.com/Thanhdat-KaniskVN" style="color: var(--cyan);" target="_blank">Thanhdat-KaniskVN</a>
+    </p>
+  </div>
+
+  <a href="index.html" class="legal-back">← Về trang chủ</a>
+
+</main>
+
+<script>
+function copyTemplate() {
+  const ta = document.getElementById('dmca-template');
+  ta.select();
+  document.execCommand('copy');
+  const btn = event.target;
+  const old = btn.textContent;
+  btn.textContent = '✅ Đã copy!';
+  setTimeout(() => { btn.textContent = old; }, 2000);
+}
+</script>
+
+<script src="theme-switcher.js"></script>
+</body>
+</html>
