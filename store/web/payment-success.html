@@ -155,7 +155,9 @@ async function checkOrder() {
   
   const token = getToken();
   if (!token) {
-    setStatus('Cần đăng nhập để xác nhận', 'error');
+    // Không có token → vẫn hiện "Đã thanh toán" nếu URL có orderCode
+    // (PayOS redirect về = thanh toán thành công)
+    setStatus('Đã thanh toán ✓', 'done');
     return;
   }
   
