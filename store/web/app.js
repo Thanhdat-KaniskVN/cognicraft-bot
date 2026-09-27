@@ -107,11 +107,15 @@ async function loadStats() {
 async function loadTags() {
     try {
         const r = await fetch(`${API_URL}/api/store/tags?limit=10`);
-        if (!r.ok) return;
+        if (!r.ok) {
+            renderTags([]);
+            return;
+        }
         const data = await r.json();
-        renderTags(data.tags);
+        renderTags(data.tags || []);
     } catch (e) {
         console.error(e);
+        renderTags([]);
     }
 }
 

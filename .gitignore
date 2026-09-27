@@ -124,3 +124,6 @@ test-*/
 *-evil*
 test-unpack/
 dist/test-*
+# Backups
+*.bak
+*.backup

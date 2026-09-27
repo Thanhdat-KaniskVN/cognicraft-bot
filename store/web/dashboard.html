@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi" data-theme="cyberpunk">
 <head>
 <meta charset="UTF-8">
@@ -143,21 +143,21 @@ function renderDashboard(data) {
 
         <!-- STATS GRID -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-            <div style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
-                <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">📦 Plugins</div>
-                <div class="font-display" style="color: var(--cyan); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(s.total_plugins)}</div>
+            <div class="stat-card" style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+                <div class="stat-label" style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">📦 Plugins</div>
+                <div class="stat-value font-display" style="color: var(--cyan); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(s.total_plugins)}</div>
             </div>
-            <div style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
-                <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">📥 Downloads</div>
-                <div class="font-display" style="color: var(--green); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(formatNumber(s.total_downloads))}</div>
+            <div class="stat-card" style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+                <div class="stat-label" style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">📥 Downloads</div>
+                <div class="stat-value font-display" style="color: var(--green); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(formatNumber(s.total_downloads))}</div>
             </div>
-            <div style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
-                <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">⭐ Rating</div>
-                <div class="font-display" style="color: var(--yellow); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(s.avg_rating || "—")}</div>
+            <div class="stat-card" style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+                <div class="stat-label" style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">⭐ Rating</div>
+                <div class="stat-value font-display" style="color: var(--yellow); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(s.avg_rating || "—")}</div>
             </div>
-            <div style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
-                <div style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">💬 Reviews</div>
-                <div class="font-display" style="color: var(--purple); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(s.total_reviews_received)}</div>
+            <div class="stat-card" style="padding: 1.2rem; background: var(--card); border: 1px solid var(--border); border-radius: 12px;">
+                <div class="stat-label" style="color: var(--dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;">💬 Reviews</div>
+                <div class="stat-value font-display" style="color: var(--purple); font-size: 1.8rem; margin-top: 0.3rem;">${escapeHtml(s.total_reviews_received)}</div>
             </div>
         </div>
 
