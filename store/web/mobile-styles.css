@@ -1,0 +1,713 @@
+/* ============================================================
+   COGNICRAFT MOBILE STYLES v2
+   Hamburger LEFT + Logo RIGHT + Floating Cards
+   ============================================================ */
+
+/* ============================================================
+   1. HAMBURGER — GÓC TRÁI
+   ============================================================ */
+.mobile-hamburger {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 9998;
+  width: 44px;
+  height: 44px;
+  background: rgba(20, 8, 40, 0.9);
+  border: 1.5px solid rgba(168, 85, 247, 0.5);
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0;
+  color: var(--cyan, #06b6d4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-hamburger::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #a855f7, #06b6d4, #ec4899);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.mobile-hamburger:active {
+  transform: scale(0.92);
+  box-shadow:
+    0 4px 12px rgba(168, 85, 247, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.mobile-hamburger:active::before {
+  opacity: 0.3;
+}
+
+/* ============================================================
+   2. DRAWER — SLIDE TỪ TRÁI
+   ============================================================ */
+.mobile-drawer { 
+  display: none; 
+  position: fixed; 
+  inset: 0; 
+  z-index: 99999; 
+}
+
+.mobile-drawer.open { display: block; }
+
+.mobile-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mobile-drawer-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 85%;
+  max-width: 340px;
+  background: 
+    linear-gradient(180deg, #1a0a2e 0%, #0a0118 100%);
+  border-right: 1px solid rgba(168, 85, 247, 0.3);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 20px 0 60px rgba(0, 0, 0, 0.9);
+  animation: slideInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.mobile-drawer-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 50%;
+  color: var(--cyan, #06b6d4);
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.mobile-drawer-close:active {
+  transform: scale(0.9);
+  background: rgba(168, 85, 247, 0.3);
+}
+
+/* ============================================================
+   3. DRAWER HEADER + BRAND
+   ============================================================ */
+.mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+}
+
+.mobile-drawer-logo {
+  font-size: 28px;
+  filter: drop-shadow(0 0 12px #a855f7);
+}
+
+.mobile-drawer-brand-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  background: linear-gradient(90deg, #06b6d4, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% auto;
+  animation: logoShine 4s linear infinite;
+}
+
+@keyframes logoShine {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.mobile-drawer-brand-sub {
+  font-size: 0.65rem;
+  color: #a78bfa;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   4. USER INFO
+   ============================================================ */
+.mobile-drawer-user {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.05), transparent);
+}
+
+.mobile-drawer-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  border: 2px solid rgba(6, 182, 212, 0.6);
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+}
+
+.mobile-drawer-userinfo { 
+  min-width: 0; 
+  flex: 1; 
+}
+
+.mobile-drawer-username {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-drawer-email {
+  font-size: 0.75rem;
+  color: #a78bfa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   5. NAV ITEMS
+   ============================================================ */
+.mobile-drawer-nav { 
+  flex: 1; 
+  padding: 12px 8px;
+}
+
+.mobile-drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 14px;
+  color: var(--text, #f0e5ff);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.2s;
+  position: relative;
+  font-family: inherit;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+
+.mobile-drawer-item:active {
+  background: rgba(168, 85, 247, 0.2);
+  transform: scale(0.98);
+}
+
+.mobile-drawer-item.active {
+  background: linear-gradient(90deg, rgba(168, 85, 247, 0.25), rgba(168, 85, 247, 0.05));
+  color: var(--cyan, #06b6d4);
+  box-shadow: 
+    inset 3px 0 0 var(--cyan, #06b6d4),
+    0 0 20px rgba(6, 182, 212, 0.15);
+}
+
+.mobile-drawer-icon {
+  font-size: 1.2rem;
+  width: 26px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.mobile-drawer-label { flex: 1; }
+
+.mobile-drawer-chevron {
+  font-size: 1.4rem;
+  color: rgba(168, 85, 247, 0.4);
+  font-weight: 300;
+  transition: transform 0.2s;
+}
+
+.mobile-drawer-item.active .mobile-drawer-chevron {
+  color: var(--cyan, #06b6d4);
+}
+
+.mobile-drawer-badge {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: #fff;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  min-width: 24px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(236, 72, 153, 0.5);
+}
+
+/* ============================================================
+   6. DRAWER FOOTER
+   ============================================================ */
+.mobile-drawer-footer {
+  padding: 8px 8px 24px;
+  border-top: 1px solid rgba(168, 85, 247, 0.15);
+  margin-top: auto;
+}
+
+.mobile-drawer-logout {
+  color: #ef4444 !important;
+}
+
+.mobile-drawer-logout:active {
+  background: rgba(239, 68, 68, 0.15) !important;
+}
+
+/* ============================================================
+   7. HEADER MOBILE — LOGO PHẢI
+   ============================================================ */
+@media (max-width: 768px) {
+  .mobile-hamburger { display: flex !important; }
+
+  .header,
+  .mk-nav {
+    padding: 0.85rem 1rem 0.85rem 68px !important;
+    overflow: hidden !important;
+    min-height: 60px;
+    justify-content: flex-end !important;
+    flex-direction: row-reverse !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .logo,
+  .mk-logo {
+    text-align: right !important;
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-direction: row-reverse !important;
+  }
+
+  .logo > div,
+  .mk-logo > div {
+    text-align: right !important;
+  }
+
+  .logo-icon {
+    font-size: 1.6rem !important;
+    order: 2;
+  }
+
+  .logo h1,
+  .header h1,
+  .mk-logo {
+    font-size: 0.9rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 200px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .subtitle {
+    font-size: 0.55rem !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  /* Hide desktop nav in header */
+  .status-bar > *:not(.theme-switcher) {
+    display: none !important;
+  }
+
+  .mk-nav-links {
+    display: none !important;
+  }
+
+  /* ============================================================
+     8. CARD SMALLER + FLOATING EFFECT
+     ============================================================ */
+  .plugins-grid,
+  .mk-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 0 12px !important;
+  }
+
+  /* ---- PLUGIN CARD ---- */
+  .plugin-card {
+    padding: 14px 16px !important;
+    border-radius: 14px !important;
+    min-height: auto !important;
+    /* 3D perspective setup */
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    /* Tilt vars */
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    /* Float animation */
+    animation: cardFloat 6s ease-in-out infinite;
+    transition:
+      transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Rotate 3D từ tilt vars */
+  .plugin-card.in-view {
+    transform:
+      rotateX(var(--tilt-x))
+      rotateY(var(--tilt-y))
+      translateZ(0);
+  }
+
+  /* Nền gradient sang */
+  .plugin-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    background: radial-gradient(
+      circle at var(--glow-x, 50%) var(--glow-y, 50%),
+      rgba(168, 85, 247, 0.15),
+      transparent 60%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1;
+  }
+
+  .plugin-card:active::after {
+    opacity: 1;
+  }
+
+  /* Float animation — lơ lửng */
+  @keyframes cardFloat {
+    0%, 100% {
+      transform:
+        translateY(0)
+        rotateX(var(--tilt-x, 0deg))
+        rotateY(var(--tilt-y, 0deg));
+      box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(168, 85, 247, 0.15) inset;
+    }
+    50% {
+      transform:
+        translateY(-6px)
+        rotateX(var(--tilt-x, 0deg))
+        rotateY(var(--tilt-y, 0deg));
+      box-shadow:
+        0 16px 32px rgba(0, 0, 0, 0.6),
+        0 0 24px rgba(168, 85, 247, 0.25),
+        0 0 0 1px rgba(168, 85, 247, 0.25) inset;
+    }
+  }
+
+  /* Entrance animation */
+  .plugin-card:not(.in-view) {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+    animation: none;
+  }
+
+  .plugin-card.in-view {
+    opacity: 1;
+    animation: cardFloat 6s ease-in-out infinite,
+               cardEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 1;
+  }
+
+  @keyframes cardEnter {
+    from {
+      opacity: 0;
+      transform: translateY(30px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Nội dung card */
+  .plugin-icon {
+    font-size: 1.9rem !important;
+    margin-bottom: 0.4rem !important;
+  }
+
+  .plugin-name {
+    font-size: 1rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  .plugin-author {
+    font-size: 0.7rem !important;
+    margin-bottom: 0.5rem !important;
+    opacity: 0.8;
+  }
+
+  .plugin-desc {
+    font-size: 0.78rem !important;
+    line-height: 1.45 !important;
+    min-height: auto !important;
+    margin-bottom: 0.6rem !important;
+    -webkit-line-clamp: 2 !important;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+
+  .plugin-meta {
+    padding-top: 0.7rem !important;
+    font-size: 0.72rem !important;
+    border-top: 1px solid rgba(168, 85, 247, 0.15) !important;
+  }
+
+  .plugin-price-row {
+    margin-top: 6px !important;
+  }
+
+  .plugin-price {
+    font-size: 10px !important;
+    padding: 3px 10px !important;
+  }
+
+  /* ---- THEME CARD ---- */
+  .theme-card {
+    min-height: 240px !important;
+    border-radius: 14px !important;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    transition:
+      transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.4s;
+    overflow: hidden;
+  }
+
+  .theme-card.in-view {
+    transform:
+      rotateX(var(--tilt-x))
+      rotateY(var(--tilt-y));
+    animation: cardFloat 6s ease-in-out infinite;
+    opacity: 1;
+  }
+
+  .theme-card:not(.in-view) {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+
+  .theme-preview {
+    height: 130px !important;
+  }
+
+  .card-info {
+    padding: 10px 14px !important;
+  }
+
+  .card-name {
+    font-size: 0.9rem !important;
+    margin-bottom: 2px !important;
+  }
+
+  .card-desc {
+    font-size: 0.72rem !important;
+    -webkit-line-clamp: 1 !important;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-meta {
+    margin-top: 8px !important;
+  }
+
+  .card-author img {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .card-author span {
+    font-size: 0.68rem !important;
+  }
+
+  .card-stats .stat {
+    font-size: 0.68rem !important;
+  }
+
+  .price-badge {
+    top: 8px !important;
+    right: 8px !important;
+    padding: 3px 10px !important;
+    font-size: 10px !important;
+  }
+
+  /* ============================================================
+     9. HEADER/MENU POLISH
+     ============================================================ */
+  .store-tabs {
+    margin: 14px auto 0 !important;
+    padding: 4px !important;
+    gap: 3px !important;
+    width: calc(100% - 24px) !important;
+    max-width: 340px !important;
+  }
+
+  .store-tab {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    gap: 4px !important;
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+
+  .store-tab .badge {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Hero compact */
+  .hero {
+    padding: 1.2rem 0 1.8rem !important;
+  }
+
+  .hero h2 {
+    font-size: 1.5rem !important;
+    letter-spacing: 0 !important;
+  }
+
+  .hero p {
+    font-size: 0.8rem !important;
+  }
+
+  /* Controls compact */
+  .controls {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 0 12px !important;
+  }
+
+  .search-box input,
+  .filter-select {
+    font-size: 0.85rem !important;
+    padding: 0.75rem 0.9rem 0.75rem 2.5rem !important;
+    border-radius: 10px !important;
+  }
+
+  .category-chip {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  .main {
+    padding: 0.8rem !important;
+  }
+
+  .section {
+    margin-bottom: 2rem !important;
+  }
+
+  .section-header h3 {
+    font-size: 1rem !important;
+  }
+
+  /* Footer stack */
+  .legal-footer {
+    padding: 1.5rem 1rem 1rem !important;
+    margin-top: 2rem !important;
+  }
+
+  .legal-footer > div:first-child {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.3rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .legal-footer > div:first-child > *:not(a) {
+    display: none !important;
+  }
+
+  .legal-footer a {
+    display: block !important;
+    margin: 0 !important;
+    font-size: 0.82rem !important;
+    padding: 0.5rem 0 !important;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+    text-align: center;
+  }
+
+  .legal-footer > div:last-child {
+    font-size: 0.72rem !important;
+    line-height: 1.5 !important;
+    text-align: center;
+  }
+}
+
+/* ============================================================
+   10. REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .plugin-card.in-view,
+  .theme-card.in-view {
+    animation: none !important;
+  }
+  
+  .mobile-hamburger,
+  .plugin-card,
+  .theme-card {
+    transition: none !important;
+  }
+}

@@ -1,18 +1,15 @@
 // store/web/mobile-menu.js
 /**
- * CogniCraft Mobile Menu
- * - Hamburger button tự động inject
- * - Drawer slide từ phải (như DOL)
- * - Auto float-in card animation
+ * CogniCraft Mobile Menu v2
+ * - Hamburger LEFT, Logo RIGHT
+ * - Drawer slide từ TRÁI
+ * - Card floating animation
  */
 (function () {
   'use strict';
 
   const isMobile = () => window.innerWidth <= 768;
 
-  // ============================================================
-  // CONFIG
-  // ============================================================
   const MENU_ITEMS = [
     { href: 'index.html',        icon: '🏪', label: 'Store',        badge: null },
     { href: 'marketplace.html',  icon: '🎨', label: 'Marketplace',  badge: 'themes' },
@@ -25,7 +22,7 @@
   const currentPage = location.pathname.split('/').pop() || 'index.html';
 
   // ============================================================
-  // TOKEN / USER HELPERS
+  // HELPERS
   // ============================================================
   function getToken() {
     return localStorage.getItem('cognicraft_token') ||
@@ -48,7 +45,7 @@
   }
 
   // ============================================================
-  // HAMBURGER BUTTON
+  // HAMBURGER — GÓC TRÁI
   // ============================================================
   function injectHamburger() {
     if (document.getElementById('mobile-hamburger')) return;
@@ -57,14 +54,19 @@
     btn.id = 'mobile-hamburger';
     btn.className = 'mobile-hamburger';
     btn.setAttribute('aria-label', 'Menu');
-    btn.innerHTML = '<span></span><span></span><span></span>';
+    btn.innerHTML = `
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M2 5H20M2 11H14M2 17H20" 
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    `;
     btn.onclick = openDrawer;
 
     document.body.appendChild(btn);
   }
 
   // ============================================================
-  // DRAWER
+  // DRAWER — SLIDE TỪ TRÁI
   // ============================================================
   function injectDrawer() {
     if (document.getElementById('mobile-drawer')) return;
@@ -79,10 +81,23 @@
     drawer.innerHTML = `
       <div class="mobile-drawer-backdrop" onclick="closeDrawer()"></div>
       <aside class="mobile-drawer-panel">
-        <button class="mobile-drawer-close" onclick="closeDrawer()" aria-label="Đóng">✕</button>
+        <button class="mobile-drawer-close" onclick="closeDrawer()" aria-label="Đóng">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4 4L14 14M14 4L4 14" 
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <div class="mobile-drawer-header">
+          <div class="mobile-drawer-logo">🏛️</div>
+          <div class="mobile-drawer-brand">
+            <div class="mobile-drawer-brand-title">COGNICRAFT</div>
+            <div class="mobile-drawer-brand-sub">Ecosystem</div>
+          </div>
+        </div>
 
         <div class="mobile-drawer-user">
-          <div class="mobile-drawer-avatar">${user ? '👤' : '👤'}</div>
+          <div class="mobile-drawer-avatar">${userName.charAt(0).toUpperCase()}</div>
           <div class="mobile-drawer-userinfo">
             <div class="mobile-drawer-username">${userName}</div>
             <div class="mobile-drawer-email">${userEmail}</div>
@@ -92,11 +107,11 @@
         <nav class="mobile-drawer-nav">
           ${MENU_ITEMS.map(item => `
             <a href="${item.href}"
-               class="mobile-drawer-item ${currentPage === item.href ? 'active' : ''}"
-               data-nav-href="${item.href}">
+               class="mobile-drawer-item ${currentPage === item.href ? 'active' : ''}">
               <span class="mobile-drawer-icon">${item.icon}</span>
               <span class="mobile-drawer-label">${item.label}</span>
               ${item.badge === 'themes' ? '<span class="mobile-drawer-badge" id="mobile-theme-count">0</span>' : ''}
+              <span class="mobile-drawer-chevron">›</span>
             </a>
           `).join('')}
         </nav>
@@ -122,7 +137,7 @@
   }
 
   // ============================================================
-  // UPDATE THEME BADGE
+  // THEME BADGE
   // ============================================================
   async function updateThemeBadge() {
     try {
@@ -168,19 +183,15 @@
     location.href = 'index.html';
   };
 
-  // ============================================================
-  // ESC CLOSE
-  // ============================================================
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeDrawer();
   });
 
   // ============================================================
-  // FLOAT-IN ANIMATION FOR CARDS
+  // FLOATING CARD ANIMATION
   // ============================================================
   function initFloatCards() {
     if (!('IntersectionObserver' in window)) {
-      // Fallback: hiển thị tất cả cards
       document.querySelectorAll('.plugin-card, .theme-card').forEach((c) => {
         c.classList.add('in-view');
       });
@@ -191,33 +202,77 @@
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('in-view');
+          // Random delay để tránh đồng bộ
+          const randomDelay = (Math.random() * 2).toFixed(2);
+          entry.target.style.animationDelay = `${randomDelay}s`;
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    }, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
 
-    document.querySelectorAll('.plugin-card, .theme-card').forEach((card) => {
-      observer.observe(card);
-    });
-
-    // Re-observe khi cards được render lại (filter, search)
-    const observerCallback = () => {
+    const observeCards = () => {
       document.querySelectorAll('.plugin-card:not(.in-view), .theme-card:not(.in-view)').forEach((card) => {
         observer.observe(card);
       });
     };
 
-    // Watch for DOM changes
-    const mutationObserver = new MutationObserver(observerCallback);
+    observeCards();
+
+    // Re-observe khi DOM change
+    const mutationObserver = new MutationObserver(observeCards);
     mutationObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // ============================================================
+  // 3D TILT ON TOUCH (mobile)
+  // ============================================================
+  function initCardTilt() {
+    document.addEventListener('touchstart', (e) => {
+      const card = e.target.closest('.plugin-card, .theme-card');
+      if (!card) return;
+
+      const rect = card.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = (touch.clientX - rect.left) / rect.width;
+      const y = (touch.clientY - rect.top) / rect.height;
+
+      const rx = (y - 0.5) * -10;
+      const ry = (x - 0.5) * 10;
+
+      card.style.setProperty('--tilt-x', `${rx}deg`);
+      card.style.setProperty('--tilt-y', `${ry}deg`);
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      const card = e.target.closest('.plugin-card, .theme-card');
+      if (!card) return;
+
+      const rect = card.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = (touch.clientX - rect.left) / rect.width;
+      const y = (touch.clientY - rect.top) / rect.height;
+
+      const rx = (y - 0.5) * -10;
+      const ry = (x - 0.5) * 10;
+
+      card.style.setProperty('--tilt-x', `${rx}deg`);
+      card.style.setProperty('--tilt-y', `${ry}deg`);
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => {
+      document.querySelectorAll('.plugin-card, .theme-card').forEach((card) => {
+        card.style.setProperty('--tilt-x', '0deg');
+        card.style.setProperty('--tilt-y', '0deg');
+      });
+    }, { passive: true });
   }
 
   // ============================================================
   // INIT
   // ============================================================
   function init() {
-    // Luôn init float animation (cả desktop + mobile)
-    setTimeout(initFloatCards, 500);
+    setTimeout(initFloatCards, 300);
+    initCardTilt();
 
     if (!isMobile()) return;
 
@@ -247,5 +302,5 @@
     }, 200);
   });
 
-  console.log('📱 Mobile menu loaded');
+  console.log('📱 Mobile menu v2 loaded');
 })();
