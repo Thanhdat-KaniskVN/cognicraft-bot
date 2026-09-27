@@ -139,7 +139,7 @@ async def generate_final_report(week, channel):
             lines.append(f"- **{member}**: {total}/5")
 
     if participation:
-        missing = [m for m, submitted in participation.items() if not submitted]
+        missing = [p["member"] for p in participation if not p.get("submitted")]
         if missing:
             lines.extend(["", f"**Chưa nộp:** {', '.join(missing)}"])
 
