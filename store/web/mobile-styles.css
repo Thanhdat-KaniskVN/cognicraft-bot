@@ -749,3 +749,98 @@
   .plugin-name { font-size: 0.75rem !important; }
   .theme-preview { height: 80px !important; }
 }
+/* ============================================================
+   FIX: Hide decorations on mobile hero
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Hide cyberpunk scene + hero decorations */
+  #cyberpunk-scene,
+  #sakura-container,
+  .grid-bg {
+    display: none !important;
+  }
+
+  /* Hide theme decoration overlays */
+  .hero-title::before,
+  .hero-title::after,
+  .mk-hero .hero-title::before,
+  .mk-hero .hero-title::after {
+    display: none !important;
+  }
+
+  /* Privacy/Legal pages */
+  .legal-hero h1::before,
+  .legal-hero h1::after {
+    display: none !important;
+  }
+
+  /* Marketplace hero */
+  .hero-title {
+    position: static !important;
+    text-shadow: 0 0 20px rgba(168, 85, 247, 0.5) !important;
+  }
+
+  /* Neon City, MẮT overlays */
+  [class*="neon"],
+  [class*="overlay"],
+  .hero h2::before,
+  .hero h2::after,
+  .mk-hero h2::before,
+  .mk-hero h2::after {
+    display: none !important;
+  }
+}
+/* ============================================================
+   FIX: Dashboard stats numbers
+   ============================================================ */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  .stat-card {
+    padding: 1rem !important;
+    min-height: 100px !important;
+  }
+
+  .stat-label {
+    font-size: 0.7rem !important;
+    margin-bottom: 8px !important;
+  }
+
+  .stat-value {
+    font-family: 'Orbitron', sans-serif !important;
+    font-size: 1.8rem !important;
+    font-weight: 900 !important;
+    color: #06b6d4 !important;
+    line-height: 1 !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .stat-sub {
+    font-size: 0.65rem !important;
+    margin-top: 6px !important;
+  }
+
+  /* Dashboard header compact */
+  .dashboard-header {
+    padding: 1rem !important;
+  }
+
+  .dashboard-avatar,
+  .user-avatar-large {
+    width: 70px !important;
+    height: 70px !important;
+  }
+
+  .dashboard-name {
+    font-size: 1.5rem !important;
+  }
+
+  .dashboard-email {
+    font-size: 0.8rem !important;
+  }
+}
