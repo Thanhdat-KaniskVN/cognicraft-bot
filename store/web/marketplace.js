@@ -715,12 +715,33 @@
 
       if (!res.ok) {
         if (res.status === 402) {
-          toast('💎 Theme trả phí — vui lòng mua trước', 'error');
+          // Check user co license khong
+          try {
+            const v = await fetch(API_BASE + '/api/license/verify/' + slug, {
+              headers: { 'Authorization': 'Bearer ' + getToken() },
+            });
+            const vd = await v.json();
+            if (vd.has_license) {
+              toast('License OK nhưng order chưa sync — báo admin', 'error');
+            } else {
+              toast('💎 Theme trả phí — vui lòng mua trước', 'error');
+            }
+          } catch (e) {
+            toast('💎 Theme trả phí — vui lòng mua trước', 'error');
+          }
         } else {
           toast(data.detail || 'Lỗi apply theme', 'error');
         }
         return;
       }
+
+      // Track license applied (tang applied_count)
+      try {
+        await fetch(API_BASE + '/api/license/apply/' + slug, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getToken() },
+        });
+      } catch (e) { /* silent */ }
 
       toast('✨ Đã áp dụng theme! Reload trang để thấy.', 'success');
 
