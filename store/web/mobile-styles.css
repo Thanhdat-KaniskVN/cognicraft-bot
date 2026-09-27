@@ -1,10 +1,10 @@
 /* ============================================================
-   COGNICRAFT MOBILE v3 — GOOGLE PLAY DENSITY
-   Compact header + small cards + list layout
+   COGNICRAFT MOBILE v4 — GOOGLE PLAY CAROUSEL
+   Horizontal scroll cards + compact header
    ============================================================ */
 
 /* ============================================================
-   1. HAMBURGER — GÓC TRÁI, NHỎ (40x40)
+   1. HAMBURGER
    ============================================================ */
 .mobile-hamburger {
   display: none;
@@ -30,40 +30,29 @@
 }
 
 .mobile-hamburger svg { width: 20px; height: 20px; }
-
-.mobile-hamburger:active {
-  transform: scale(0.92);
-  background: rgba(168, 85, 247, 0.3);
-}
+.mobile-hamburger:active { transform: scale(0.92); background: rgba(168, 85, 247, 0.3); }
 
 /* ============================================================
-   2. DRAWER
+   2. DRAWER (giữ nguyên từ v3)
    ============================================================ */
 .mobile-drawer { display: none; position: fixed; inset: 0; z-index: 99999; }
 .mobile-drawer.open { display: block; }
 
 .mobile-drawer-backdrop {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(10px);
   animation: fadeIn 0.25s;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .mobile-drawer-panel {
-  position: absolute;
-  top: 0; left: 0; bottom: 0;
-  width: 82%;
-  max-width: 320px;
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 82%; max-width: 320px;
   background: linear-gradient(180deg, #1a0a2e 0%, #0a0118 100%);
   border-right: 1px solid rgba(168, 85, 247, 0.3);
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   box-shadow: 20px 0 60px rgba(0, 0, 0, 0.9);
   animation: slideInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
@@ -75,27 +64,17 @@
 }
 
 .mobile-drawer-close {
-  position: absolute;
-  top: 12px; right: 12px;
+  position: absolute; top: 12px; right: 12px;
   width: 34px; height: 34px;
   background: rgba(168, 85, 247, 0.15);
   border: 1px solid rgba(168, 85, 247, 0.3);
-  border-radius: 50%;
-  color: #06b6d4;
-  cursor: pointer;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
+  border-radius: 50%; color: #06b6d4;
+  cursor: pointer; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
 }
 
-.mobile-drawer-close:active { transform: scale(0.9); background: rgba(168, 85, 247, 0.3); }
-
 .mobile-drawer-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex; align-items: center; gap: 10px;
   padding: 16px 16px 12px;
   border-bottom: 1px solid rgba(168, 85, 247, 0.15);
 }
@@ -104,41 +83,29 @@
 
 .mobile-drawer-brand-title {
   font-family: 'Orbitron', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 900;
+  font-size: 0.85rem; font-weight: 900;
   background: linear-gradient(90deg, #06b6d4, #a855f7, #ec4899);
-  -webkit-background-clip: text;
-  background-clip: text;
+  -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .mobile-drawer-brand-sub {
-  font-size: 0.6rem;
-  color: #a78bfa;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-top: 1px;
+  font-size: 0.6rem; color: #a78bfa;
+  letter-spacing: 0.15em; text-transform: uppercase;
 }
 
 .mobile-drawer-user {
   padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex; align-items: center; gap: 10px;
   border-bottom: 1px solid rgba(168, 85, 247, 0.15);
-  background: linear-gradient(180deg, rgba(168, 85, 247, 0.05), transparent);
 }
 
 .mobile-drawer-avatar {
   width: 40px; height: 40px;
   border-radius: 12px;
   background: linear-gradient(135deg, #a855f7, #ec4899);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 900;
-  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 900; color: #fff;
   border: 2px solid rgba(6, 182, 212, 0.6);
   flex-shrink: 0;
 }
@@ -146,43 +113,26 @@
 .mobile-drawer-userinfo { min-width: 0; flex: 1; }
 
 .mobile-drawer-username {
-  font-weight: 700;
-  color: #fff;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 700; color: #fff; font-size: 0.9rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .mobile-drawer-email {
-  font-size: 0.7rem;
-  color: #a78bfa;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 1px;
+  font-size: 0.7rem; color: #a78bfa;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 .mobile-drawer-nav { flex: 1; padding: 10px 6px; }
 
 .mobile-drawer-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: flex; align-items: center; gap: 12px;
   padding: 12px 12px;
   color: var(--text, #f0e5ff);
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 10px;
-  transition: background 0.15s;
-  position: relative;
-  font-family: inherit;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
+  text-decoration: none; font-size: 0.9rem; font-weight: 600;
+  border-radius: 10px; transition: background 0.15s;
+  position: relative; font-family: inherit;
+  background: none; border: none;
+  width: 100%; text-align: left; cursor: pointer;
   margin-bottom: 1px;
 }
 
@@ -196,20 +146,12 @@
 
 .mobile-drawer-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
 .mobile-drawer-label { flex: 1; }
-
-.mobile-drawer-chevron {
-  font-size: 1.3rem;
-  color: rgba(168, 85, 247, 0.4);
-  font-weight: 300;
-}
+.mobile-drawer-chevron { font-size: 1.3rem; color: rgba(168, 85, 247, 0.4); font-weight: 300; }
 
 .mobile-drawer-badge {
   background: linear-gradient(135deg, #a855f7, #ec4899);
-  color: #fff;
-  padding: 2px 9px;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 800;
+  color: #fff; padding: 2px 9px;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 800;
 }
 
 .mobile-drawer-footer {
@@ -221,13 +163,12 @@
 .mobile-drawer-logout { color: #ef4444 !important; }
 
 /* ============================================================
-   3. HEADER — COMPACT 52px (như Google Play)
+   3. HEADER 52px + LOGO RIGHT
    ============================================================ */
 @media (max-width: 768px) {
   .mobile-hamburger { display: flex !important; }
 
-  .header,
-  .mk-nav {
+  .header, .mk-nav {
     height: 52px !important;
     min-height: 52px !important;
     padding: 6px 12px 6px 56px !important;
@@ -238,8 +179,7 @@
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
   }
 
-  .logo,
-  .mk-logo {
+  .logo, .mk-logo {
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;
@@ -250,14 +190,10 @@
     min-width: 0 !important;
   }
 
-  .logo > div,
-  .mk-logo > div { text-align: right !important; min-width: 0; }
-
+  .logo > div, .mk-logo > div { text-align: right !important; }
   .logo-icon { font-size: 1.35rem !important; order: 2; }
 
-  .logo h1,
-  .header h1,
-  .mk-logo .text {
+  .logo h1, .header h1, .mk-logo .text {
     font-size: 0.8rem !important;
     letter-spacing: 0 !important;
     white-space: nowrap !important;
@@ -271,53 +207,32 @@
   .subtitle {
     font-size: 0.5rem !important;
     letter-spacing: 0.08em !important;
-    margin-top: 1px !important;
     line-height: 1 !important;
   }
 
-  /* Hide all nav in header */
   .status-bar > *:not(.theme-switcher) { display: none !important; }
   .mk-nav-links { display: none !important; }
 
   /* ============================================================
-     4. HERO + CONTROLS — NHỎ GỌN
+     4. HERO + CONTROLS
      ============================================================ */
   .main { padding: 0.5rem !important; }
 
-  .hero {
-    padding: 0.8rem 0 1rem !important;
-    margin-top: 8px !important;
-  }
+  .hero { padding: 0.8rem 0 1rem !important; margin-top: 8px !important; }
+  .hero h2 { font-size: 1.3rem !important; margin-bottom: 4px !important; }
+  .hero p { font-size: 0.75rem !important; }
 
-  .hero h2 {
-    font-size: 1.3rem !important;
-    letter-spacing: 0.02em !important;
-    margin-bottom: 4px !important;
-  }
-
-  .hero p {
-    font-size: 0.75rem !important;
-    line-height: 1.3 !important;
-  }
-
-  /* Store tabs nhỏ */
   .store-tabs {
     margin: 10px auto 0 !important;
     padding: 3px !important;
-    gap: 3px !important;
-    width: auto !important;
     max-width: 280px !important;
   }
 
   .store-tab {
     padding: 6px 14px !important;
     font-size: 0.7rem !important;
-    gap: 3px !important;
   }
 
-  .store-tab .badge { font-size: 0.6rem !important; padding: 1px 5px !important; }
-
-  /* Controls compact */
   .controls {
     grid-template-columns: 1fr !important;
     gap: 8px !important;
@@ -332,10 +247,8 @@
   }
 
   .filter-select { padding-left: 0.9rem !important; }
-
   .search-icon { font-size: 0.9rem; left: 0.85rem; }
 
-  /* Categories compact */
   .categories {
     gap: 0.35rem !important;
     margin-bottom: 1rem !important;
@@ -344,6 +257,7 @@
     justify-content: flex-start !important;
     padding-bottom: 4px;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   .categories::-webkit-scrollbar { display: none; }
@@ -355,185 +269,338 @@
     flex-shrink: 0;
   }
 
-  /* Section */
-  .section { margin-bottom: 1.25rem !important; }
+  /* ============================================================
+     5. SECTION HEADER + "See all" BUTTON (Google Play style)
+     ============================================================ */
+  .section {
+    margin-bottom: 1.5rem !important;
+    position: relative;
+  }
 
   .section-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     margin-bottom: 0.75rem !important;
-    padding-bottom: 0.6rem !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+    padding: 0 4px !important;
   }
 
-  .section-header h3 { font-size: 0.95rem !important; letter-spacing: 0.05em !important; }
-  .count { font-size: 0.7rem !important; padding: 0.2rem 0.6rem !important; }
+  .section-header h3 {
+    font-size: 1rem !important;
+    letter-spacing: 0.03em !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .count {
+    font-size: 0.65rem !important;
+    padding: 0.2rem 0.5rem !important;
+    background: rgba(168, 85, 247, 0.15) !important;
+    border: 1px solid rgba(168, 85, 247, 0.3) !important;
+    border-radius: 999px !important;
+    color: #a78bfa !important;
+  }
 
   /* ============================================================
-     5. PLUGIN CARD — LIST ITEM NHƯ GOOGLE PLAY (~100px)
+     6. HORIZONTAL SCROLL ROW — PLUGINS + THEMES
      ============================================================ */
-  .plugins-grid {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-    padding: 0 !important;
-  }
-
-  .plugin-card {
-    padding: 10px 12px !important;
-    border-radius: 12px !important;
-    min-height: 0 !important;
-    display: grid !important;
-    grid-template-columns: 56px 1fr auto !important;
-    grid-template-rows: auto auto auto !important;
-    gap: 2px 10px !important;
-    align-items: start !important;
-    position: relative;
-    transform-style: flat !important;
-    animation: none !important;
-    transition: transform 0.15s, background 0.15s !important;
-  }
-
-  .plugin-card:active { transform: scale(0.98) !important; background: rgba(168, 85, 247, 0.08) !important; }
-
-  /* Không cần 3D tilt */
-  .plugin-card.in-view { animation: cardFloat 8s ease-in-out infinite !important; }
-
-  @keyframes cardFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-2px); }
-  }
-
-  /* Icon → square box 56x56 */
-  .plugin-icon {
-    grid-column: 1 !important;
-    grid-row: 1 / 4 !important;
-    font-size: 1.8rem !important;
+  .plugins-grid,
+  .mk-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding: 4px 4px 12px 4px !important;
     margin: 0 !important;
-    width: 56px !important;
-    height: 56px !important;
+  }
+
+  .plugins-grid::-webkit-scrollbar,
+  .mk-grid::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Card width cố định + scroll snap */
+  .plugin-card,
+  .theme-card {
+    flex: 0 0 160px !important;
+    width: 160px !important;
+    scroll-snap-align: start !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    animation: none !important;
+    transform: none !important;
+    transition: transform 0.2s !important;
+  }
+
+  .plugin-card:active,
+  .theme-card:active {
+    transform: scale(0.96) !important;
+  }
+
+  /* ============================================================
+     7. PLUGIN CARD — HORIZONTAL (160px wide, ~200px tall)
+     ============================================================ */
+  .plugin-card {
+    height: 210px !important;
+  }
+
+  .plugin-icon {
+    font-size: 2rem !important;
+    margin: 0 auto 8px auto !important;
+    width: 100% !important;
+    height: 70px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.1)) !important;
-    border: 1px solid rgba(168, 85, 247, 0.25) !important;
-    border-radius: 12px !important;
-    flex-shrink: 0 !important;
-    align-self: center !important;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.08)) !important;
+    border: 1px solid rgba(168, 85, 247, 0.2) !important;
+    border-radius: 10px !important;
+    flex-shrink: 0;
   }
 
   .plugin-name {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-    font-size: 0.9rem !important;
+    font-size: 0.82rem !important;
     font-weight: 700 !important;
-    margin: 0 !important;
+    line-height: 1.2 !important;
+    margin: 0 0 2px 0 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    line-height: 1.2 !important;
+    text-align: center;
   }
 
   .plugin-author {
-    grid-column: 2 !important;
-    grid-row: 2 !important;
-    font-size: 0.65rem !important;
-    margin: 0 !important;
-    opacity: 0.7 !important;
+    font-size: 0.62rem !important;
+    margin: 0 0 6px 0 !important;
+    opacity: 0.7;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    line-height: 1.2 !important;
+    text-align: center;
   }
 
-  /* Ẩn desc trên mobile list */
-  .plugin-desc { display: none !important; }
+  .plugin-desc {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    font-size: 0.65rem !important;
+    line-height: 1.3 !important;
+    margin-bottom: 6px !important;
+    flex: 1;
+    text-align: center;
+  }
 
   .plugin-meta {
-    grid-column: 2 !important;
-    grid-row: 3 !important;
     padding: 0 !important;
     border: none !important;
-    font-size: 0.65rem !important;
-    margin-top: 2px !important;
+    margin-top: auto !important;
     display: flex !important;
-    gap: 8px !important;
+    justify-content: space-between !important;
     align-items: center !important;
+    font-size: 0.6rem !important;
+    padding-top: 6px !important;
+    border-top: 1px solid rgba(168, 85, 247, 0.15) !important;
   }
 
-  .plugin-rating { font-size: 0.7rem !important; }
-  .plugin-downloads { font-size: 0.65rem !important; opacity: 0.7; }
-
-  /* Price badge → grid column 3 */
-  .plugin-price-row {
-    grid-column: 3 !important;
-    grid-row: 1 / 4 !important;
-    margin: 0 !important;
-    align-self: center !important;
+  .plugin-rating {
+    font-size: 0.62rem !important;
     display: flex !important;
     align-items: center !important;
+    gap: 2px !important;
+  }
+
+  .plugin-rating.no-rating { font-size: 0.55rem !important; }
+
+  .plugin-downloads { font-size: 0.6rem !important; opacity: 0.7; }
+
+  /* Ẩn price row — badge sẽ đè lên góc */
+  .plugin-price-row {
+    position: absolute !important;
+    top: 6px !important;
+    left: 6px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 5;
+  }
+
+  .plugin-card {
+    position: relative !important;
+    overflow: hidden !important;
   }
 
   .plugin-price {
-    font-size: 0.62rem !important;
-    padding: 3px 9px !important;
-    letter-spacing: 0.02em !important;
-    white-space: nowrap;
-  }
-
-  /* Badge VERIFIED/FEATURED — thu nhỏ */
-  .plugin-badge {
     font-size: 0.55rem !important;
-    padding: 1px 6px !important;
-    top: 6px !important;
-    right: 6px !important;
+    padding: 2px 7px !important;
+    border-radius: 6px !important;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
   }
 
-  .badge-featured { top: 6px !important; }
+  /* Badges thu nhỏ */
+  .plugin-badge {
+    font-size: 0.5rem !important;
+    padding: 1px 5px !important;
+    top: 4px !important;
+    right: 4px !important;
+    border-radius: 5px !important;
+  }
+
+  .badge-featured {
+    top: 18px !important;
+    right: 4px !important;
+  }
 
   /* ============================================================
-     6. THEME CARD — COMPACT (~200px)
+     8. THEME CARD — HORIZONTAL (160px wide)
      ============================================================ */
-  .mk-grid {
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-  }
-
   .theme-card {
-    min-height: 190px !important;
-    border-radius: 12px !important;
-    animation: cardFloat 8s ease-in-out infinite !important;
+    height: 220px !important;
+    min-height: 220px !important;
+    position: relative !important;
+    overflow: hidden !important;
   }
 
   .theme-preview {
-    height: 100px !important;
+    height: 90px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+
+  .theme-preview .mock-ui {
+    transform: scale(0.7);
+    transform-origin: center;
   }
 
   .card-info {
-    padding: 8px 12px !important;
+    padding: 6px 0 0 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1;
   }
 
   .card-name {
-    font-size: 0.85rem !important;
-    margin-bottom: 1px !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 2px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    text-align: center;
   }
 
   .card-desc {
-    font-size: 0.68rem !important;
+    font-size: 0.62rem !important;
     -webkit-line-clamp: 1 !important;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     margin-bottom: 6px !important;
+    line-height: 1.3 !important;
+    text-align: center;
+    opacity: 0.8;
   }
 
-  .card-meta { margin-top: 4px !important; }
-  .card-author img { width: 16px !important; height: 16px !important; }
-  .card-author span { font-size: 0.65rem !important; }
-  .card-stats .stat { font-size: 0.65rem !important; }
+  .card-meta {
+    margin-top: auto !important;
+    padding-top: 6px !important;
+    border-top: 1px solid rgba(168, 85, 247, 0.15);
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .card-author {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .card-author img {
+    width: 14px !important;
+    height: 14px !important;
+    border-radius: 50%;
+  }
+
+  .card-author span {
+    font-size: 0.58rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-stats {
+    display: flex !important;
+    gap: 6px !important;
+  }
+
+  .card-stats .stat {
+    font-size: 0.55rem !important;
+  }
 
   .price-badge {
     top: 6px !important;
     right: 6px !important;
     padding: 2px 8px !important;
-    font-size: 0.6rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 6px !important;
+    backdrop-filter: blur(8px);
   }
 
   /* ============================================================
-     7. FOOTER
+     9. FEATURED CAROUSEL — 1 big card
+     ============================================================ */
+  .featured-3d {
+    height: auto !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .featured-3d.grid-mode {
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  .carousel-stage {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 12px !important;
+    padding: 4px !important;
+    grid-template-columns: none !important;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .carousel-stage::-webkit-scrollbar { display: none; }
+
+  .carousel-item,
+  .carousel-stage .theme-card {
+    flex: 0 0 70% !important;
+    width: 70% !important;
+    max-width: 260px !important;
+    scroll-snap-align: center !important;
+    height: 280px !important;
+  }
+
+  /* ============================================================
+     10. FOOTER
      ============================================================ */
   .legal-footer {
     padding: 1rem 1rem 0.8rem !important;
@@ -561,43 +628,35 @@
 
   .legal-footer > div:last-child {
     font-size: 0.65rem !important;
-    line-height: 1.4 !important;
     text-align: center;
     opacity: 0.6;
   }
 
   /* ============================================================
-     8. MARKETPLACE MOBILE
+     11. MARKETPLACE
      ============================================================ */
   .mk-hero {
     min-height: auto !important;
-    padding: 40px 12px 20px !important;
+    padding: 30px 12px 20px !important;
   }
 
   .hero-title {
-    font-size: clamp(26px, 8vw, 38px) !important;
-    letter-spacing: -0.5px !important;
+    font-size: clamp(24px, 7vw, 34px) !important;
     line-height: 1 !important;
   }
 
-  .hero-subtitle {
-    font-size: 0.8rem !important;
-    line-height: 1.4 !important;
-    margin-top: 8px !important;
-  }
+  .hero-subtitle { font-size: 0.78rem !important; margin-top: 8px !important; }
 
   .hero-cta {
     flex-direction: column !important;
     width: 100% !important;
     gap: 8px !important;
-    margin-top: 16px !important;
   }
 
   .btn-hero {
     width: 100% !important;
     padding: 10px 16px !important;
     font-size: 0.8rem !important;
-    justify-content: center !important;
     border-radius: 10px !important;
   }
 
@@ -626,6 +685,7 @@
     overflow-x: auto !important;
     flex-wrap: nowrap !important;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   .tag-chips::-webkit-scrollbar { display: none; }
@@ -642,9 +702,6 @@
   .mk-section-title { font-size: 1.1rem !important; }
   .mk-section-sub { font-size: 0.75rem !important; margin-bottom: 12px !important; }
 
-  .featured-3d.grid-mode { height: auto !important; padding: 0 !important; }
-  .carousel-stage { grid-template-columns: 1fr !important; gap: 10px !important; }
-
   #bg-canvas { opacity: 0.4 !important; }
   .cursor-glow { display: none !important; }
 
@@ -656,38 +713,39 @@
     grid-template-rows: 40vh auto !important;
   }
 
-  .modal-info {
-    padding: 16px !important;
-    max-height: 50vh !important;
-  }
-
+  .modal-info { padding: 16px !important; max-height: 50vh !important; }
   .modal-title { font-size: 1.2rem !important; }
   .modal-actions { flex-direction: column !important; gap: 6px !important; }
   .btn-modal { padding: 10px !important; font-size: 0.85rem !important; }
+
+  /* ============================================================
+     12. SCROLL INDICATOR (dấu → cuối hàng)
+     ============================================================ */
+  .plugins-grid::after,
+  .mk-grid::after {
+    content: '';
+    flex: 0 0 8px;
+  }
 }
 
 /* ============================================================
-   9. TINY SCREEN (< 375px)
+   13. TINY SCREEN < 375px
    ============================================================ */
 @media (max-width: 374px) {
-  .logo h1,
-  .header h1 {
+  .logo h1, .header h1 {
     font-size: 0.7rem !important;
     max-width: 140px !important;
   }
 
-  .plugin-card {
-    grid-template-columns: 48px 1fr auto !important;
-    gap: 2px 8px !important;
-    padding: 8px 10px !important;
+  .plugin-card, .theme-card {
+    flex: 0 0 140px !important;
+    width: 140px !important;
   }
 
-  .plugin-icon {
-    width: 48px !important;
-    height: 48px !important;
-    font-size: 1.5rem !important;
-  }
+  .plugin-card { height: 195px !important; }
+  .theme-card { height: 205px !important; }
 
-  .plugin-name { font-size: 0.82rem !important; }
-  .plugin-price { font-size: 0.58rem !important; padding: 2px 7px !important; }
+  .plugin-icon { height: 60px !important; font-size: 1.7rem !important; }
+  .plugin-name { font-size: 0.75rem !important; }
+  .theme-preview { height: 80px !important; }
 }

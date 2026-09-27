@@ -1,9 +1,10 @@
 // store/web/mobile-menu.js
 /**
- * CogniCraft Mobile Menu v2
+ * CogniCraft Mobile Menu v3
  * - Hamburger LEFT, Logo RIGHT
  * - Drawer slide từ TRÁI
- * - Card floating animation
+ * - Cards horizontal carousel (Google Play style)
+ * - Haptic feedback on touch
  */
 (function () {
   'use strict';
@@ -44,6 +45,12 @@
     }
   }
 
+  function esc(s) {
+    return String(s || '').replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+    );
+  }
+
   // ============================================================
   // HAMBURGER — GÓC TRÁI
   // ============================================================
@@ -74,6 +81,7 @@
     const user = getUserInfo();
     const userName = user?.name || 'Khách';
     const userEmail = user?.email || 'Chưa đăng nhập';
+    const userInitial = userName.charAt(0).toUpperCase();
 
     const drawer = document.createElement('div');
     drawer.id = 'mobile-drawer';
@@ -97,10 +105,10 @@
         </div>
 
         <div class="mobile-drawer-user">
-          <div class="mobile-drawer-avatar">${userName.charAt(0).toUpperCase()}</div>
+          <div class="mobile-drawer-avatar">${esc(userInitial)}</div>
           <div class="mobile-drawer-userinfo">
-            <div class="mobile-drawer-username">${userName}</div>
-            <div class="mobile-drawer-email">${userEmail}</div>
+            <div class="mobile-drawer-username">${esc(userName)}</div>
+            <div class="mobile-drawer-email">${esc(userEmail)}</div>
           </div>
         </div>
 
@@ -188,7 +196,7 @@
   });
 
   // ============================================================
-  // FLOATING CARD ANIMATION
+  // SCROLL-FADE-IN ANIMATION
   // ============================================================
   function initFloatCards() {
     if (!('IntersectionObserver' in window)) {
@@ -202,13 +210,12 @@
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('in-view');
-          // Random delay để tránh đồng bộ
-          const randomDelay = (Math.random() * 2).toFixed(2);
+          const randomDelay = (Math.random() * 0.3).toFixed(2);
           entry.target.style.animationDelay = `${randomDelay}s`;
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
+    }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
 
     const observeCards = () => {
       document.querySelectorAll('.plugin-card:not(.in-view), .theme-card:not(.in-view)').forEach((card) => {
@@ -218,51 +225,29 @@
 
     observeCards();
 
-    // Re-observe khi DOM change
     const mutationObserver = new MutationObserver(observeCards);
     mutationObserver.observe(document.body, { childList: true, subtree: true });
   }
 
   // ============================================================
-  // 3D TILT ON TOUCH (mobile)
+  // HAPTIC FEEDBACK ON TOUCH (không tilt 3D nữa)
   // ============================================================
-  function initCardTilt() {
+  function initTouchFeedback() {
     document.addEventListener('touchstart', (e) => {
       const card = e.target.closest('.plugin-card, .theme-card');
       if (!card) return;
-
-      const rect = card.getBoundingClientRect();
-      const touch = e.touches[0];
-      const x = (touch.clientX - rect.left) / rect.width;
-      const y = (touch.clientY - rect.top) / rect.height;
-
-      const rx = (y - 0.5) * -10;
-      const ry = (x - 0.5) * 10;
-
-      card.style.setProperty('--tilt-x', `${rx}deg`);
-      card.style.setProperty('--tilt-y', `${ry}deg`);
-    }, { passive: true });
-
-    document.addEventListener('touchmove', (e) => {
-      const card = e.target.closest('.plugin-card, .theme-card');
-      if (!card) return;
-
-      const rect = card.getBoundingClientRect();
-      const touch = e.touches[0];
-      const x = (touch.clientX - rect.left) / rect.width;
-      const y = (touch.clientY - rect.top) / rect.height;
-
-      const rx = (y - 0.5) * -10;
-      const ry = (x - 0.5) * 10;
-
-      card.style.setProperty('--tilt-x', `${rx}deg`);
-      card.style.setProperty('--tilt-y', `${ry}deg`);
+      card.style.transform = 'scale(0.96)';
     }, { passive: true });
 
     document.addEventListener('touchend', () => {
       document.querySelectorAll('.plugin-card, .theme-card').forEach((card) => {
-        card.style.setProperty('--tilt-x', '0deg');
-        card.style.setProperty('--tilt-y', '0deg');
+        card.style.transform = '';
+      });
+    }, { passive: true });
+
+    document.addEventListener('touchcancel', () => {
+      document.querySelectorAll('.plugin-card, .theme-card').forEach((card) => {
+        card.style.transform = '';
       });
     }, { passive: true });
   }
@@ -272,7 +257,7 @@
   // ============================================================
   function init() {
     setTimeout(initFloatCards, 300);
-    initCardTilt();
+    initTouchFeedback();
 
     if (!isMobile()) return;
 
@@ -302,5 +287,5 @@
     }, 200);
   });
 
-  console.log('📱 Mobile menu v2 loaded');
+  console.log('📱 Mobile menu v3 loaded');
 })();
