@@ -1,68 +1,45 @@
 /* ============================================================
-   COGNICRAFT MOBILE STYLES v2
-   Hamburger LEFT + Logo RIGHT + Floating Cards
+   COGNICRAFT MOBILE v3 — GOOGLE PLAY DENSITY
+   Compact header + small cards + list layout
    ============================================================ */
 
 /* ============================================================
-   1. HAMBURGER — GÓC TRÁI
+   1. HAMBURGER — GÓC TRÁI, NHỎ (40x40)
    ============================================================ */
 .mobile-hamburger {
   display: none;
   position: fixed;
-  top: 12px;
-  left: 12px;
+  top: 8px;
+  left: 8px;
   z-index: 9998;
-  width: 44px;
-  height: 44px;
-  background: rgba(20, 8, 40, 0.9);
-  border: 1.5px solid rgba(168, 85, 247, 0.5);
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  background: rgba(20, 8, 40, 0.85);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  border-radius: 10px;
   cursor: pointer;
   padding: 0;
-  color: var(--cyan, #06b6d4);
+  color: #06b6d4;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.mobile-hamburger::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #a855f7, #06b6d4, #ec4899);
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
+.mobile-hamburger svg { width: 20px; height: 20px; }
 
 .mobile-hamburger:active {
   transform: scale(0.92);
-  box-shadow:
-    0 4px 12px rgba(168, 85, 247, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.mobile-hamburger:active::before {
-  opacity: 0.3;
+  background: rgba(168, 85, 247, 0.3);
 }
 
 /* ============================================================
-   2. DRAWER — SLIDE TỪ TRÁI
+   2. DRAWER
    ============================================================ */
-.mobile-drawer { 
-  display: none; 
-  position: fixed; 
-  inset: 0; 
-  z-index: 99999; 
-}
-
+.mobile-drawer { display: none; position: fixed; inset: 0; z-index: 99999; }
 .mobile-drawer.open { display: block; }
 
 .mobile-drawer-backdrop {
@@ -70,7 +47,7 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(10px);
-  animation: fadeIn 0.25s ease-out;
+  animation: fadeIn 0.25s;
 }
 
 @keyframes fadeIn {
@@ -80,20 +57,16 @@
 
 .mobile-drawer-panel {
   position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 85%;
-  max-width: 340px;
-  background: 
-    linear-gradient(180deg, #1a0a2e 0%, #0a0118 100%);
+  top: 0; left: 0; bottom: 0;
+  width: 82%;
+  max-width: 320px;
+  background: linear-gradient(180deg, #1a0a2e 0%, #0a0118 100%);
   border-right: 1px solid rgba(168, 85, 247, 0.3);
   display: flex;
   flex-direction: column;
   box-shadow: 20px 0 60px rgba(0, 0, 0, 0.9);
   animation: slideInLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 @keyframes slideInLeft {
@@ -103,140 +76,106 @@
 
 .mobile-drawer-close {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 36px;
-  height: 36px;
+  top: 12px; right: 12px;
+  width: 34px; height: 34px;
   background: rgba(168, 85, 247, 0.15);
   border: 1px solid rgba(168, 85, 247, 0.3);
   border-radius: 50%;
-  color: var(--cyan, #06b6d4);
+  color: #06b6d4;
   cursor: pointer;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: all 0.2s;
 }
 
-.mobile-drawer-close:active {
-  transform: scale(0.9);
-  background: rgba(168, 85, 247, 0.3);
-}
+.mobile-drawer-close:active { transform: scale(0.9); background: rgba(168, 85, 247, 0.3); }
 
-/* ============================================================
-   3. DRAWER HEADER + BRAND
-   ============================================================ */
 .mobile-drawer-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 20px 16px;
+  gap: 10px;
+  padding: 16px 16px 12px;
   border-bottom: 1px solid rgba(168, 85, 247, 0.15);
 }
 
-.mobile-drawer-logo {
-  font-size: 28px;
-  filter: drop-shadow(0 0 12px #a855f7);
-}
+.mobile-drawer-logo { font-size: 24px; filter: drop-shadow(0 0 10px #a855f7); }
 
 .mobile-drawer-brand-title {
   font-family: 'Orbitron', sans-serif;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 900;
-  letter-spacing: 0.05em;
   background: linear-gradient(90deg, #06b6d4, #a855f7, #ec4899);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-size: 200% auto;
-  animation: logoShine 4s linear infinite;
-}
-
-@keyframes logoShine {
-  0% { background-position: 0% center; }
-  100% { background-position: 200% center; }
 }
 
 .mobile-drawer-brand-sub {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: #a78bfa;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
-/* ============================================================
-   4. USER INFO
-   ============================================================ */
 .mobile-drawer-user {
-  padding: 16px 20px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border-bottom: 1px solid rgba(168, 85, 247, 0.15);
   background: linear-gradient(180deg, rgba(168, 85, 247, 0.05), transparent);
 }
 
 .mobile-drawer-avatar {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 40px; height: 40px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #a855f7, #ec4899);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 900;
   color: #fff;
   border: 2px solid rgba(6, 182, 212, 0.6);
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
 }
 
-.mobile-drawer-userinfo { 
-  min-width: 0; 
-  flex: 1; 
-}
+.mobile-drawer-userinfo { min-width: 0; flex: 1; }
 
 .mobile-drawer-username {
   font-weight: 700;
   color: #fff;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .mobile-drawer-email {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #a78bfa;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
-/* ============================================================
-   5. NAV ITEMS
-   ============================================================ */
-.mobile-drawer-nav { 
-  flex: 1; 
-  padding: 12px 8px;
-}
+.mobile-drawer-nav { flex: 1; padding: 10px 6px; }
 
 .mobile-drawer-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 14px;
+  gap: 12px;
+  padding: 12px 12px;
   color: var(--text, #f0e5ff);
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  border-radius: 12px;
-  transition: all 0.2s;
+  border-radius: 10px;
+  transition: background 0.15s;
   position: relative;
   font-family: inherit;
   background: none;
@@ -244,470 +183,511 @@
   width: 100%;
   text-align: left;
   cursor: pointer;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
-.mobile-drawer-item:active {
-  background: rgba(168, 85, 247, 0.2);
-  transform: scale(0.98);
-}
+.mobile-drawer-item:active { background: rgba(168, 85, 247, 0.2); }
 
 .mobile-drawer-item.active {
   background: linear-gradient(90deg, rgba(168, 85, 247, 0.25), rgba(168, 85, 247, 0.05));
-  color: var(--cyan, #06b6d4);
-  box-shadow: 
-    inset 3px 0 0 var(--cyan, #06b6d4),
-    0 0 20px rgba(6, 182, 212, 0.15);
+  color: #06b6d4;
+  box-shadow: inset 3px 0 0 #06b6d4;
 }
 
-.mobile-drawer-icon {
-  font-size: 1.2rem;
-  width: 26px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
+.mobile-drawer-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
 .mobile-drawer-label { flex: 1; }
 
 .mobile-drawer-chevron {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   color: rgba(168, 85, 247, 0.4);
   font-weight: 300;
-  transition: transform 0.2s;
-}
-
-.mobile-drawer-item.active .mobile-drawer-chevron {
-  color: var(--cyan, #06b6d4);
 }
 
 .mobile-drawer-badge {
   background: linear-gradient(135deg, #a855f7, #ec4899);
   color: #fff;
-  padding: 2px 10px;
+  padding: 2px 9px;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  min-width: 24px;
-  text-align: center;
-  box-shadow: 0 2px 10px rgba(236, 72, 153, 0.5);
 }
 
-/* ============================================================
-   6. DRAWER FOOTER
-   ============================================================ */
 .mobile-drawer-footer {
-  padding: 8px 8px 24px;
+  padding: 6px 6px 20px;
   border-top: 1px solid rgba(168, 85, 247, 0.15);
   margin-top: auto;
 }
 
-.mobile-drawer-logout {
-  color: #ef4444 !important;
-}
-
-.mobile-drawer-logout:active {
-  background: rgba(239, 68, 68, 0.15) !important;
-}
+.mobile-drawer-logout { color: #ef4444 !important; }
 
 /* ============================================================
-   7. HEADER MOBILE — LOGO PHẢI
+   3. HEADER — COMPACT 52px (như Google Play)
    ============================================================ */
 @media (max-width: 768px) {
   .mobile-hamburger { display: flex !important; }
 
   .header,
   .mk-nav {
-    padding: 0.85rem 1rem 0.85rem 68px !important;
-    overflow: hidden !important;
-    min-height: 60px;
-    justify-content: flex-end !important;
-    flex-direction: row-reverse !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 6px 12px 6px 56px !important;
     display: flex !important;
     align-items: center !important;
+    justify-content: flex-end !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
   }
 
   .logo,
   .mk-logo {
-    text-align: right !important;
-    margin-left: auto !important;
-    justify-content: flex-end !important;
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
     flex-direction: row-reverse !important;
+    justify-content: flex-end !important;
+    margin-left: auto !important;
+    text-align: right !important;
+    min-width: 0 !important;
   }
 
   .logo > div,
-  .mk-logo > div {
-    text-align: right !important;
-  }
+  .mk-logo > div { text-align: right !important; min-width: 0; }
 
-  .logo-icon {
-    font-size: 1.6rem !important;
-    order: 2;
-  }
+  .logo-icon { font-size: 1.35rem !important; order: 2; }
 
   .logo h1,
   .header h1,
-  .mk-logo {
-    font-size: 0.9rem !important;
+  .mk-logo .text {
+    font-size: 0.8rem !important;
+    letter-spacing: 0 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    max-width: 200px !important;
-    letter-spacing: 0 !important;
+    max-width: 190px !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
   }
 
   .subtitle {
-    font-size: 0.55rem !important;
-    letter-spacing: 0.05em !important;
+    font-size: 0.5rem !important;
+    letter-spacing: 0.08em !important;
+    margin-top: 1px !important;
+    line-height: 1 !important;
   }
 
-  /* Hide desktop nav in header */
-  .status-bar > *:not(.theme-switcher) {
-    display: none !important;
-  }
-
-  .mk-nav-links {
-    display: none !important;
-  }
+  /* Hide all nav in header */
+  .status-bar > *:not(.theme-switcher) { display: none !important; }
+  .mk-nav-links { display: none !important; }
 
   /* ============================================================
-     8. CARD SMALLER + FLOATING EFFECT
+     4. HERO + CONTROLS — NHỎ GỌN
      ============================================================ */
-  .plugins-grid,
-  .mk-grid {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
-    padding: 0 12px !important;
-  }
+  .main { padding: 0.5rem !important; }
 
-  /* ---- PLUGIN CARD ---- */
-  .plugin-card {
-    padding: 14px 16px !important;
-    border-radius: 14px !important;
-    min-height: auto !important;
-    /* 3D perspective setup */
-    transform-style: preserve-3d;
-    perspective: 1000px;
-    /* Tilt vars */
-    --tilt-x: 0deg;
-    --tilt-y: 0deg;
-    /* Float animation */
-    animation: cardFloat 6s ease-in-out infinite;
-    transition:
-      transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-      border-color 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Rotate 3D từ tilt vars */
-  .plugin-card.in-view {
-    transform:
-      rotateX(var(--tilt-x))
-      rotateY(var(--tilt-y))
-      translateZ(0);
-  }
-
-  /* Nền gradient sang */
-  .plugin-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 14px;
-    background: radial-gradient(
-      circle at var(--glow-x, 50%) var(--glow-y, 50%),
-      rgba(168, 85, 247, 0.15),
-      transparent 60%
-    );
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 1;
-  }
-
-  .plugin-card:active::after {
-    opacity: 1;
-  }
-
-  /* Float animation — lơ lửng */
-  @keyframes cardFloat {
-    0%, 100% {
-      transform:
-        translateY(0)
-        rotateX(var(--tilt-x, 0deg))
-        rotateY(var(--tilt-y, 0deg));
-      box-shadow:
-        0 8px 24px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(168, 85, 247, 0.15) inset;
-    }
-    50% {
-      transform:
-        translateY(-6px)
-        rotateX(var(--tilt-x, 0deg))
-        rotateY(var(--tilt-y, 0deg));
-      box-shadow:
-        0 16px 32px rgba(0, 0, 0, 0.6),
-        0 0 24px rgba(168, 85, 247, 0.25),
-        0 0 0 1px rgba(168, 85, 247, 0.25) inset;
-    }
-  }
-
-  /* Entrance animation */
-  .plugin-card:not(.in-view) {
-    opacity: 0;
-    transform: translateY(24px) scale(0.96);
-    animation: none;
-  }
-
-  .plugin-card.in-view {
-    opacity: 1;
-    animation: cardFloat 6s ease-in-out infinite,
-               cardEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 1;
-  }
-
-  @keyframes cardEnter {
-    from {
-      opacity: 0;
-      transform: translateY(30px) scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  /* Nội dung card */
-  .plugin-icon {
-    font-size: 1.9rem !important;
-    margin-bottom: 0.4rem !important;
-  }
-
-  .plugin-name {
-    font-size: 1rem !important;
-    margin-bottom: 0.15rem !important;
-  }
-
-  .plugin-author {
-    font-size: 0.7rem !important;
-    margin-bottom: 0.5rem !important;
-    opacity: 0.8;
-  }
-
-  .plugin-desc {
-    font-size: 0.78rem !important;
-    line-height: 1.45 !important;
-    min-height: auto !important;
-    margin-bottom: 0.6rem !important;
-    -webkit-line-clamp: 2 !important;
-    display: -webkit-box !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-  }
-
-  .plugin-meta {
-    padding-top: 0.7rem !important;
-    font-size: 0.72rem !important;
-    border-top: 1px solid rgba(168, 85, 247, 0.15) !important;
-  }
-
-  .plugin-price-row {
-    margin-top: 6px !important;
-  }
-
-  .plugin-price {
-    font-size: 10px !important;
-    padding: 3px 10px !important;
-  }
-
-  /* ---- THEME CARD ---- */
-  .theme-card {
-    min-height: 240px !important;
-    border-radius: 14px !important;
-    transform-style: preserve-3d;
-    perspective: 1000px;
-    --tilt-x: 0deg;
-    --tilt-y: 0deg;
-    transition:
-      transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.4s;
-    overflow: hidden;
-  }
-
-  .theme-card.in-view {
-    transform:
-      rotateX(var(--tilt-x))
-      rotateY(var(--tilt-y));
-    animation: cardFloat 6s ease-in-out infinite;
-    opacity: 1;
-  }
-
-  .theme-card:not(.in-view) {
-    opacity: 0;
-    transform: translateY(24px) scale(0.96);
-  }
-
-  .theme-preview {
-    height: 130px !important;
-  }
-
-  .card-info {
-    padding: 10px 14px !important;
-  }
-
-  .card-name {
-    font-size: 0.9rem !important;
-    margin-bottom: 2px !important;
-  }
-
-  .card-desc {
-    font-size: 0.72rem !important;
-    -webkit-line-clamp: 1 !important;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .card-meta {
+  .hero {
+    padding: 0.8rem 0 1rem !important;
     margin-top: 8px !important;
   }
 
-  .card-author img {
-    width: 18px !important;
-    height: 18px !important;
-  }
-
-  .card-author span {
-    font-size: 0.68rem !important;
-  }
-
-  .card-stats .stat {
-    font-size: 0.68rem !important;
-  }
-
-  .price-badge {
-    top: 8px !important;
-    right: 8px !important;
-    padding: 3px 10px !important;
-    font-size: 10px !important;
-  }
-
-  /* ============================================================
-     9. HEADER/MENU POLISH
-     ============================================================ */
-  .store-tabs {
-    margin: 14px auto 0 !important;
-    padding: 4px !important;
-    gap: 3px !important;
-    width: calc(100% - 24px) !important;
-    max-width: 340px !important;
-  }
-
-  .store-tab {
-    padding: 8px 12px !important;
-    font-size: 11px !important;
-    gap: 4px !important;
-    flex: 1 !important;
-    justify-content: center !important;
-  }
-
-  .store-tab .badge {
-    font-size: 10px !important;
-    padding: 2px 6px !important;
-  }
-
-  /* Hero compact */
-  .hero {
-    padding: 1.2rem 0 1.8rem !important;
-  }
-
   .hero h2 {
-    font-size: 1.5rem !important;
-    letter-spacing: 0 !important;
+    font-size: 1.3rem !important;
+    letter-spacing: 0.02em !important;
+    margin-bottom: 4px !important;
   }
 
   .hero p {
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
+    line-height: 1.3 !important;
   }
+
+  /* Store tabs nhỏ */
+  .store-tabs {
+    margin: 10px auto 0 !important;
+    padding: 3px !important;
+    gap: 3px !important;
+    width: auto !important;
+    max-width: 280px !important;
+  }
+
+  .store-tab {
+    padding: 6px 14px !important;
+    font-size: 0.7rem !important;
+    gap: 3px !important;
+  }
+
+  .store-tab .badge { font-size: 0.6rem !important; padding: 1px 5px !important; }
 
   /* Controls compact */
   .controls {
     grid-template-columns: 1fr !important;
-    gap: 10px !important;
-    padding: 0 12px !important;
+    gap: 8px !important;
+    margin-bottom: 1rem !important;
   }
 
   .search-box input,
   .filter-select {
-    font-size: 0.85rem !important;
-    padding: 0.75rem 0.9rem 0.75rem 2.5rem !important;
+    font-size: 0.8rem !important;
+    padding: 0.65rem 0.9rem 0.65rem 2.4rem !important;
     border-radius: 10px !important;
   }
 
+  .filter-select { padding-left: 0.9rem !important; }
+
+  .search-icon { font-size: 0.9rem; left: 0.85rem; }
+
+  /* Categories compact */
+  .categories {
+    gap: 0.35rem !important;
+    margin-bottom: 1rem !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .categories::-webkit-scrollbar { display: none; }
+
   .category-chip {
-    padding: 0.4rem 0.75rem !important;
-    font-size: 0.72rem !important;
+    padding: 0.35rem 0.7rem !important;
+    font-size: 0.68rem !important;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
-  .main {
-    padding: 0.8rem !important;
+  /* Section */
+  .section { margin-bottom: 1.25rem !important; }
+
+  .section-header {
+    margin-bottom: 0.75rem !important;
+    padding-bottom: 0.6rem !important;
   }
 
-  .section {
-    margin-bottom: 2rem !important;
+  .section-header h3 { font-size: 0.95rem !important; letter-spacing: 0.05em !important; }
+  .count { font-size: 0.7rem !important; padding: 0.2rem 0.6rem !important; }
+
+  /* ============================================================
+     5. PLUGIN CARD — LIST ITEM NHƯ GOOGLE PLAY (~100px)
+     ============================================================ */
+  .plugins-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    padding: 0 !important;
   }
 
-  .section-header h3 {
-    font-size: 1rem !important;
+  .plugin-card {
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 56px 1fr auto !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 2px 10px !important;
+    align-items: start !important;
+    position: relative;
+    transform-style: flat !important;
+    animation: none !important;
+    transition: transform 0.15s, background 0.15s !important;
   }
 
-  /* Footer stack */
+  .plugin-card:active { transform: scale(0.98) !important; background: rgba(168, 85, 247, 0.08) !important; }
+
+  /* Không cần 3D tilt */
+  .plugin-card.in-view { animation: cardFloat 8s ease-in-out infinite !important; }
+
+  @keyframes cardFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+  }
+
+  /* Icon → square box 56x56 */
+  .plugin-icon {
+    grid-column: 1 !important;
+    grid-row: 1 / 4 !important;
+    font-size: 1.8rem !important;
+    margin: 0 !important;
+    width: 56px !important;
+    height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.1)) !important;
+    border: 1px solid rgba(168, 85, 247, 0.25) !important;
+    border-radius: 12px !important;
+    flex-shrink: 0 !important;
+    align-self: center !important;
+  }
+
+  .plugin-name {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2 !important;
+  }
+
+  .plugin-author {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    font-size: 0.65rem !important;
+    margin: 0 !important;
+    opacity: 0.7 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Ẩn desc trên mobile list */
+  .plugin-desc { display: none !important; }
+
+  .plugin-meta {
+    grid-column: 2 !important;
+    grid-row: 3 !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 0.65rem !important;
+    margin-top: 2px !important;
+    display: flex !important;
+    gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .plugin-rating { font-size: 0.7rem !important; }
+  .plugin-downloads { font-size: 0.65rem !important; opacity: 0.7; }
+
+  /* Price badge → grid column 3 */
+  .plugin-price-row {
+    grid-column: 3 !important;
+    grid-row: 1 / 4 !important;
+    margin: 0 !important;
+    align-self: center !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .plugin-price {
+    font-size: 0.62rem !important;
+    padding: 3px 9px !important;
+    letter-spacing: 0.02em !important;
+    white-space: nowrap;
+  }
+
+  /* Badge VERIFIED/FEATURED — thu nhỏ */
+  .plugin-badge {
+    font-size: 0.55rem !important;
+    padding: 1px 6px !important;
+    top: 6px !important;
+    right: 6px !important;
+  }
+
+  .badge-featured { top: 6px !important; }
+
+  /* ============================================================
+     6. THEME CARD — COMPACT (~200px)
+     ============================================================ */
+  .mk-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .theme-card {
+    min-height: 190px !important;
+    border-radius: 12px !important;
+    animation: cardFloat 8s ease-in-out infinite !important;
+  }
+
+  .theme-preview {
+    height: 100px !important;
+  }
+
+  .card-info {
+    padding: 8px 12px !important;
+  }
+
+  .card-name {
+    font-size: 0.85rem !important;
+    margin-bottom: 1px !important;
+  }
+
+  .card-desc {
+    font-size: 0.68rem !important;
+    -webkit-line-clamp: 1 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .card-meta { margin-top: 4px !important; }
+  .card-author img { width: 16px !important; height: 16px !important; }
+  .card-author span { font-size: 0.65rem !important; }
+  .card-stats .stat { font-size: 0.65rem !important; }
+
+  .price-badge {
+    top: 6px !important;
+    right: 6px !important;
+    padding: 2px 8px !important;
+    font-size: 0.6rem !important;
+  }
+
+  /* ============================================================
+     7. FOOTER
+     ============================================================ */
   .legal-footer {
-    padding: 1.5rem 1rem 1rem !important;
-    margin-top: 2rem !important;
+    padding: 1rem 1rem 0.8rem !important;
+    margin-top: 1.5rem !important;
   }
 
   .legal-footer > div:first-child {
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.3rem !important;
-    margin-bottom: 1rem !important;
+    gap: 0 !important;
+    margin-bottom: 0.6rem !important;
   }
 
-  .legal-footer > div:first-child > *:not(a) {
-    display: none !important;
-  }
+  .legal-footer > div:first-child > *:not(a) { display: none !important; }
 
   .legal-footer a {
     display: block !important;
     margin: 0 !important;
-    font-size: 0.82rem !important;
-    padding: 0.5rem 0 !important;
-    border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+    font-size: 0.72rem !important;
+    padding: 0.4rem 0 !important;
+    border-bottom: 1px solid rgba(168, 85, 247, 0.08);
     text-align: center;
+    text-decoration: none;
   }
 
   .legal-footer > div:last-child {
-    font-size: 0.72rem !important;
-    line-height: 1.5 !important;
+    font-size: 0.65rem !important;
+    line-height: 1.4 !important;
     text-align: center;
+    opacity: 0.6;
   }
+
+  /* ============================================================
+     8. MARKETPLACE MOBILE
+     ============================================================ */
+  .mk-hero {
+    min-height: auto !important;
+    padding: 40px 12px 20px !important;
+  }
+
+  .hero-title {
+    font-size: clamp(26px, 8vw, 38px) !important;
+    letter-spacing: -0.5px !important;
+    line-height: 1 !important;
+  }
+
+  .hero-subtitle {
+    font-size: 0.8rem !important;
+    line-height: 1.4 !important;
+    margin-top: 8px !important;
+  }
+
+  .hero-cta {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin-top: 16px !important;
+  }
+
+  .btn-hero {
+    width: 100% !important;
+    padding: 10px 16px !important;
+    font-size: 0.8rem !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+  }
+
+  .hero-float-card { display: none !important; }
+
+  .mk-filter-bar {
+    padding: 8px 12px !important;
+    gap: 6px !important;
+  }
+
+  .mk-search {
+    font-size: 0.8rem !important;
+    padding: 8px 12px !important;
+    min-width: 100% !important;
+  }
+
+  .mk-select {
+    font-size: 0.75rem !important;
+    padding: 8px 10px !important;
+    flex: 1 !important;
+  }
+
+  .tag-chips {
+    padding: 6px 12px 12px !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+
+  .tag-chips::-webkit-scrollbar { display: none; }
+
+  .tag-chip {
+    padding: 4px 10px !important;
+    font-size: 0.65rem !important;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .mk-section { padding: 16px 12px !important; }
+
+  .mk-section-title { font-size: 1.1rem !important; }
+  .mk-section-sub { font-size: 0.75rem !important; margin-bottom: 12px !important; }
+
+  .featured-3d.grid-mode { height: auto !important; padding: 0 !important; }
+  .carousel-stage { grid-template-columns: 1fr !important; gap: 10px !important; }
+
+  #bg-canvas { opacity: 0.4 !important; }
+  .cursor-glow { display: none !important; }
+
+  /* Modal mobile */
+  .mk-modal-content {
+    grid-template-columns: 1fr !important;
+    max-height: 92vh !important;
+    border-radius: 16px 16px 0 0 !important;
+    grid-template-rows: 40vh auto !important;
+  }
+
+  .modal-info {
+    padding: 16px !important;
+    max-height: 50vh !important;
+  }
+
+  .modal-title { font-size: 1.2rem !important; }
+  .modal-actions { flex-direction: column !important; gap: 6px !important; }
+  .btn-modal { padding: 10px !important; font-size: 0.85rem !important; }
 }
 
 /* ============================================================
-   10. REDUCED MOTION
+   9. TINY SCREEN (< 375px)
    ============================================================ */
-@media (prefers-reduced-motion: reduce) {
-  .plugin-card.in-view,
-  .theme-card.in-view {
-    animation: none !important;
+@media (max-width: 374px) {
+  .logo h1,
+  .header h1 {
+    font-size: 0.7rem !important;
+    max-width: 140px !important;
   }
-  
-  .mobile-hamburger,
-  .plugin-card,
-  .theme-card {
-    transition: none !important;
+
+  .plugin-card {
+    grid-template-columns: 48px 1fr auto !important;
+    gap: 2px 8px !important;
+    padding: 8px 10px !important;
   }
+
+  .plugin-icon {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.5rem !important;
+  }
+
+  .plugin-name { font-size: 0.82rem !important; }
+  .plugin-price { font-size: 0.58rem !important; padding: 2px 7px !important; }
 }
