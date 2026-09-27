@@ -198,6 +198,17 @@ function renderDashboard(data) {
             `}
         </div>
 
+        <!-- MY LICENSES -->
+        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                <h3 class="font-heading" style="color: var(--cyan); font-size: 1rem;">🔑 MY LICENSES</h3>
+                <span style="color: var(--dim); font-size: 0.8rem;">Theme đã mua</span>
+            </div>
+            <div id="licenses-container">
+                <p style="color: #888; text-align: center; padding: 20px;">Đang tải licenses...</p>
+            </div>
+        </div>
+
         <!-- MY REVIEWS -->
         <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
@@ -252,5 +263,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </div>
   <script src="mobile-menu.js"></script>
   <script src="floating-balloons.js"></script>
+    <script src="license.js"></script>
 </body>
 </html>
