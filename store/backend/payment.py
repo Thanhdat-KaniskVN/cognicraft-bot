@@ -83,7 +83,7 @@ async def create_payment(req: CreatePaymentRequest, user: dict = Depends(get_cur
         if not checkout_url:
             raise HTTPException(500, "PayOS khong tra ve checkout_url")
 
-        db.execute("UPDATE orders SET payment_ref=%s WHERE id=%s", (payment_link_id, order_id))
+        db.execute("UPDATE orders SET payment_ref=%s WHERE id=%s", (str(order_code), order_id))
 
         return {"checkout_url": checkout_url, "order_code": order_code, "amount": int(theme["price_vnd"])}
 
