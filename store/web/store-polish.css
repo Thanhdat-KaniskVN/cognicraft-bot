@@ -1,0 +1,516 @@
+/* ============================================================
+   COGNICRAFT STORE POLISH
+   Nâng cấp UI chuyên nghiệp
+   ============================================================ */
+
+/* ============================================================
+   1. HERO SECTION — IMPROVED
+   ============================================================ */
+.hero {
+  position: relative;
+  padding: 3rem 1rem 4rem !important;
+}
+
+.hero h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #06b6d4 0%, #a855f7 50%, #ec4899 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: heroShine 6s linear infinite;
+  filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.3));
+}
+
+@keyframes heroShine {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+.hero p {
+  color: rgba(240, 229, 255, 0.7);
+  font-size: 1.05rem;
+  margin-top: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   2. SECTION HEADER — CLEAN
+   ============================================================ */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+  position: relative;
+}
+
+.section-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, #a855f7, transparent);
+  border-radius: 2px;
+}
+
+.section-header h3 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #f0e5ff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.count {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.75rem;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 999px;
+  color: #a78bfa;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   3. PLUGIN CARD — POLISHED
+   ============================================================ */
+.plugin-card {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(30, 15, 60, 0.7), rgba(15, 5, 35, 0.9));
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s,
+    box-shadow 0.3s;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.plugin-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #06b6d4, #a855f7, #ec4899);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.plugin-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(168, 85, 247, 0.2);
+}
+
+.plugin-card:hover::before {
+  opacity: 1;
+}
+
+/* Icon container polish */
+.plugin-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(6, 182, 212, 0.06));
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  padding: 0.5rem;
+  transition: all 0.3s;
+}
+
+.plugin-card:hover .plugin-icon {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(6, 182, 212, 0.12));
+  border-color: rgba(168, 85, 247, 0.3);
+  transform: scale(1.05);
+}
+
+/* Plugin name + author */
+.plugin-name {
+  letter-spacing: 0.01em;
+  transition: color 0.2s;
+}
+
+.plugin-card:hover .plugin-name {
+  color: #06b6d4;
+}
+
+/* Meta section */
+.plugin-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.plugin-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #fbbf24;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.plugin-rating.no-rating {
+  color: #a78bfa;
+  font-size: 0.72rem;
+  font-weight: 500;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+.plugin-downloads {
+  color: #a78bfa;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* ============================================================
+   4. PRICE BADGE — PREMIUM LOOK
+   ============================================================ */
+.plugin-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s;
+}
+
+.plugin-price:hover {
+  transform: scale(1.05);
+}
+
+.plugin-price.free {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  box-shadow:
+    0 4px 12px rgba(34, 197, 94, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.plugin-price.paid {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1a1a1a;
+  box-shadow:
+    0 4px 12px rgba(251, 191, 36, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================================
+   5. VERIFIED/FEATURED BADGES — CLEAN
+   ============================================================ */
+.plugin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.badge-verified {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(22, 163, 74, 0.9));
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.badge-featured {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(236, 72, 153, 0.9));
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================================
+   6. STORE TABS — PREMIUM
+   ============================================================ */
+.store-tabs {
+  background: rgba(20, 8, 40, 0.6);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 999px;
+  padding: 5px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.store-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #a78bfa;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.store-tab.active {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: #fff;
+  box-shadow:
+    0 8px 20px rgba(168, 85, 247, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.store-tab .badge {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+/* ============================================================
+   7. SEARCH BOX — REFINED
+   ============================================================ */
+.search-box input {
+  background: rgba(20, 8, 40, 0.6);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s;
+}
+
+.search-box input:focus {
+  background: rgba(20, 8, 40, 0.8);
+  border-color: #06b6d4;
+  box-shadow:
+    0 0 0 3px rgba(6, 182, 212, 0.15),
+    0 8px 24px rgba(6, 182, 212, 0.2);
+}
+
+.search-box input::placeholder {
+  color: rgba(167, 139, 250, 0.5);
+}
+
+/* ============================================================
+   8. FILTER SELECT — CLEAN
+   ============================================================ */
+.filter-select {
+  background: rgba(20, 8, 40, 0.6);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  backdrop-filter: blur(12px);
+  transition: all 0.2s;
+}
+
+.filter-select:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.filter-select:focus {
+  border-color: #06b6d4;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+}
+
+/* ============================================================
+   9. CATEGORY CHIPS — REFINED
+   ============================================================ */
+.category-chip {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(20, 8, 40, 0.5);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  color: #a78bfa;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  backdrop-filter: blur(8px);
+}
+
+.category-chip:hover {
+  border-color: #a855f7;
+  color: #fff;
+  background: rgba(168, 85, 247, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.2);
+}
+
+.category-chip.active {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(236, 72, 153, 0.2));
+  border-color: #a855f7;
+  color: #fff;
+  box-shadow:
+    0 6px 16px rgba(168, 85, 247, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.category-chip .cat-count {
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+/* ============================================================
+   10. TAG CHIPS
+   ============================================================ */
+.tags-section {
+  padding: 0.75rem 1rem;
+  background: rgba(20, 8, 40, 0.4);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.tag-chip {
+  padding: 0.4rem 0.8rem;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.tag-chip:hover {
+  background: rgba(168, 85, 247, 0.25);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.tag-chip.active {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+}
+
+/* ============================================================
+   11. FEATURED SECTION — HIGHLIGHTED
+   ============================================================ */
+.section:has(#featured-grid) .section-header h3 {
+  color: #fbbf24;
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+#featured-grid .plugin-card::before {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24);
+  opacity: 1;
+  animation: featuredGlow 3s ease-in-out infinite;
+}
+
+@keyframes featuredGlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ============================================================
+   12. FLOATING BALLOON CONTAINER
+   ============================================================ */
+#floating-balloons-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+}
+
+.floating-balloon {
+  will-change: transform, opacity;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.4s, filter 0.4s;
+}
+
+.floating-balloon:active {
+  transform-origin: center;
+}
+
+/* ============================================================
+   13. RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .hero h2 {
+    font-size: 2rem;
+    letter-spacing: -0.01em;
+  }
+
+  .hero p {
+    font-size: 0.85rem;
+  }
+
+  .section-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .store-tab {
+    padding: 8px 16px;
+    font-size: 0.78rem;
+  }
+
+  #floating-balloons-container {
+    z-index: 1;
+  }
+
+  /* Reduce balloon count visibility on mobile (perf) */
+  .floating-balloon {
+    opacity: 0.5;
+  }
+}
+
+/* ============================================================
+   14. REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .hero h2 {
+    animation: none;
+  }
+
+  .floating-balloon {
+    display: none !important;
+  }
+
+  #featured-grid .plugin-card::before {
+    animation: none;
+    opacity: 1;
+  }
+}
