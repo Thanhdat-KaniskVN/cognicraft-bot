@@ -1374,3 +1374,177 @@ body::after {
     font-size: 18px !important;
   }
 }
+/* ============================================================
+   MARKETPLACE MOBILE — FIX
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Nav compact */
+  .mk-nav {
+    padding: 0.7rem 60px 0.7rem 1rem !important;
+  }
+
+  .mk-logo {
+    font-size: 0.85rem !important;
+    max-width: 200px;
+    overflow: hidden;
+  }
+
+  .mk-nav-links {
+    display: none !important; /* dùng drawer */
+  }
+
+  /* Tăng top padding do header chiếm ít */
+  .mk-hero {
+    padding: 80px 16px 40px !important;
+    min-height: auto !important;
+  }
+
+  .hero-title {
+    font-size: clamp(28px, 8vw, 44px) !important;
+    letter-spacing: -1px !important;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .hero-cta {
+    gap: 10px !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .btn-hero {
+    width: 100% !important;
+    padding: 12px 20px !important;
+    font-size: 0.9rem !important;
+    justify-content: center !important;
+  }
+
+  /* Hide hero float cards on mobile (lag) */
+  .hero-float-card {
+    display: none !important;
+  }
+
+  /* Filter bar */
+  .mk-filter-bar {
+    padding: 12px 16px !important;
+    gap: 8px !important;
+    top: 0 !important;
+  }
+
+  .mk-search {
+    min-width: 100% !important;
+    font-size: 0.9rem !important;
+    padding: 10px 16px !important;
+  }
+
+  .mk-select {
+    font-size: 0.85rem !important;
+    padding: 10px 12px !important;
+    width: calc(50% - 4px) !important;
+    flex: 1 !important;
+  }
+
+  .tag-chips {
+    padding: 8px 16px 16px !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+
+  .tag-chips::-webkit-scrollbar { display: none; }
+
+  .tag-chip {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Section */
+  .mk-section {
+    padding: 32px 16px !important;
+  }
+
+  .mk-section-title {
+    font-size: 1.3rem !important;
+  }
+
+  .mk-section-sub {
+    font-size: 0.85rem !important;
+  }
+
+  /* Grid 1 cột */
+  .mk-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Theme card compact */
+  .theme-card {
+    min-height: 280px !important;
+  }
+
+  .theme-preview {
+    height: 160px !important;
+  }
+
+  .card-info { padding: 12px 16px !important; }
+  .card-name { font-size: 0.95rem !important; }
+  .card-desc { font-size: 0.75rem !important; }
+
+  /* Featured carousel — grid mode */
+  .featured-3d.grid-mode {
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  .carousel-stage {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    padding: 0 !important;
+  }
+
+  /* Disable particle canvas on mobile for performance */
+  #bg-canvas {
+    opacity: 0.5 !important;
+  }
+
+  /* Cursor glow off */
+  .cursor-glow { display: none !important; }
+
+  /* Modal full screen */
+  .mk-modal {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .mk-modal-content {
+    grid-template-columns: 1fr !important;
+    max-height: 92vh !important;
+    border-radius: 20px 20px 0 0 !important;
+    grid-template-rows: 42vh auto !important;
+  }
+
+  .modal-preview {
+    min-height: 0 !important;
+    padding: 16px !important;
+  }
+
+  .modal-info {
+    padding: 20px !important;
+    overflow-y: auto !important;
+    max-height: 50vh !important;
+  }
+
+  .modal-close {
+    top: 12px !important;
+    right: 12px !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    backdrop-filter: blur(10px) !important;
+  }
+
+  .modal-title { font-size: 1.3rem !important; }
+  .modal-actions { flex-direction: column !important; gap: 8px !important; }
+  .btn-modal { padding: 12px !important; font-size: 0.9rem !important; }
+}
