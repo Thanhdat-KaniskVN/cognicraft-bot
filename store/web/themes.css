@@ -207,7 +207,15 @@
     94%           { transform: scale(0.7); }
     96%           { transform: scale(1.2); }
 }
-
+/* Mobile: giảm decoration overlap */
+@media (max-width: 768px) {
+  [data-theme="cyberpunk"] .hero h2::before,
+  [data-theme="cyberpunk"] .hero h2::after,
+  [data-theme="cyberpunk"] .hero-title::before {
+    opacity: 0.3 !important;
+    font-size: 0.7em !important;
+  }
+}
 /* ============================================================
    THEME 2: MATRIX
    ============================================================ */
@@ -1405,4 +1413,16 @@
         --primary-rgb: 8, 145, 178;
         --bg-blur: rgba(248, 249, 252, 0.85);
     }
+}
+/* ============================================================
+   MOBILE — Reduce theme decoration overlap
+   ============================================================ */
+@media (max-width: 768px) {
+  [data-theme="cyberpunk"] .hero h2::before,
+  [data-theme="cyberpunk"] .hero h2::after,
+  [data-theme="cyberpunk"] .hero-title::before,
+  [data-theme="cyberpunk"] .hero-title::after {
+    opacity: 0.3 !important;
+    font-size: 0.7em !important;
+  }
 }
