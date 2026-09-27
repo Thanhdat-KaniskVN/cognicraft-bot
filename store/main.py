@@ -18,6 +18,7 @@ from backend.admin import router as admin_router
 from backend.security import scan_text, scan_css, scan_cogni_package, compute_hash  # ← THÊM
 from backend.switch_bridge import get_switch, get_status as switch_status
 from backend.payment import router as payment_router
+from backend.license import router as license_router
 
 
 _root = Path(__file__).parent.parent
@@ -50,7 +51,8 @@ app.include_router(presence_router, prefix="/api/presence", tags=["presence"])
 app.include_router(theme_router, prefix="/api/theme", tags=["theme"])
 app.include_router(marketplace_router, prefix="/api/marketplace", tags=["marketplace"])
 app.include_router(admin_router, prefix="/api/admin", tags=["admin"])
-app.include_router(payment_router)  # đã có prefix /api/payment trong router
+app.include_router(payment_router)
+app.include_router(license_router)  # đã có prefix /api/payment trong router
 
 
 _web_dir = Path(__file__).parent / "web"

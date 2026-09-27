@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from .database import get_db
 from .auth import get_current_user
+from .license import create_license_for_order
 
 from payos import PayOS
 from payos.types import CreatePaymentLinkRequest
@@ -115,6 +116,18 @@ async def payos_webhook(request: Request):
         )
         if updated:
             print("Order " + str(updated["id"]) + " paid - user " + str(updated["user_id"]))
+            try:
+                key = create_license_for_order(
+                    str(updated["user_id"]),
+                    updated["theme_slug"],
+                    str(updated["id"]),
+                )
+                if key:
+                    print("LICENSE generated: " + key)
+                else:
+                    print("LICENSE da ton tai")
+            except Exception as e:
+                print("LICENSE error: " + str(e))
         return {"error": 0, "message": "OK", "data": {}}
     except Exception as e:
         print("Webhook error: " + str(e))
