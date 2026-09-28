@@ -8,6 +8,7 @@ import pytz
 from jarvis.ai_parser import parse_event_smart_async
 from jarvis.multi_parser import parse_multi_events
 from jarvis import event_manager as em
+from jarvis.gcal_sync import push_event_async
 from jarvis.advisor import analyze as advisor_analyze
 
 TZ = pytz.timezone("Asia/Ho_Chi_Minh")
@@ -163,14 +164,35 @@ async def _do_add(ctx, text, force_ai=False):
             ev.location,
         )
         if ev_id:
-            saved.append((ev_id, ev))
+            # Push len GCal qua Switch Railway
+            gcal_link = None
+            try:
+                gcal = await push_event_async(
+                    title=ev.title,
+                    start_dt=ev.start_time,
+                    end_dt=ev.end_time,
+                    description=f"JARVIS {ev.event_type}",
+                    location=ev.location,
+                )
+                if gcal and gcal.get("id"):
+                    gcal_link = gcal.get("htmlLink")
+                    await asyncio.to_thread(
+                        em.update_event, ev_id,
+                        gcal_event_id=gcal["id"],
+                        gcal_html_link=gcal_link,
+                    )
+                    print(f"[JARVIS] GCal #{ev_id} -> {gcal['id']}")
+            except Exception as e:
+                print(f"[JARVIS] GCal push fail #{ev_id}: {e}")
+            saved.append((ev_id, ev, gcal_link))
 
     if not saved:
         await msg.edit(content="Loi khi luu event.")
         return
 
     lines = []
-    for ev_id, ev in saved:
+    for item in saved:
+        ev_id, ev, gcal_link = item if len(item) == 3 else (item[0], item[1], None)
         icon = ICONS.get(ev.event_type, "TASK")
         end_str = ev.end_time.strftime("%H:%M") if ev.end_time else "?"
         extras = []
@@ -179,7 +201,10 @@ async def _do_add(ctx, text, force_ai=False):
         if ev.duration_min:
             extras.append(f"{ev.duration_min}p")
         extra = f" ({', '.join(extras)})" if extras else ""
-        lines.append(f"`#{ev_id}` {icon} **{_fmt_time(ev.start_time)} -> {end_str}** - {ev.title}{extra}")
+        line = f"`#{ev_id}` {icon} **{_fmt_time(ev.start_time)} -> {end_str}** - {ev.title}{extra}"
+        if gcal_link:
+            line += f" [GCal]({gcal_link})"
+        lines.append(line)
 
     embed = discord.Embed(
         title=f"Da them {len(saved)} event",
