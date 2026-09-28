@@ -162,7 +162,7 @@ async def _do_add(ctx, text, force_ai=False):
         try:
             conflicts = await asyncio.to_thread(
                 detect_conflicts,
-                user_id, ev.start_time, ev.end_time,
+                user_id, ev.start_time, ev.end_time, None, ev.event_type,
             )
             suggestions = []
             if conflicts:

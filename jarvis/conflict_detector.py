@@ -8,6 +8,10 @@ from jarvis import event_manager as em
 
 TZ = pytz.timezone("Asia/Ho_Chi_Minh")
 
+EXCLUSIVE_TYPES = {"class", "exam", "meeting", "gym", "run", "bike", "swim", "yoga"}
+# Chi check conflict cho cac type "doc quyen" (can focused/dia diem cu the).
+# task, study, other -> flexible, khong flag.
+
 WORK_START = 6    # 6h sang
 WORK_END = 23     # 11h toi
 
@@ -20,8 +24,15 @@ def _parse_dt(dt):
     return dt
 
 
-def detect_conflicts(user_id, start_dt, end_dt, exclude_id=None):
-    """Tim events overlap voi [start_dt, end_dt]."""
+def detect_conflicts(user_id, start_dt, end_dt, exclude_id=None, event_type=None):
+    """Tim events overlap voi [start_dt, end_dt].
+
+    Neu event_type khong thuoc EXCLUSIVE_TYPES -> return [] (khong can check).
+    """
+    # Skip neu event flexible (task/study/other)
+    if event_type and event_type not in EXCLUSIVE_TYPES:
+        return []
+
     if start_dt.tzinfo is None:
         start_dt = TZ.localize(start_dt)
     if end_dt.tzinfo is None:
@@ -32,6 +43,9 @@ def detect_conflicts(user_id, start_dt, end_dt, exclude_id=None):
 
     for ev in events:
         if exclude_id and ev["id"] == exclude_id:
+            continue
+        # Chi flag existing event neu no la EXCLUSIVE type
+        if ev.get("event_type") not in EXCLUSIVE_TYPES:
             continue
         try:
             ev_start = _parse_dt(ev["start_time"])
@@ -48,6 +62,8 @@ def detect_conflicts(user_id, start_dt, end_dt, exclude_id=None):
 
 def _has_conflict(slot_start, slot_end, events):
     for ev in events:
+        if ev.get("event_type") not in EXCLUSIVE_TYPES:
+            continue
         try:
             ev_start = _parse_dt(ev["start_time"])
             ev_end = _parse_dt(ev["end_time"]) if ev.get("end_time") else ev_start + timedelta(hours=1)
