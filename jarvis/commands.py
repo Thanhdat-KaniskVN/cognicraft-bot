@@ -10,7 +10,7 @@ from jarvis.multi_parser import parse_multi_events
 from jarvis import event_manager as em
 from jarvis.gcal_sync import push_event_async
 from jarvis.conflict_detector import detect_conflicts, suggest_slots, format_conflict_warning
-from jarvis.interactive import ConflictView, build_conflict_embed
+from jarvis.interactive import ConflictView, build_conflict_embed, ConfirmView, build_confirm_embed
 from jarvis.advisor import analyze as advisor_analyze
 
 TZ = pytz.timezone("Asia/Ho_Chi_Minh")
@@ -174,7 +174,7 @@ async def _do_add(ctx, text, force_ai=False):
         except Exception as e:
             print(f"[JARVIS] Conflict check err: {e}")
 
-    # CASE 1 event + co conflict -> show ConflictView (KHONG tao event)
+    # CASE: 1 event + co conflict -> ConflictView
     if len(events) == 1 and conflicts_check:
         ci = conflicts_check[0]
         embed = build_conflict_embed(
@@ -187,77 +187,10 @@ async def _do_add(ctx, text, force_ai=False):
         await msg.edit(content=None, embed=embed, view=view)
         return
 
-    # CASE binh thuong: tao events + push GCal
-    saved = []
-    for ev in events:
-        ev_id = await asyncio.to_thread(
-            em.create_event,
-            user_id, member,
-            ev.title, ev.event_type,
-            ev.start_time, ev.end_time,
-            ev.location,
-        )
-        if ev_id:
-            gcal_link = None
-            try:
-                gcal = await push_event_async(
-                    title=ev.title,
-                    start_dt=ev.start_time,
-                    end_dt=ev.end_time,
-                    description=f"JARVIS {ev.event_type}",
-                    location=ev.location,
-                )
-                if gcal and gcal.get("id"):
-                    gcal_link = gcal.get("htmlLink")
-                    await asyncio.to_thread(
-                        em.update_event, ev_id,
-                        gcal_event_id=gcal["id"],
-                        gcal_html_link=gcal_link,
-                    )
-                    print(f"[JARVIS] GCal #{ev_id} -> {gcal['id']}")
-            except Exception as e:
-                print(f"[JARVIS] GCal push fail #{ev_id}: {e}")
-            saved.append((ev_id, ev, gcal_link))
-
-    if not saved:
-        await msg.edit(content="Loi khi luu event.")
-        return
-
-    lines = []
-    for item in saved:
-        ev_id, ev, gcal_link = item if len(item) == 3 else (item[0], item[1], None)
-        icon = ICONS.get(ev.event_type, "TASK")
-        end_str = ev.end_time.strftime("%H:%M") if ev.end_time else "?"
-        extras = []
-        if ev.distance_km:
-            extras.append(f"{ev.distance_km}km")
-        if ev.duration_min:
-            extras.append(f"{ev.duration_min}p")
-        extra = f" ({', '.join(extras)})" if extras else ""
-        line = f"`#{ev_id}` {icon} **{_fmt_time(ev.start_time)} -> {end_str}** - {ev.title}{extra}"
-        if gcal_link:
-            line += f" [GCal]({gcal_link})"
-        lines.append(line)
-
-    embed = discord.Embed(
-        title=f"Da them {len(saved)} event",
-        description="\n".join(lines),
-        color=discord.Color.green(),
-    )
-    if conflicts_check:
-        warn_lines = ["**CANH BAO XUNG DOT (multi-event):**"]
-        for ci in conflicts_check[:2]:
-            new_ev = ci["new_event"]
-            warn_lines.append(f"\n**{new_ev.title}** ({_fmt_time(new_ev.start_time)})")
-            for cf in ci["conflicts"][:2]:
-                cf_start = cf["start_time"]
-                if isinstance(cf_start, str):
-                    cf_start = datetime.fromisoformat(cf_start)
-                warn_lines.append(f"  Trung voi `#{cf['id']}` {cf['title']} @ {_fmt_time(cf_start)}")
-        embed.add_field(name="XUNG DOT", value="\n".join(warn_lines)[:1000], inline=False)
-
-    embed.set_footer(text="!j de xem hom nay | !j move <id> <HH:MM dd/mm> de doi gio | !j help")
-    await msg.edit(content=None, embed=embed)
+    # CASE: khong conflict (hoac multi-event) -> ConfirmView truoc khi GCal push
+    embed = build_confirm_embed(member, events)
+    view = ConfirmView(user_id, member, events)
+    await msg.edit(content=None, embed=embed, view=view)
 
 
 def setup_jarvis_commands(bot, is_admin):

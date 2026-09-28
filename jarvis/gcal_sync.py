@@ -63,6 +63,44 @@ async def push_event_async(title, start_dt, end_dt, description="", location=Non
         return None
 
 
+async def update_event_async(gcal_id, start_dt, end_dt, title=None,
+                              timeout=15.0) -> Optional[dict]:
+    """Update event time tren GCal qua Switch."""
+    if start_dt.tzinfo is None:
+        import pytz
+        start_dt = pytz.timezone("Asia/Ho_Chi_Minh").localize(start_dt)
+    if end_dt.tzinfo is None:
+        import pytz
+        end_dt = pytz.timezone("Asia/Ho_Chi_Minh").localize(end_dt)
+
+    body = {
+        "socket": "google_calendar",
+        "action": "update_event",
+        "params": {
+            "event_id": gcal_id,
+            "start": start_dt.isoformat(),
+            "end": end_dt.isoformat(),
+            "timezone": "Asia/Ho_Chi_Minh",
+        },
+    }
+    if title:
+        body["params"]["title"] = title
+
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            r = await client.post(f"{SWITCH_URL}/panel/call", json=body)
+            r.raise_for_status()
+            data = r.json()
+            if not data.get("success"):
+                print(f"[GCalSync] update err: {data.get('error')}")
+                return None
+            result = data.get("result") or {}
+            return {"id": result.get("id"), "htmlLink": result.get("htmlLink")}
+    except Exception as e:
+        print(f"[GCalSync] update fail: {e}")
+        return None
+
+
 async def delete_event_async(gcal_id, timeout=15.0) -> bool:
     body = {
         "socket": "google_calendar",

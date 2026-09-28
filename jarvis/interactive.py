@@ -21,6 +21,132 @@ def _fmt(dt):
     return dt.strftime("%H:%M %a %d/%m")
 
 
+class ConfirmView(discord.ui.View):
+    """View xac nhan truoc khi them event + push GCal."""
+
+    def __init__(self, user_id, member, events, timeout=120):
+        super().__init__(timeout=timeout)
+        self.user_id = user_id
+        self.member = member
+        self.events = events
+        self.applied = False
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if str(interaction.user.id) != self.user_id:
+            await interaction.response.send_message(
+                "Chi nguoi tao lenh moi duoc tuong tac!", ephemeral=True)
+            return False
+        return True
+
+    @discord.ui.button(label="Them + GCal", emoji="?", style=discord.ButtonStyle.success)
+    async def add_gcal_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self._apply(interaction, push_gcal=True)
+
+    @discord.ui.button(label="Chi local", emoji="??", style=discord.ButtonStyle.primary)
+    async def add_local_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self._apply(interaction, push_gcal=False)
+
+    @discord.ui.button(label="Huy", emoji="?", style=discord.ButtonStyle.danger)
+    async def cancel_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="Da huy",
+            description="Khong them event nao.",
+            color=discord.Color.greyple(),
+        )
+        for child in self.children:
+            child.disabled = True
+        await interaction.message.edit(embed=embed, view=self)
+        self.stop()
+
+    async def _apply(self, interaction: discord.Interaction, push_gcal: bool):
+        if self.applied:
+            await interaction.response.send_message("Da xu ly roi!", ephemeral=True)
+            return
+        await interaction.response.defer()
+
+        from jarvis import event_manager as em
+
+        saved = []
+        for ev in self.events:
+            ev_id = await asyncio.to_thread(
+                em.create_event,
+                self.user_id, self.member,
+                ev.title, ev.event_type,
+                ev.start_time, ev.end_time,
+                ev.location,
+            )
+            gcal_link = None
+            if ev_id and push_gcal:
+                try:
+                    from jarvis.gcal_sync import push_event_async
+                    gcal = await push_event_async(
+                        title=ev.title,
+                        start_dt=ev.start_time,
+                        end_dt=ev.end_time,
+                        description=f"JARVIS {ev.event_type}",
+                        location=ev.location,
+                    )
+                    if gcal and gcal.get("id"):
+                        gcal_link = gcal.get("htmlLink")
+                        await asyncio.to_thread(
+                            em.update_event, ev_id,
+                            gcal_event_id=gcal["id"],
+                            gcal_html_link=gcal_link,
+                        )
+                except Exception as e:
+                    print(f"[ConfirmView] GCal fail: {e}")
+            saved.append((ev_id, ev, gcal_link))
+
+        self.applied = True
+
+        status = "Da them + push GCal" if push_gcal else "Da them local (khong GCal)"
+        color = discord.Color.green() if push_gcal else discord.Color.blue()
+
+        lines = []
+        for ev_id, ev, gcal_link in saved:
+            icon = ICONS.get(ev.event_type, "TASK")
+            end_str = ev.end_time.strftime("%H:%M") if ev.end_time else "?"
+            line = f"`#{ev_id}` {icon} **{_fmt(ev.start_time)} -> {end_str}** - {ev.title}"
+            if gcal_link:
+                line += f" [GCal]({gcal_link})"
+            lines.append(line)
+
+        embed = discord.Embed(
+            title=status,
+            description="\n".join(lines),
+            color=color,
+        )
+        embed.set_footer(text="!j de xem hom nay | !j help")
+
+        for child in self.children:
+            child.disabled = True
+        await interaction.message.edit(embed=embed, view=self)
+
+
+def build_confirm_embed(member, events):
+    """Build embed preview truoc khi confirm."""
+    icon_line = ", ".join(ICONS.get(ev.event_type, "TASK") for ev in events)
+    embed = discord.Embed(
+        title=f"XAC NHAN THEM {len(events)} EVENT",
+        description=f"Ban muon them + push len Google Calendar?",
+        color=discord.Color.blurple(),
+    )
+    lines = []
+    for ev in events:
+        icon = ICONS.get(ev.event_type, "TASK")
+        end_str = ev.end_time.strftime("%H:%M") if ev.end_time else "?"
+        extras = []
+        if ev.distance_km:
+            extras.append(f"{ev.distance_km}km")
+        if ev.duration_min:
+            extras.append(f"{ev.duration_min}p")
+        extra = f" ({', '.join(extras)})" if extras else ""
+        lines.append(f"{icon} **{_fmt(ev.start_time)} -> {end_str}** - {ev.title}{extra}")
+    embed.add_field(name="Events", value="\n".join(lines[:10]), inline=False)
+    embed.set_footer(text="Chon hanh dong ben duoi")
+    return embed
+
+
 class ChainConfirmView(discord.ui.View):
     """View hien thi chain preview + [Apply] [Change] [Cancel]."""
 
