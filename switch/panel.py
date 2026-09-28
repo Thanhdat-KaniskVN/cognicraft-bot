@@ -350,6 +350,26 @@ async def panel_emit(req: EmitRequest):
     return {"event": req.event, "results": results}
 
 
+class CallRequest(BaseModel):
+    socket: str
+    action: str
+    params: dict = {}
+
+
+@app.post("/panel/call")
+async def panel_call(req: CallRequest):
+    """Call socket truc tiep voi params day du."""
+    socket = board.registry.get(req.socket)
+    if not socket:
+        return {"success": False, "error": f"Socket not found: {req.socket}"}
+    try:
+        result = await socket.call(req.action, **req.params)
+        return {"success": True, "socket": req.socket, "action": req.action, "result": result}
+    except Exception as e:
+        import traceback
+        return {"success": False, "error": str(e), "trace": traceback.format_exc()[-500:]}
+
+
 @app.post("/switch/sync-score-to-calendar")
 async def sync_score_to_calendar(week: int, member: str, date: str = None):
     """
