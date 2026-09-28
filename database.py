@@ -1,81 +1,64 @@
-﻿import sqlite3
+# database.py - PostgreSQL version (Supabase)
+import os
+import psycopg2
+import psycopg2.extras
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Optional
 
-DB_PATH = "scores.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL chua duoc set trong .env")
 
 
 @contextmanager
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    """Context manager cho PostgreSQL connection."""
+    conn = psycopg2.connect(DATABASE_URL)
     try:
         yield conn
         conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 
 
+@contextmanager
+def get_cursor(dict_rows=True):
+    """Context manager tra ve cursor (RealDictCursor mac dinh)."""
+    with get_db() as conn:
+        if dict_rows:
+            cursor_factory = psycopg2.extras.RealDictCursor
+        else:
+            cursor_factory = None
+        cur = conn.cursor(cursor_factory=cursor_factory)
+        try:
+            yield cur
+        finally:
+            cur.close()
+
+
 def init_db():
-    with get_db() as db:
-        db.executescript('''
-            CREATE TABLE IF NOT EXISTS scores (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                week INTEGER NOT NULL,
-                member TEXT NOT NULL,
-                accuracy REAL NOT NULL,
-                depth REAL NOT NULL,
-                connection REAL NOT NULL,
-                presentation REAL NOT NULL,
-                total REAL NOT NULL,
-                self_score REAL,
-                source TEXT NOT NULL DEFAULT 'ai_suggested',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(week, member)
-            );
-
-            CREATE TABLE IF NOT EXISTS score_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                week INTEGER NOT NULL,
-                member TEXT NOT NULL,
-                accuracy REAL NOT NULL,
-                depth REAL NOT NULL,
-                connection REAL NOT NULL,
-                presentation REAL NOT NULL,
-                total REAL NOT NULL,
-                source TEXT NOT NULL,
-                changed_by TEXT,
-                changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                note TEXT
-            );
-
-            CREATE TABLE IF NOT EXISTS participation (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                week INTEGER NOT NULL,
-                member TEXT NOT NULL,
-                submitted INTEGER NOT NULL,
-                submitted_at TIMESTAMP,
-                UNIQUE(week, member)
-            );
-
-            CREATE INDEX IF NOT EXISTS idx_scores_week ON scores(week);
-            CREATE INDEX IF NOT EXISTS idx_history_week ON score_history(week);
-            CREATE INDEX IF NOT EXISTS idx_participation_week ON participation(week);
-        ''')
+    """Tables da tao tren Supabase (khong can tao lai)."""
+    # Chi verify connection
+    with get_cursor() as cur:
+        cur.execute("SELECT 1")
+    print("[DB] Connected to Supabase")
 
 
-def _log_history(db, week, member, scores, source, changed_by=None, note=None):
+def _log_history(cur, week, member, scores, source, changed_by=None, note=None):
     total = (
         0.3 * scores["accuracy"] + 0.3 * scores["depth"] +
         0.2 * scores["connection"] + 0.2 * scores["presentation"]
     )
-    db.execute('''
-        INSERT INTO score_history
+    cur.execute("""
+        INSERT INTO bot_score_history
         (week, member, accuracy, depth, connection, presentation,
          total, source, changed_by, note)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (
         week, member,
         scores["accuracy"], scores["depth"],
         scores["connection"], scores["presentation"],
@@ -89,86 +72,108 @@ def save_score(week, member, scores, self_score=None,
         0.3 * scores["accuracy"] + 0.3 * scores["depth"] +
         0.2 * scores["connection"] + 0.2 * scores["presentation"]
     )
-    with get_db() as db:
-        db.execute('''
-            INSERT OR REPLACE INTO scores
+    with get_cursor() as cur:
+        cur.execute("""
+            INSERT INTO bot_scores
             (week, member, accuracy, depth, connection, presentation,
              total, self_score, source, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (week, member) DO UPDATE SET
+                accuracy = EXCLUDED.accuracy,
+                depth = EXCLUDED.depth,
+                connection = EXCLUDED.connection,
+                presentation = EXCLUDED.presentation,
+                total = EXCLUDED.total,
+                self_score = EXCLUDED.self_score,
+                source = EXCLUDED.source,
+                created_at = EXCLUDED.created_at
+        """, (
             week, member,
             scores["accuracy"], scores["depth"],
             scores["connection"], scores["presentation"],
             round(total, 2), self_score, source, datetime.now()
         ))
-        _log_history(db, week, member, scores, source, changed_by, note)
+        _log_history(cur, week, member, scores, source, changed_by, note)
 
 
 def get_week_scores(week):
-    with get_db() as db:
-        rows = db.execute(
-            "SELECT * FROM scores WHERE week = ? ORDER BY member", (week,)
-        ).fetchall()
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT * FROM bot_scores WHERE week = %s ORDER BY member",
+            (week,)
+        )
+        rows = cur.fetchall()
     return [dict(r) for r in rows]
 
 
 def get_score_history(week, member=None):
-    with get_db() as db:
+    with get_cursor() as cur:
         if member:
-            rows = db.execute(
-                "SELECT * FROM score_history WHERE week = ? AND member = ? ORDER BY changed_at DESC",
+            cur.execute(
+                "SELECT * FROM bot_score_history WHERE week = %s AND member = %s ORDER BY changed_at DESC",
                 (week, member)
-            ).fetchall()
+            )
         else:
-            rows = db.execute(
-                "SELECT * FROM score_history WHERE week = ? ORDER BY changed_at DESC",
+            cur.execute(
+                "SELECT * FROM bot_score_history WHERE week = %s ORDER BY changed_at DESC",
                 (week,)
-            ).fetchall()
+            )
+        rows = cur.fetchall()
     return [dict(r) for r in rows]
 
 
 def get_pending_score(week, member):
-    with get_db() as db:
-        row = db.execute(
-            "SELECT * FROM scores WHERE week = ? AND member = ? AND source = 'ai_suggested'",
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT * FROM bot_scores WHERE week = %s AND member = %s AND source = 'ai_suggested'",
             (week, member)
-        ).fetchone()
+        )
+        row = cur.fetchone()
     return dict(row) if row else None
 
 
 def update_score_source(week, member, new_source, changed_by=None):
-    with get_db() as db:
-        row = db.execute(
-            "SELECT * FROM scores WHERE week = ? AND member = ?",
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT * FROM bot_scores WHERE week = %s AND member = %s",
             (week, member)
-        ).fetchone()
+        )
+        row = cur.fetchone()
 
         if row:
-            db.execute(
-                "UPDATE scores SET source = ? WHERE week = ? AND member = ?",
+            cur.execute(
+                "UPDATE bot_scores SET source = %s WHERE week = %s AND member = %s",
                 (new_source, week, member)
             )
             scores = {
                 "accuracy": row["accuracy"], "depth": row["depth"],
                 "connection": row["connection"], "presentation": row["presentation"],
             }
-            _log_history(db, week, member, scores, new_source, changed_by,
+            _log_history(cur, week, member, scores, new_source, changed_by,
                          note=f"Source: {row['source']} -> {new_source}")
 
 
 def save_participation(week, member, submitted):
-    with get_db() as db:
-        db.execute('''
-            INSERT OR REPLACE INTO participation
+    with get_cursor() as cur:
+        cur.execute("""
+            INSERT INTO bot_participation
             (week, member, submitted, submitted_at)
-            VALUES (?, ?, ?, ?)
-        ''', (week, member, 1 if submitted else 0,
-              datetime.now() if submitted else None))
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (week, member) DO UPDATE SET
+                submitted = EXCLUDED.submitted,
+                submitted_at = EXCLUDED.submitted_at
+        """, (
+            week, member,
+            1 if submitted else 0,
+            datetime.now() if submitted else None
+        ))
 
 
 def get_week_participation(week):
-    with get_db() as db:
-        rows = db.execute(
-            "SELECT * FROM participation WHERE week = ? ORDER BY member", (week,)
-        ).fetchall()
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT * FROM bot_participation WHERE week = %s ORDER BY member",
+            (week,)
+        )
+        rows = cur.fetchall()
     return [dict(r) for r in rows]
