@@ -78,18 +78,23 @@ board = SwitchBoard()
 
 _hub_file = _BOT_ROOT / "hub.py"
 
-if not _hub_file.exists():
-    raise ImportError(f"❌ Không tìm thấy hub.py tại: {_hub_file}")
-
-_spec = importlib.util.spec_from_file_location("cognicraft_hub_root", str(_hub_file))
-_hub_module = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_hub_module)
-
-PluginHub = _hub_module.PluginHub
+if _hub_file.exists():
+    _spec = importlib.util.spec_from_file_location("cognicraft_hub_root", str(_hub_file))
+    _hub_module = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_hub_module)
+    PluginHub = _hub_module.PluginHub
+    print(f"[Panel] PluginHub loaded from {_hub_file}")
+else:
+    PluginHub = None
+    print(f"[Panel] hub.py not found ({_hub_file}) - PluginHub disabled")
 
 # Init hub with absolute paths
-_hub = PluginHub()
-print(f"[Panel] ✅ Loaded hub.py: {_hub_file}")
+if PluginHub is not None:
+    _hub = PluginHub()
+    print(f"[Panel] Loaded hub.py: {_hub_file}")
+else:
+    _hub = None
+    print(f"[Panel] Running without hub.py - panel API still works")
 
 
 # ============================================================
