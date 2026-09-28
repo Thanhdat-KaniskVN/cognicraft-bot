@@ -9,6 +9,7 @@ from jarvis.ai_parser import parse_event_smart_async
 from jarvis.multi_parser import parse_multi_events
 from jarvis import event_manager as em
 from jarvis.gcal_sync import push_event_async
+from jarvis.conflict_detector import detect_conflicts, suggest_slots, format_conflict_warning
 from jarvis.advisor import analyze as advisor_analyze
 
 TZ = pytz.timezone("Asia/Ho_Chi_Minh")
@@ -155,7 +156,29 @@ async def _do_add(ctx, text, force_ai=False):
         print(f"[JARVIS DEBUG] event[{i}] {ev.title!r} start={ev.start_time} src={getattr(ev, '_source', '?')}")
 
     saved = []
+    conflicts_info = []
     for ev in events:
+        # Check conflict TRUOC khi luu
+        try:
+            conflicts = await asyncio.to_thread(
+                detect_conflicts,
+                user_id, ev.start_time, ev.end_time,
+            )
+            suggestions = []
+            if conflicts:
+                duration = int((ev.end_time - ev.start_time).total_seconds() / 60) if ev.end_time else 60
+                suggestions = await asyncio.to_thread(
+                    suggest_slots,
+                    ev.start_time, duration, user_id, 3,
+                )
+                conflicts_info.append({
+                    "new_event": ev,
+                    "conflicts": conflicts,
+                    "suggestions": suggestions,
+                })
+        except Exception as e:
+            print(f"[JARVIS] Conflict check err: {e}")
+
         ev_id = await asyncio.to_thread(
             em.create_event,
             user_id, member,
@@ -164,7 +187,6 @@ async def _do_add(ctx, text, force_ai=False):
             ev.location,
         )
         if ev_id:
-            # Push len GCal qua Switch Railway
             gcal_link = None
             try:
                 gcal = await push_event_async(
@@ -211,7 +233,23 @@ async def _do_add(ctx, text, force_ai=False):
         description="\n".join(lines),
         color=discord.Color.green(),
     )
-    embed.set_footer(text="!j de xem hom nay | !j help")
+    # Add conflict warnings
+    if conflicts_info:
+        warn_lines = ["**CANH BAO XUNG DOT:**"]
+        for ci in conflicts_info[:2]:
+            new_ev = ci["new_event"]
+            warn_lines.append(f"\n**{new_ev.title}** ({_fmt_time(new_ev.start_time)})")
+            for cf in ci["conflicts"][:2]:
+                cf_start = cf["start_time"]
+                if isinstance(cf_start, str):
+                    cf_start = datetime.fromisoformat(cf_start)
+                warn_lines.append(f"  Trung voi `#{cf['id']}` {cf['title']} @ {_fmt_time(cf_start)}")
+            if ci["suggestions"]:
+                sug_txt = ", ".join(s["start"].strftime("%H:%M") for s in ci["suggestions"][:3])
+                warn_lines.append(f"  Goi y doi: `{sug_txt}`")
+        embed.add_field(name="XUNG DOT", value="\n".join(warn_lines)[:1000], inline=False)
+
+    embed.set_footer(text="!j de xem hom nay | !j move <id> <HH:MM dd/mm> de doi gio | !j help")
     await msg.edit(content=None, embed=embed)
 
 
@@ -279,6 +317,46 @@ def setup_jarvis_commands(bot, is_admin):
             embed.add_field(name="Cancelled", value=s.get("cancelled", 0))
             embed.add_field(name="Hom nay", value=s.get("today", 0))
             await ctx.send(embed=embed)
+            return
+
+        # !j move <id> <new_time>
+        if al.startswith("move "):
+            parts = a.split(maxsplit=2)
+            if len(parts) < 3:
+                await ctx.send("Cu phap: `!j move <id> <HH:MM dd/mm>` (vd: `!j move 65 20:00 29/09`)")
+                return
+            try:
+                ev_id = int(parts[1])
+            except ValueError:
+                await ctx.send("ID khong hop le")
+                return
+            ev = await asyncio.to_thread(em.get_event, ev_id)
+            if not ev:
+                await ctx.send(f"Khong tim thay event #{ev_id}")
+                return
+            if ev["user_id"] != str(ctx.author.id) and not is_admin(ctx):
+                await ctx.send("Khong co quyen.")
+                return
+
+            # Parse new time
+            from jarvis.nl_parser import parse_event as _parse_simple
+            new_ev = await asyncio.to_thread(_parse_simple, parts[2])
+            if not new_ev or not new_ev.start_time:
+                await ctx.send(f"Khong parse duoc thoi gian: `{parts[2]}`")
+                return
+
+            # Update DB
+            duration = int((new_ev.end_time - new_ev.start_time).total_seconds() / 60) if new_ev.end_time else 60
+            new_end = new_ev.start_time + timedelta(minutes=duration)
+            await asyncio.to_thread(
+                em.update_event, ev_id,
+                start_time=new_ev.start_time,
+                end_time=new_end,
+            )
+            await ctx.send(
+                f"Da doi #{ev_id} **{ev['title']}**\n"
+                f"  {_fmt_time(new_ev.start_time)} -> {new_end.strftime('%H:%M')}"
+            )
             return
 
         for action in ("cancel", "done", "delete"):
