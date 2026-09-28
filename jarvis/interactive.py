@@ -38,15 +38,15 @@ class ConfirmView(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label="Them + GCal", emoji="?", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Them + GCal", emoji="\u2705", style=discord.ButtonStyle.success)
     async def add_gcal_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._apply(interaction, push_gcal=True)
 
-    @discord.ui.button(label="Chi local", emoji="??", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Chi local", emoji="\U0001F4DD", style=discord.ButtonStyle.primary)
     async def add_local_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._apply(interaction, push_gcal=False)
 
-    @discord.ui.button(label="Huy", emoji="?", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="Huy", emoji="\u274C", style=discord.ButtonStyle.danger)
     async def cancel_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
         embed = discord.Embed(
             title="Da huy",
