@@ -10,6 +10,7 @@ from jarvis.multi_parser import parse_multi_events
 from jarvis import event_manager as em
 from jarvis.gcal_sync import push_event_async
 from jarvis.conflict_detector import detect_conflicts, suggest_slots, format_conflict_warning
+from jarvis.interactive import ConflictView, build_conflict_embed
 from jarvis.advisor import analyze as advisor_analyze
 
 TZ = pytz.timezone("Asia/Ho_Chi_Minh")
@@ -151,27 +152,21 @@ async def _do_add(ctx, text, force_ai=False):
         await msg.edit(content=f"Khong parse duoc: `{text}`")
         return
 
-    # DEBUG: log tung event
-    for i, ev in enumerate(events, 1):
-        print(f"[JARVIS DEBUG] event[{i}] {ev.title!r} start={ev.start_time} src={getattr(ev, '_source', '?')}")
-
-    saved = []
-    conflicts_info = []
+    # Check conflicts TRUOC khi luu
+    conflicts_check = []
     for ev in events:
-        # Check conflict TRUOC khi luu
         try:
             conflicts = await asyncio.to_thread(
                 detect_conflicts,
                 user_id, ev.start_time, ev.end_time, None, ev.event_type,
             )
-            suggestions = []
             if conflicts:
                 duration = int((ev.end_time - ev.start_time).total_seconds() / 60) if ev.end_time else 60
                 suggestions = await asyncio.to_thread(
                     suggest_slots,
                     ev.start_time, duration, user_id, 3,
                 )
-                conflicts_info.append({
+                conflicts_check.append({
                     "new_event": ev,
                     "conflicts": conflicts,
                     "suggestions": suggestions,
@@ -179,6 +174,22 @@ async def _do_add(ctx, text, force_ai=False):
         except Exception as e:
             print(f"[JARVIS] Conflict check err: {e}")
 
+    # CASE 1 event + co conflict -> show ConflictView (KHONG tao event)
+    if len(events) == 1 and conflicts_check:
+        ci = conflicts_check[0]
+        embed = build_conflict_embed(
+            member, ci["new_event"], ci["conflicts"], ci["suggestions"]
+        )
+        view = ConflictView(
+            user_id, member, ci["new_event"],
+            ci["conflicts"], ci["suggestions"],
+        )
+        await msg.edit(content=None, embed=embed, view=view)
+        return
+
+    # CASE binh thuong: tao events + push GCal
+    saved = []
+    for ev in events:
         ev_id = await asyncio.to_thread(
             em.create_event,
             user_id, member,
@@ -233,10 +244,9 @@ async def _do_add(ctx, text, force_ai=False):
         description="\n".join(lines),
         color=discord.Color.green(),
     )
-    # Add conflict warnings
-    if conflicts_info:
-        warn_lines = ["**CANH BAO XUNG DOT:**"]
-        for ci in conflicts_info[:2]:
+    if conflicts_check:
+        warn_lines = ["**CANH BAO XUNG DOT (multi-event):**"]
+        for ci in conflicts_check[:2]:
             new_ev = ci["new_event"]
             warn_lines.append(f"\n**{new_ev.title}** ({_fmt_time(new_ev.start_time)})")
             for cf in ci["conflicts"][:2]:
@@ -244,9 +254,6 @@ async def _do_add(ctx, text, force_ai=False):
                 if isinstance(cf_start, str):
                     cf_start = datetime.fromisoformat(cf_start)
                 warn_lines.append(f"  Trung voi `#{cf['id']}` {cf['title']} @ {_fmt_time(cf_start)}")
-            if ci["suggestions"]:
-                sug_txt = ", ".join(s["start"].strftime("%H:%M") for s in ci["suggestions"][:3])
-                warn_lines.append(f"  Goi y doi: `{sug_txt}`")
         embed.add_field(name="XUNG DOT", value="\n".join(warn_lines)[:1000], inline=False)
 
     embed.set_footer(text="!j de xem hom nay | !j move <id> <HH:MM dd/mm> de doi gio | !j help")

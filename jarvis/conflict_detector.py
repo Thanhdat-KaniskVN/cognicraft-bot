@@ -21,6 +21,9 @@ def _parse_dt(dt):
         dt = datetime.fromisoformat(dt)
     if dt.tzinfo is None:
         dt = TZ.localize(dt)
+    else:
+        # Convert UTC -> TZ (Asia/Ho_Chi_Minh)
+        dt = dt.astimezone(TZ)
     return dt
 
 

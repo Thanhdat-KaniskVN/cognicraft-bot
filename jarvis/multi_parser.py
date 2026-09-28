@@ -30,7 +30,8 @@ COMMA_SPLIT = re.compile(
 )
 
 RANGE_PATTERN = re.compile(
-    r"(\d{1,2})(?:[h:](\d{1,2}))?\s*(?:-|->|den|toi)\s*(\d{1,2})(?:[h:](\d{1,2}))?"
+    r"(\d{1,2})(?:[h:](\d{1,2})?)?\s*(?:-|->|den|toi)\s*(\d{1,2})(?:[h:](\d{1,2})?)?",
+    re.IGNORECASE,
 )
 MAX_EVENT_HOURS = 12
 
@@ -125,32 +126,58 @@ def _apply_context(norm_parts):
     return result
 
 
-def parse_time_range(norm):
-    m = RANGE_PATTERN.search(norm)
+def parse_time_range(text: str):
+    t = _normalize(text)
+    m = RANGE_PATTERN.search(t)
     if not m:
         return None
+
     h1 = int(m.group(1))
     m1 = int(m.group(2)) if m.group(2) else 0
-    h2 = int(m.group(3))
+    h2_raw = int(m.group(3))
     m2 = int(m.group(4)) if m.group(4) else 0
+
     period = None
-    if re.search(r"\b(chieu|pm|afternoon)\b", norm):
+    if re.search(r"\b(chieu|pm|afternoon)\b", t):
         period = "pm"
-    elif re.search(r"\b(toi|dem|evening|night)\b", norm):
+    elif re.search(r"\b(toi|dem|evening|night)\b", t):
         period = "pm"
-    elif re.search(r"\b(sang|am|morning)\b", norm):
+    elif re.search(r"\b(sang|am|morning)\b", t):
         period = "am"
-    if period == "pm" and h2 < 12:
-        h2 += 12
-    elif period == "am" and h2 == 12:
-        h2 = 0
+
+    # Cross-midnight chi khi h1 >= 20 (buoi toi muon -> qua ngay)
+    cross_midnight = (h1 > h2_raw) and (h1 >= 20)
+
+    # Apply period cho h2
+    h2 = h2_raw
+    if not cross_midnight:
+        if period == "pm" and h2 < 12:
+            h2 += 12
+        elif period == "am" and h2 == 12:
+            h2 = 0
+
+    # Neu period=pm va duration > 12h -> thu adjust h1 += 12 (vd "3h-5h chieu")
+    if period == "pm" and h1 < 12 and not cross_midnight:
+        dur_test = h2 - h1
+        if dur_test < 0:
+            dur_test += 24
+        if dur_test > MAX_EVENT_HOURS:
+            h1_alt = h1 + 12
+            dur_alt = h2 - h1_alt
+            if dur_alt < 0:
+                dur_alt += 24
+            if 0 <= dur_alt <= MAX_EVENT_HOURS:
+                h1 = h1_alt
+
     if not (0 <= h1 <= 23 and 0 <= h2 <= 23):
         return None
+
     dur_h = h2 - h1
     if dur_h < 0:
         dur_h += 24
     if dur_h > MAX_EVENT_HOURS:
         return None
+
     return time(h1, m1), time(h2, m2)
 
 
