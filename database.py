@@ -1,5 +1,8 @@
 # database.py - PostgreSQL version (Supabase)
 import os
+from dotenv import load_dotenv
+load_dotenv()  # Auto-load .env de chay standalone
+
 import psycopg2
 import psycopg2.extras
 from contextlib import contextmanager
@@ -8,7 +11,7 @@ from datetime import datetime
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL chua duoc set trong .env")
+    print("[DB] WARN: DATABASE_URL chua set - se fail khi query")
 
 
 @contextmanager
