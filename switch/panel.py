@@ -28,6 +28,29 @@ _THIS_DIR = Path(__file__).parent.resolve()
 _BOT_ROOT = _THIS_DIR.parent.resolve()
 _SWITCH_DIR = _THIS_DIR
 
+
+def _bootstrap_gcal_creds():
+    """Decode ENV B64 -> files cho Railway deploy."""
+    import base64
+    try:
+        tok_b64 = os.getenv("GOOGLE_TOKEN_B64", "").strip()
+        crd_b64 = os.getenv("GOOGLE_CREDS_B64", "").strip()
+        tok_path = _SWITCH_DIR / "token.json"
+        crd_path = _SWITCH_DIR / "credentials.json"
+
+        if tok_b64 and not tok_path.exists():
+            tok_path.write_bytes(base64.b64decode(tok_b64))
+            print(f"[Bootstrap] Wrote token.json ({tok_path.stat().st_size} bytes)")
+
+        if crd_b64 and not crd_path.exists():
+            crd_path.write_bytes(base64.b64decode(crd_b64))
+            print(f"[Bootstrap] Wrote credentials.json ({crd_path.stat().st_size} bytes)")
+    except Exception as e:
+        print(f"[Bootstrap] ERROR: {e}")
+
+
+_bootstrap_gcal_creds()
+
 # Add bot root + switch dir to sys.path
 if str(_BOT_ROOT) not in sys.path:
     sys.path.insert(0, str(_BOT_ROOT))

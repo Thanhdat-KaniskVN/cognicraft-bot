@@ -74,13 +74,55 @@ class GoogleCalendarSocket(Socket):
     # ACTIONS
     # ============================================================
 
-    async def _add_event(self, title: str, date: str, description: str = "", **kwargs):
-        event = {
-            "summary": title,
-            "description": description,
-            "start": {"date": date},
-            "end": {"date": date},
-        }
+    async def _add_event(self, title: str, date: str = None,
+                         description: str = "", **kwargs):
+        """Add event.
+
+        Args:
+            title: Event title
+            date: YYYY-MM-DD (all-day) HOAC ISO datetime (co gio)
+            description: Mo ta
+            **kwargs:
+                - start: ISO datetime (uu tien hon date)
+                - end: ISO datetime
+                - timezone: vd "Asia/Ho_Chi_Minh"
+                - reminders: list[int] phut, vd [30, 15, 5]
+                - location: dia diem
+        """
+        start_iso = kwargs.get("start") or date
+        end_iso = kwargs.get("end") or start_iso
+        tz = kwargs.get("timezone", "Asia/Ho_Chi_Minh")
+        reminders = kwargs.get("reminders") or [30, 15, 5]
+        location = kwargs.get("location")
+
+        # Detect all-day vs timed event
+        is_all_day = bool(start_iso and "T" not in str(start_iso))
+
+        if is_all_day:
+            event = {
+                "summary": title,
+                "description": description,
+                "start": {"date": start_iso},
+                "end": {"date": end_iso},
+            }
+        else:
+            event = {
+                "summary": title,
+                "description": description,
+                "start": {"dateTime": start_iso, "timeZone": tz},
+                "end": {"dateTime": end_iso, "timeZone": tz},
+                "reminders": {
+                    "useDefault": False,
+                    "overrides": [
+                        {"method": "popup", "minutes": int(m)}
+                        for m in reminders
+                    ],
+                },
+            }
+
+        if location:
+            event["location"] = location
+
         result = await asyncio.to_thread(
             self.service.events().insert(
                 calendarId=self.calendar_id,
@@ -91,6 +133,8 @@ class GoogleCalendarSocket(Socket):
             "id": result.get("id"),
             "htmlLink": result.get("htmlLink"),
             "summary": result.get("summary"),
+            "start": result.get("start"),
+            "reminders": result.get("reminders"),
         }
 
     async def _list_events(self, days: int = 30, max: int = 10):

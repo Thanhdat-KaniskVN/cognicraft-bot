@@ -1,0 +1,7 @@
+﻿
+# Security - NEVER commit
+.env_token_b64.txt
+.env_creds_b64.txt
+.env
+credentials.json
+token.json
