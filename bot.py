@@ -18,6 +18,7 @@ from database import (
 )
 from collector import CheckpointCollector
 from curriculum_classifier import CurriculumClassifier
+from jarvis.commands import setup_jarvis_commands
 from ai_scorer import AIScorer
 from scorer import Scorer
 from coverage import CoverageAnalyzer
@@ -219,6 +220,13 @@ async def on_ready():
         
         # Setup ML commands
         setup_ml_commands(bot, is_admin)
+        
+        # JARVIS commands
+        try:
+            setup_jarvis_commands(bot, is_admin)
+            print("[Bot] JARVIS commands loaded")
+        except Exception as e:
+            print(f"[Bot] JARVIS error: {e}")
         print("[Bot] ✅ ML Mini started + commands loaded")
     except Exception as e:
         print(f"[Bot] ⚠️ ML Mini error: {e}")
