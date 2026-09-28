@@ -1,4 +1,5 @@
 # bot.py
+import sqlite_shim  # noqa: MUST BE FIRST
 import discord
 from discord.ext import commands, tasks
 from datetime import datetime, time

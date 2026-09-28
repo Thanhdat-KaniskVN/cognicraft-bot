@@ -4,6 +4,7 @@ import re
 import aiohttp
 import base64
 import traceback
+import unicodedata
 from config import MAX_THREAD_CONTENT, MAX_GITHUB_CONTENT, MAX_TOTAL_CONTENT, BLACKLIST_THREADS
 from curriculum_classifier import CurriculumClassifier
 
@@ -14,7 +15,7 @@ class CheckpointCollector:
         self.all_members = all_members
         self.thread_pattern = re.compile(r"\[Tu\S+\s*(\d+)\s*\]\s*(.+)")
         self.template_pattern = re.compile(
-            r"Topic:\s*(.+?)\s*\nLink:\s*(.+?)\s*\nTu danh gia:\s*(\d+)\s*/\s*5",
+            r"Topic:\s*(.+?)\s*\nLink:\s*(.+?)\s*\n(?:Tự đánh giá|Tu danh gia|T[uự]\s*[dđ]\s*[aá]nh\s*gi[aá]):\s*(\d+)\s*/\s*5",
             re.MULTILINE | re.IGNORECASE)
         self.classifier = CurriculumClassifier("roadmap.json")
 
@@ -140,6 +141,7 @@ class CheckpointCollector:
         return full[:MAX_TOTAL_CONTENT] if len(full) > MAX_TOTAL_CONTENT else full
 
     def _parse_template(self, content):
+        content = unicodedata.normalize("NFC", content)
         m = self.template_pattern.search(content)
         if not m:
             return None
