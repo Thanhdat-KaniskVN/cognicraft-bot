@@ -744,7 +744,11 @@ async def trigger_report_cmd(ctx, week: int = None):
 
     await ctx.send(f"Dang tao report tuan {week}...")
     try:
-        await generate_final_report(week, ctx.channel)
+        report_channel = bot.get_channel(REPORT_CHANNEL)
+        if report_channel is None:
+            await ctx.send("❌ Khong tim thay REPORT_CHANNEL")
+            return
+        await generate_final_report(week, report_channel)
     except Exception as e:
         await ctx.send(f"Loi: {e}")
         print(f"[trigger_report] {e}")
