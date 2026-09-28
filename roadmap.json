@@ -1,24 +1,26 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "total_weeks": 72,
+  "source": "LO TRINH COGNICRAFT BASE",
+  "last_updated": "2026-09-28",
   "phases": [
     {
       "id": 1,
       "name": "Foundations",
       "weeks": [1, 22],
       "topics": [
-        {"id": "proofs_logic", "name": "Proofs & Logic", "keywords": ["proof", "logic", "mệnh đề", "chứng minh", "proposition"], "expected_weeks": [1, 2]},
-        {"id": "sets_functions", "name": "Sets & Functions", "keywords": ["set", "function", "tập hợp", "ánh xạ", "mapping"], "expected_weeks": [2, 3]},
-        {"id": "relations_orders", "name": "Relations & Orders", "keywords": ["relation", "order", "quan hệ", "thứ tự"], "expected_weeks": [4]},
-        {"id": "induction", "name": "Induction & State Machines", "keywords": ["induction", "quy nạp", "state machine"], "expected_weeks": [5, 6]},
-        {"id": "number_theory", "name": "Number Theory", "keywords": ["number theory", "số học", "prime", "modular"], "expected_weeks": [7, 8]},
-        {"id": "graph_theory", "name": "Graph Theory", "keywords": ["graph", "đồ thị", "tree", "cây"], "expected_weeks": [9, 10]},
-        {"id": "counting", "name": "Counting & Combinatorics", "keywords": ["counting", "đếm", "combinatorics", "tổ hợp"], "expected_weeks": [11, 12]},
-        {"id": "recurrences", "name": "Recurrences & Asymptotics", "keywords": ["recurrence", "asymptotic", "big-o"], "expected_weeks": [13, 14]},
-        {"id": "probability", "name": "Probability", "keywords": ["probability", "xác suất", "bayes"], "expected_weeks": [15, 16]},
-        {"id": "calculus_1", "name": "Calculus I", "keywords": ["calculus", "giải tích", "limit", "derivative", "integral"], "expected_weeks": [17, 18]},
-        {"id": "linear_algebra", "name": "Linear Algebra", "keywords": ["linear algebra", "đại số tuyến tính", "matrix", "vector"], "expected_weeks": [19, 20]},
-        {"id": "project_1", "name": "Project 1 - Foundations", "keywords": ["project", "dự án"], "expected_weeks": [21, 22]}
+        {"id": "logic_proofs", "name": "Logic, Proofs, Sets, Functions", "keywords": ["logic","proof","set","function","menh de","chung minh","tap hop","anh xa","proposition","quantifier"], "expected_weeks": [1]},
+        {"id": "induction_recursion", "name": "Induction, Recursion, Sums", "keywords": ["induction","recursion","sum","quy nap","de quy","tong","base case","inductive step"], "expected_weeks": [2]},
+        {"id": "number_theory", "name": "Number Theory, Cryptography", "keywords": ["number theory","cryptography","prime","modular","so hoc","mat ma","so nguyen to","modulo","gcd","rsa"], "expected_weeks": [3]},
+        {"id": "graph_counting_prob", "name": "Graph, Counting, Probability", "keywords": ["graph","counting","probability","do thi","dem","xac suat","tree","cay","combinatorics","to hop"], "expected_weeks": [4]},
+        {"id": "python_basic", "name": "Python: Bien, kieu du lieu, vong lap", "keywords": ["python","variable","data type","loop","bien","kieu du lieu","dieu kien","vong lap","for","while"], "expected_weeks": [5]},
+        {"id": "python_functions", "name": "Python: Ham, de quy, scope", "keywords": ["function","def","recursion","scope","ham","de quy","return","parameter","argument"], "expected_weeks": [6]},
+        {"id": "python_data_structures", "name": "Python: List, Dict, Tuple, Set", "keywords": ["list","dict","tuple","set","comprehension","danh sach","tu dien","bo","tap hop"], "expected_weeks": [7]},
+        {"id": "python_file_io", "name": "Python: File I/O, Exception, Module", "keywords": ["file","io","exception","try","except","module","package","import","doc file","ghi file","ngoai le"], "expected_weeks": [8]},
+        {"id": "python_oop", "name": "Python: OOP, Class, Inheritance", "keywords": ["oop","class","object","inheritance","magic method","lop","doi tuong","ke thua","init","self"], "expected_weeks": [9]},
+        {"id": "python_advanced", "name": "Python: Generators, Decorators, Async", "keywords": ["generator","decorator","context manager","async","await","yield","with","asyncio"], "expected_weeks": [10]},
+        {"id": "calculus_1", "name": "Calculus I: Gioi han, Dao ham, Tich phan", "keywords": ["calculus","limit","derivative","integral","taylor","giai tich","gioi han","dao ham","tich phan","chuoi","chain rule","implicit"], "expected_weeks": [11, 16]},
+        {"id": "linear_algebra", "name": "Linear Algebra: Vector, Matrix, Eigenvalue", "keywords": ["linear algebra","vector","matrix","eigenvalue","eigenvector","svd","dai so tuyen tinh","ma tran","khong gian vector","rank","determinant"], "expected_weeks": [17, 22]}
       ]
     },
     {
@@ -26,11 +28,11 @@
       "name": "Core CS",
       "weeks": [23, 38],
       "topics": [
-        {"id": "data_structures", "name": "Data Structures", "keywords": ["array", "linked list", "stack", "queue", "hash table"], "expected_weeks": [23, 26]},
-        {"id": "algorithms_basic", "name": "Basic Algorithms", "keywords": ["sort", "search", "algorithm", "big-o"], "expected_weeks": [27, 30]},
-        {"id": "probability_stats", "name": "Probability & Statistics", "keywords": ["probability", "statistics", "distribution", "bayes"], "expected_weeks": [31, 34]},
-        {"id": "advanced_algorithms", "name": "Advanced Algorithms", "keywords": ["graph", "dynamic programming", "dijkstra", "dp"], "expected_weeks": [35, 37]},
-        {"id": "project_2", "name": "Project 2 - Core CS", "keywords": ["project", "dự án"], "expected_weeks": [38]}
+        {"id": "data_structures", "name": "Cau truc du lieu & Thuat toan", "keywords": ["array","linked list","stack","queue","hash table","heap","priority queue","big-o","amortized","mang","ngan xep","hang doi","bang bam"], "expected_weeks": [23, 26]},
+        {"id": "algorithms_basic", "name": "Sort, Search, BST", "keywords": ["sort","search","binary search","bst","avl","red-black","sap xep","tim kiem","cay nhi phan"], "expected_weeks": [27, 30]},
+        {"id": "probability_stats", "name": "Xac suat & Thong ke", "keywords": ["probability","statistics","distribution","bayes","expectation","variance","hypothesis","xac suat","thong ke","phan phoi"], "expected_weeks": [31, 34]},
+        {"id": "advanced_algorithms", "name": "Graph, DP", "keywords": ["graph","bfs","dfs","dijkstra","dynamic programming","dp","knapsack","lcs","do thi","quy hoach dong"], "expected_weeks": [35, 37]},
+        {"id": "project_2", "name": "Project 2: Pathfinding Visualizer", "keywords": ["project","pathfinding","visualizer","du an"], "expected_weeks": [38]}
       ]
     },
     {
@@ -38,10 +40,10 @@
       "name": "Systems",
       "weeks": [39, 54],
       "topics": [
-        {"id": "operating_systems", "name": "Operating Systems", "keywords": ["os", "process", "thread", "memory", "concurrency"], "expected_weeks": [39, 44]},
-        {"id": "networking", "name": "Networking", "keywords": ["network", "tcp", "socket", "http", "ip"], "expected_weeks": [45, 49]},
-        {"id": "databases", "name": "Databases", "keywords": ["database", "sql", "b-tree", "transaction", "acid"], "expected_weeks": [50, 53]},
-        {"id": "project_3", "name": "Project 3 - Systems", "keywords": ["project", "dự án"], "expected_weeks": [54]}
+        {"id": "operating_systems", "name": "Nguyen ly He dieu hanh", "keywords": ["os","process","thread","mutex","semaphore","scheduling","deadlock","virtual memory","paging","file system","he dieu hanh","tien trinh","luong"], "expected_weeks": [39, 44]},
+        {"id": "networking", "name": "Mang may tinh", "keywords": ["network","tcp","udp","socket","http","ip","osi","mang","giao thuc","client","server"], "expected_weeks": [45, 49]},
+        {"id": "databases", "name": "Co so du lieu", "keywords": ["database","sql","b+ tree","transaction","acid","query","index","co so du lieu","truy van"], "expected_weeks": [50, 53]},
+        {"id": "project_3", "name": "Project 3: Mini KV Store + B+ Tree", "keywords": ["project","key-value","b+ tree","du an"], "expected_weeks": [54]}
       ]
     },
     {
@@ -49,11 +51,18 @@
       "name": "Advanced & Capstone",
       "weeks": [55, 72],
       "topics": [
-        {"id": "theory_computation", "name": "Theory of Computation", "keywords": ["turing", "automata", "np-complete", "complexity"], "expected_weeks": [55, 60]},
-        {"id": "specialization_ai", "name": "AI & Machine Learning", "keywords": ["ai", "ml", "neural network", "deep learning"], "expected_weeks": [61, 66]},
-        {"id": "specialization_web", "name": "Web & Systems Design", "keywords": ["web", "rest", "microservice", "system design"], "expected_weeks": [61, 66]},
-        {"id": "capstone", "name": "Capstone Project", "keywords": ["capstone", "đồ án tốt nghiệp"], "expected_weeks": [67, 72]}
+        {"id": "theory_computation", "name": "Ly thuyet tinh toan", "keywords": ["turing","automata","np-complete","complexity","decidability","reduction","may turing","do phuc tap"], "expected_weeks": [55, 60]},
+        {"id": "specialization_ai", "name": "AI & Machine Learning", "keywords": ["ai","ml","neural network","deep learning","regression","svm","backpropagation","hoc may","mang no-ron"], "expected_weeks": [61, 66]},
+        {"id": "specialization_web", "name": "Web & Systems Design", "keywords": ["web","rest","api","flask","django","react","system design","microservice","thiet ke he thong"], "expected_weeks": [61, 66]},
+        {"id": "capstone", "name": "Capstone Project", "keywords": ["capstone","do an tot nghiep","final project"], "expected_weeks": [67, 72]}
       ]
     }
+  ],
+  "checkpoints": [
+    {"id": "CP1", "week": 4}, {"id": "CP2", "week": 10}, {"id": "CP3", "week": 16},
+    {"id": "CP4", "week": 22}, {"id": "CP5", "week": 30}, {"id": "CP6", "week": 34},
+    {"id": "CP7", "week": 38}, {"id": "CP8", "week": 44}, {"id": "CP9", "week": 49},
+    {"id": "CP10", "week": 54}, {"id": "CP11", "week": 60}, {"id": "CP12", "week": 66},
+    {"id": "CP_FINAL", "week": 72}
   ]
 }

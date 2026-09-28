@@ -16,6 +16,7 @@ from database import (
     get_score_history,
 )
 from collector import CheckpointCollector
+from curriculum_classifier import CurriculumClassifier
 from ai_scorer import AIScorer
 from scorer import Scorer
 from coverage import CoverageAnalyzer
@@ -3001,6 +3002,65 @@ async def sync_commands_cmd(ctx):
     except Exception as e:
         await ctx.send(f"❌ Lỗi sync: {e}")
         print(f"[sync_commands] {e}")
+
+
+
+
+@bot.command(name="reclassify")
+async def reclassify_cmd(ctx, week: int = None):
+    if not is_admin(ctx):
+        await ctx.send("Chi Admin.")
+        return
+    if week is None:
+        week = get_current_week()
+    await ctx.send(f"Dang reclassify tuan {week}...")
+    try:
+        classifier = CurriculumClassifier("roadmap.json")
+    except Exception as e:
+        await ctx.send(f"Loi: {e}")
+        return
+    cp = bot.get_channel(CHECKPOINT_CHANNEL)
+    if cp is None:
+        await ctx.send("CHECKPOINT_CHANNEL chua cau hinh.")
+        return
+    subs, _ = await collector.collect_week(cp, week)
+    if not subs:
+        await ctx.send(f"Khong co bai nop tuan {week}.")
+        return
+    msg = f"# RECLASSIFY TUAN {week}\n\nTong bai nop: **{len(subs)}**\n\n"
+    msg += "| Member | Thread W | Classified W | Conf | Method | Topic |\n"
+    msg += "|---|---|---|---|---|---|\n"
+    methods = {}
+    for s in subs:
+        r = classifier.classify(s.get("content", ""), thread_week=week)
+        methods[r["method"]] = methods.get(r["method"], 0) + 1
+        msg += f"| {s['member']} | {week} | **{r['week']}** | {r['confidence']} | {r['method']} | {r.get('topic_name') or '?'} |\n"
+    msg += "\n## Thong ke\n"
+    for k, v in methods.items():
+        msg += f"- **{k}**: {v}\n"
+    for part in reporter._split(msg):
+        await ctx.send(part)
+
+
+@bot.command(name="classify_debug")
+async def classify_debug_cmd(ctx, *, content: str = None):
+    if not is_admin(ctx):
+        await ctx.send("Chi Admin.")
+        return
+    if not content:
+        await ctx.send("Cu phap: `!classify_debug <noi dung>`")
+        return
+    try:
+        classifier = CurriculumClassifier("roadmap.json")
+    except Exception as e:
+        await ctx.send(f"Loi: {e}")
+        return
+    r = classifier.classify(content)
+    msg = f"# CLASSIFY DEBUG\n\n**Content:** {content[:200]}\n\n"
+    msg += f"**Week:** {r['week']}\n**Confidence:** {r['confidence']}\n"
+    msg += f"**Method:** {r['method']}\n**Topic:** {r.get('topic_name','?')}\n"
+    msg += f"**Keywords:** {', '.join(r.get('keywords_found', [])[:10])}\n"
+    await ctx.send(msg)
 
 
 # ============ RUN ============

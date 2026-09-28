@@ -177,3 +177,45 @@ def get_week_participation(week):
         )
         rows = cur.fetchall()
     return [dict(r) for r in rows]
+
+
+
+def save_classification(week, member, classification):
+    with get_cursor() as cur:
+        cur.execute("""
+            INSERT INTO bot_classifications
+            (week, member, thread_week, classified_week, confidence,
+             method, topic_id, topic_name, phase_id, phase_name, keywords_found)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (week, member) DO UPDATE SET
+                thread_week = EXCLUDED.thread_week,
+                classified_week = EXCLUDED.classified_week,
+                confidence = EXCLUDED.confidence,
+                method = EXCLUDED.method,
+                topic_id = EXCLUDED.topic_id,
+                topic_name = EXCLUDED.topic_name,
+                phase_id = EXCLUDED.phase_id,
+                phase_name = EXCLUDED.phase_name,
+                keywords_found = EXCLUDED.keywords_found,
+                classified_at = NOW()
+        """, (
+            week, member,
+            classification.get("thread_week"),
+            classification["week"],
+            classification.get("confidence", 0),
+            classification.get("method", "unknown"),
+            classification.get("topic_id"),
+            classification.get("topic_name"),
+            classification.get("phase_id"),
+            classification.get("phase_name"),
+            classification.get("keywords_found", []),
+        ))
+
+
+def get_classification(week, member):
+    with get_cursor() as cur:
+        cur.execute(
+            "SELECT * FROM bot_classifications WHERE week = %s AND member = %s",
+            (week, member))
+        row = cur.fetchone()
+    return dict(row) if row else None
