@@ -17,7 +17,8 @@ ACTIVITY_PATTERNS = {
     "exam":    [r"\bthi cuoi\b", r"\bthi giua\b", r"\bthi hoc ki\b", r"thi toan|thi ly|thi hoa|thi van|thi anh",
                 r"kiem tra", r"\bexam\b", r"\bbai thi\b"],
     "meeting": [r"hop nhom", r"cuoc hop", r"\bmeeting\b", r"\bhop\b", r"hoi hop"],
-    "study":   [r"on bai", r"on lai", r"lam bai", r"\bstudy\b", r"doc sach", r"hoc bai", r"on tap"],
+    "study":   [r"\bon bai\b", r"\bon lai\b", r"\blam bai\b", r"\bstudy\b",
+                r"\bdoc sach\b", r"\bhoc bai\b", r"\bon tap\b", r"\bhoc\b"],
     "task":    [r"lam\s+", r"hoan thanh", r"\btask\b"],
 }
 

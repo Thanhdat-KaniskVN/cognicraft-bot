@@ -1,23 +1,49 @@
 # jarvis/commands.py
-"""JARVIS commands - Wire into bot.py."""
+"""JARVIS - 1 command !j voi subcommands."""
+import asyncio
 import discord
-from discord.ext import commands
 from datetime import datetime, timedelta
 import pytz
 
 from jarvis.ai_parser import parse_event_smart_async
+from jarvis.multi_parser import parse_multi_events
 from jarvis import event_manager as em
+from jarvis.advisor import analyze as advisor_analyze
 
 TZ = pytz.timezone("Asia/Ho_Chi_Minh")
 
-EVENT_ICONS = {
-    "gym": "🏋️", "run": "🏃", "bike": "🚴", "swim": "🏊", "yoga": "🧘",
-    "class": "🎓", "exam": "📝", "meeting": "👥",
-    "study": "📚", "task": "✅", "other": "📌",
+ICONS = {
+    "gym": "GYM", "run": "RUN", "bike": "BIKE", "swim": "SWIM", "yoga": "YOGA",
+    "class": "CLASS", "exam": "EXAM", "meeting": "MEET",
+    "study": "STUDY", "task": "TASK", "other": "OTHER",
 }
 
+HELP_TEXT = """JARVIS - Schedule Manager
 
-def _fmt_time(dt: datetime) -> str:
+Add events (multi-event + AI fallback):
+  !j sang mai chay bo 5h sang roi hoc adp 7h30-1h chieu
+  !j toi nay gym 7h va hoc bai 9h
+  !j mai 6h chay 5km, 8h hoc, 5h chieu gym
+
+Xem events:
+  !j           -> hom nay
+  !j list      -> 7 ngay toi
+  !j list 30   -> 30 ngay toi
+
+Actions:
+  !j done 5       -> danh dau xong #5
+  !j cancel 5     -> huy #5
+  !j delete 5     -> xoa (admin)
+  !j stats        -> thong ke
+
+Force AI parse:
+  !j ai sau khi an trua xong di boi 30 phut
+"""
+
+
+def _fmt_time(dt):
+    if isinstance(dt, str):
+        dt = datetime.fromisoformat(dt)
     if dt.tzinfo is None:
         dt = TZ.localize(dt)
     else:
@@ -25,203 +51,240 @@ def _fmt_time(dt: datetime) -> str:
     return dt.strftime("%H:%M %a %d/%m")
 
 
-def _fmt_event(ev: dict) -> str:
-    icon = EVENT_ICONS.get(ev.get("event_type", "task"), "📌")
+def _fmt_event(ev):
+    icon = ICONS.get(ev.get("event_type", "task"), "TASK")
     start = ev.get("start_time")
-    if isinstance(start, str):
-        start = datetime.fromisoformat(start)
-    time_str = _fmt_time(start)
+    end = ev.get("end_time")
     extras = []
     if ev.get("distance_km"):
         extras.append(f"{ev['distance_km']}km")
     if ev.get("location"):
-        extras.append(f"@ {ev['location']}")
-    extra_str = f" ({', '.join(extras)})" if extras else ""
-    return f"`#{ev['id']}` {icon} **{time_str}** — {ev['title']}{extra_str}"
+        extras.append(ev["location"])
+    extra = f" - {', '.join(extras)}" if extras else ""
+    if end:
+        end_str = _fmt_time(end).split()[0]
+        time_str = f"{_fmt_time(start)} -> {end_str}"
+    else:
+        time_str = _fmt_time(start)
+    return f"`#{ev['id']}` {icon} {time_str} **{ev['title']}**{extra}"
 
 
-async def _parse_and_add(ctx, text: str, force_ai: bool = False):
-    """Helper: parse text -> event -> save DB -> reply."""
+async def _show_advisor(ctx, result, raw_text):
+    """Hien thi advisor report."""
+    import discord
+    ctx_info = result["context"]
+    sev = result["severity"]
+
+    sev_icon = {"critical": "CRITICAL", "high": "HIGH", "medium": "MED", "low": "LOW"}.get(sev, "?")
+    color_map = {"critical": 0xE74C3C, "high": 0xE67E22, "medium": 0xF1C40F, "low": 0x2ECC71}
+    color = color_map.get(sev, 0x3498DB)
+
+    src = result.get("advice_source", "?")
+    src_icon = "AI" if src == "ai" else "RULE"
+
+    embed = discord.Embed(
+        title=f"JARVIS ADVISOR - {sev_icon}",
+        description=result.get("advice", ""),
+        color=color,
+    )
+    embed.add_field(
+        name="Context",
+        value=f"`{ctx_info['context_type']}` | `{sev}` | via `{src_icon}`",
+        inline=False,
+    )
+
+    tip = result.get("tip", "")
+    if tip:
+        embed.add_field(name="Tip", value=tip[:500], inline=False)
+
+    resch = result.get("reschedule_suggestion", "")
+    if resch:
+        embed.add_field(name="Goi y doi lich", value=f"`{resch}`", inline=False)
+
+    actions = result.get("actions", [])
+    if not actions:
+        embed.add_field(name="Events", value="Khong co event nao sap toi", inline=False)
+        await ctx.send(embed=embed)
+        return
+
+    keep = [a for a in actions if a["action"] == "keep"]
+    move = [a for a in actions if a["action"] == "reschedule"]
+    cancel = [a for a in actions if a["action"] == "cancel"]
+
+    if cancel:
+        txt = "\n".join(f"`#{a['event']['id']}` {a['event']['title']} (score {a['score']})" for a in cancel[:5])
+        embed.add_field(name=f"NEN HUY ({len(cancel)})", value=txt[:1000], inline=False)
+
+    if move:
+        txt = "\n".join(f"`#{a['event']['id']}` {a['event']['title']} (score {a['score']})" for a in move[:5])
+        embed.add_field(name=f"NEN DOI ({len(move)})", value=txt[:1000], inline=False)
+
+    if keep:
+        txt = "\n".join(f"`#{a['event']['id']}` {a['event']['title']} (score {a['score']})" for a in keep[:5])
+        embed.add_field(name=f"GIU LAI ({len(keep)})", value=txt[:1000], inline=False)
+
+    embed.set_footer(text="Go `!j cancel <id>` de huy tung event")
+    await ctx.send(embed=embed)
+
+
+async def _do_add(ctx, text, force_ai=False):
     user_id = str(ctx.author.id)
     member = ctx.author.display_name
 
-    msg = await ctx.send(f"🔍 Đang phân tích: `{text}`...")
+    msg = await ctx.send("Dang phan tich...")
 
-    parsed = await parse_event_smart_async(text, force_ai=force_ai)
-    if parsed is None or parsed.start_time is None:
-        await msg.edit(content=f"❌ Không parse được: `{text}`")
+    events = []
+    if force_ai:
+        parsed = await parse_event_smart_async(text, force_ai=True)
+        if parsed and parsed.start_time:
+            events = [parsed]
+    else:
+        events = await asyncio.to_thread(parse_multi_events, text)
+        if len(events) <= 1:
+            parsed = await parse_event_smart_async(text)
+            if parsed and parsed.start_time:
+                events = [parsed]
+
+    if not events:
+        await msg.edit(content=f"Khong parse duoc: `{text}`")
         return
 
-    ev_id = em.create_event(
-        user_id=user_id,
-        member=member,
-        title=parsed.title,
-        event_type=parsed.event_type,
-        start_time=parsed.start_time,
-        end_time=parsed.end_time,
-        location=parsed.location,
-        priority="normal",
-    )
+    saved = []
+    for ev in events:
+        ev_id = await asyncio.to_thread(
+            em.create_event,
+            user_id, member,
+            ev.title, ev.event_type,
+            ev.start_time, ev.end_time,
+            ev.location,
+        )
+        if ev_id:
+            saved.append((ev_id, ev))
 
-    source = getattr(parsed, "_source", "?")
+    if not saved:
+        await msg.edit(content="Loi khi luu event.")
+        return
+
+    lines = []
+    for ev_id, ev in saved:
+        icon = ICONS.get(ev.event_type, "TASK")
+        end_str = ev.end_time.strftime("%H:%M") if ev.end_time else "?"
+        extras = []
+        if ev.distance_km:
+            extras.append(f"{ev.distance_km}km")
+        if ev.duration_min:
+            extras.append(f"{ev.duration_min}p")
+        extra = f" ({', '.join(extras)})" if extras else ""
+        lines.append(f"`#{ev_id}` {icon} **{_fmt_time(ev.start_time)} -> {end_str}** - {ev.title}{extra}")
 
     embed = discord.Embed(
-        title=f"✅ Đã thêm event #{ev_id}",
+        title=f"Da them {len(saved)} event",
+        description="\n".join(lines),
         color=discord.Color.green(),
     )
-    embed.add_field(
-        name="📌 Event",
-        value=f"{EVENT_ICONS.get(parsed.event_type, '📌')} **{parsed.title}**",
-        inline=False,
-    )
-    embed.add_field(name="🕐 Bắt đầu", value=_fmt_time(parsed.start_time), inline=True)
-    embed.add_field(name="🕓 Kết thúc", value=_fmt_time(parsed.end_time), inline=True)
-    embed.add_field(name="⏱️ Thời lượng", value=f"{parsed.duration_min} phút", inline=True)
-    if parsed.distance_km:
-        embed.add_field(name="📏 Quãng đường", value=f"{parsed.distance_km} km", inline=True)
-    if parsed.location:
-        embed.add_field(name="📍 Địa điểm", value=parsed.location, inline=True)
-    embed.add_field(name="🔧 Parse by", value=f"`{source}`", inline=True)
-    embed.set_footer(text=f"ID: {ev_id} | !cancel_event {ev_id} để huỷ")
-
+    embed.set_footer(text="!j de xem hom nay | !j help")
     await msg.edit(content=None, embed=embed)
 
 
 def setup_jarvis_commands(bot, is_admin):
-    """Register tat ca JARVIS commands."""
 
-    # ============ !add_event ============
-    @bot.command(name="add_event")
-    async def add_event_cmd(ctx, *, text: str = None):
-        """Thêm event: !add_event mai 6h chạy bộ 5km"""
-        if not text:
-            await ctx.send(
-                "**Cách dùng:** `!add_event <mô tả>`\n"
-                "**Ví dụ:**\n"
-                "• `!add_event mai 6h chạy bộ 5km`\n"
-                "• `!add_event tối nay gym 7h`\n"
-                "• `!add_event 3h chiều thứ 4 họp nhóm`"
-            )
-            return
-        await _parse_and_add(ctx, text)
-
-    # ============ !add_event_ai (force AI) ============
-    @bot.command(name="add_event_ai")
-    async def add_event_ai_cmd(ctx, *, text: str = None):
-        """Force AI parse: !add_event_ai sau khi ăn trưa đi bơi"""
-        if not text:
-            await ctx.send("**Cách dùng:** `!add_event_ai <mô tả>` (force AI)")
-            return
-        await _parse_and_add(ctx, text, force_ai=True)
-
-    # ============ !list_events ============
-    @bot.command(name="list_events")
-    async def list_events_cmd(ctx, days: int = 7, member: str = None):
-        """List events 7 ngày tới. !list_events 14 để xem 14 ngày."""
-        if member:
-            user_id = None  # TODO: lookup by name
-        else:
-            user_id = None  # Show all của mình? -> default chỉ của mình
-            
-        # Default: chỉ show của mình
-        user_id = str(ctx.author.id) if not member else None
-
-        events = em.list_events(user_id=user_id, days_ahead=days)
-        if not events:
-            await ctx.send(f"📭 Không có event nào trong {days} ngày tới.")
+    @bot.command(name="j")
+    async def j_cmd(ctx, *, args: str = None):
+        """JARVIS. Go !j help de xem huong dan."""
+        if not args or args.strip() == "":
+            events = await asyncio.to_thread(em.get_today_events, str(ctx.author.id))
+            if not events:
+                await ctx.send("Hom nay khong co event. Go `!j help`.")
+                return
+            lines = ["# HOM NAY\n"]
+            for ev in events:
+                lines.append(_fmt_event(ev))
+            await ctx.send("\n".join(lines))
             return
 
-        lines = [f"# 📅 EVENTS — {days} ngày tới\n"]
-        current_day = None
-        for ev in events:
-            start = ev["start_time"]
-            if isinstance(start, str):
-                start = datetime.fromisoformat(start)
-            if start.tzinfo is None:
-                start = TZ.localize(start)
-            else:
-                start = start.astimezone(TZ)
-            day_label = start.strftime("%A %d/%m/%Y")
-            if day_label != current_day:
-                lines.append(f"\n**📆 {day_label}**")
-                current_day = day_label
-            lines.append(_fmt_event(ev))
+        a = args.strip()
+        al = a.lower()
 
-        # Split if too long
-        text = "\n".join(lines)
-        if len(text) > 1900:
-            chunks = [text[i:i+1900] for i in range(0, len(text), 1900)]
-            for chunk in chunks:
+        if not al.startswith(("list", "stats", "cancel", "done", "delete", "help", "ai ")):
+            ctx_result = await asyncio.to_thread(advisor_analyze, str(ctx.author.id), a)
+            if ctx_result:
+                await _show_advisor(ctx, ctx_result, a)
+                return
+
+        if al in ("help", "?", "-h"):
+            await ctx.send(HELP_TEXT)
+            return
+
+        if al == "list" or al.startswith("list "):
+            parts = al.split()
+            days = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 7
+            events = await asyncio.to_thread(em.list_events, str(ctx.author.id), days, None, "scheduled")
+            if not events:
+                await ctx.send(f"Khong co event nao trong {days} ngay toi.")
+                return
+            lines = [f"# {days} NGAY TOI\n"]
+            cur_day = None
+            for ev in events:
+                start = ev["start_time"]
+                if isinstance(start, str):
+                    start = datetime.fromisoformat(start)
+                if start.tzinfo is None:
+                    start = TZ.localize(start)
+                else:
+                    start = start.astimezone(TZ)
+                label = start.strftime("%A %d/%m")
+                if label != cur_day:
+                    lines.append(f"\n**{label}**")
+                    cur_day = label
+                lines.append(_fmt_event(ev))
+            txt = "\n".join(lines)
+            for chunk in [txt[i:i+1900] for i in range(0, len(txt), 1900)]:
                 await ctx.send(chunk)
-        else:
-            await ctx.send(text)
+            return
 
-    # ============ !today ============
-    @bot.command(name="today")
-    async def today_cmd(ctx):
-        """Xem events hôm nay."""
-        user_id = str(ctx.author.id)
-        events = em.get_today_events(user_id=user_id)
-        if not events:
-            await ctx.send("📭 Hôm nay không có event nào.")
+        if al == "stats":
+            s = await asyncio.to_thread(em.get_event_stats, str(ctx.author.id))
+            embed = discord.Embed(title="JARVIS STATS", color=discord.Color.blue())
+            embed.add_field(name="Upcoming", value=s.get("upcoming", 0))
+            embed.add_field(name="Done", value=s.get("done", 0))
+            embed.add_field(name="Cancelled", value=s.get("cancelled", 0))
+            embed.add_field(name="Hom nay", value=s.get("today", 0))
+            await ctx.send(embed=embed)
             return
-        lines = ["# 📅 HÔM NAY\n"]
-        for ev in events:
-            lines.append(_fmt_event(ev))
-        await ctx.send("\n".join(lines))
 
-    # ============ !cancel_event ============
-    @bot.command(name="cancel_event")
-    async def cancel_event_cmd(ctx, event_id: int):
-        """Huỷ event: !cancel_event 5"""
-        ev = em.get_event(event_id)
-        if not ev:
-            await ctx.send(f"❌ Không tìm thấy event #{event_id}.")
-            return
-        if ev["user_id"] != str(ctx.author.id) and not is_admin(ctx):
-            await ctx.send("❌ Chỉ owner hoặc admin mới huỷ được.")
-            return
-        em.cancel_event(event_id)
-        await ctx.send(f"✅ Đã huỷ event #{event_id}: **{ev['title']}**")
+        for action in ("cancel", "done", "delete"):
+            if al.startswith(action + " "):
+                parts = a.split()
+                try:
+                    ev_id = int(parts[1])
+                except (IndexError, ValueError):
+                    await ctx.send(f"Cu phap: `!j {action} <id>`")
+                    return
+                ev = await asyncio.to_thread(em.get_event, ev_id)
+                if not ev:
+                    await ctx.send(f"Khong tim thay event #{ev_id}")
+                    return
+                if ev["user_id"] != str(ctx.author.id) and not is_admin(ctx):
+                    await ctx.send("Khong co quyen.")
+                    return
+                if action == "cancel":
+                    await asyncio.to_thread(em.cancel_event, ev_id)
+                    await ctx.send(f"Da huy #{ev_id}: **{ev['title']}**")
+                elif action == "done":
+                    await asyncio.to_thread(em.mark_done, ev_id)
+                    await ctx.send(f"Done #{ev_id}: **{ev['title']}**")
+                elif action == "delete":
+                    if not is_admin(ctx):
+                        await ctx.send("Chi admin moi xoa duoc.")
+                        return
+                    await asyncio.to_thread(em.delete_event, ev_id)
+                    await ctx.send(f"Da xoa #{ev_id}: **{ev['title']}**")
+                return
 
-    # ============ !done_event ============
-    @bot.command(name="done_event")
-    async def done_event_cmd(ctx, event_id: int):
-        """Đánh dấu done: !done_event 5"""
-        ev = em.get_event(event_id)
-        if not ev:
-            await ctx.send(f"❌ Không tìm thấy event #{event_id}.")
+        if al.startswith("ai "):
+            await _do_add(ctx, a[3:].strip(), force_ai=True)
             return
-        if ev["user_id"] != str(ctx.author.id) and not is_admin(ctx):
-            await ctx.send("❌ Chỉ owner hoặc admin.")
-            return
-        em.mark_done(event_id)
-        await ctx.send(f"✅ Done event #{event_id}: **{ev['title']}**")
 
-    # ============ !delete_event ============
-    @bot.command(name="delete_event")
-    async def delete_event_cmd(ctx, event_id: int):
-        """Xoá vĩnh viễn (admin): !delete_event 5"""
-        if not is_admin(ctx):
-            await ctx.send("❌ Chỉ admin mới xoá vĩnh viễn.")
-            return
-        ev = em.get_event(event_id)
-        if not ev:
-            await ctx.send(f"❌ Không tìm thấy event #{event_id}.")
-            return
-        em.delete_event(event_id)
-        await ctx.send(f"✅ Đã xoá event #{event_id}: **{ev['title']}**")
+        await _do_add(ctx, a, force_ai=False)
 
-    # ============ !event_stats ============
-    @bot.command(name="event_stats")
-    async def event_stats_cmd(ctx):
-        """Stats cá nhân."""
-        stats = em.get_event_stats(str(ctx.author.id))
-        embed = discord.Embed(title="📊 EVENT STATS", color=discord.Color.blue())
-        embed.add_field(name="⏰ Upcoming", value=stats.get("upcoming", 0), inline=True)
-        embed.add_field(name="✅ Done", value=stats.get("done", 0), inline=True)
-        embed.add_field(name="❌ Cancelled", value=stats.get("cancelled", 0), inline=True)
-        embed.add_field(name="📅 Hôm nay", value=stats.get("today", 0), inline=True)
-        await ctx.send(embed=embed)
-
-    print("[JARVIS] ✅ 7 commands registered: add_event, add_event_ai, list_events, today, cancel_event, done_event, delete_event, event_stats")
+    print("[JARVIS] OK - 1 main command '!j' registered")
