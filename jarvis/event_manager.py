@@ -17,6 +17,20 @@ def create_event(user_id, member, title, event_type, start_time,
     if reminder_flags is None:
         reminder_flags = ["30", "15", "5"]
     with get_cursor() as cur:
+        # DEDUPE: check window +/- 5 phut (tranh duplicate khi add lai)
+        window_start = start_time - timedelta(minutes=5)
+        window_end = start_time + timedelta(minutes=5)
+        cur.execute("""
+            SELECT id FROM jarvis_events
+            WHERE user_id = %s AND title = %s
+              AND start_time BETWEEN %s AND %s
+              AND status = 'scheduled'
+            LIMIT 1
+        """, (user_id, title, window_start, window_end))
+        existing = cur.fetchone()
+        if existing:
+            print(f"[EventManager] DEDUPE: event exists #{existing['id']}")
+            return existing["id"]
         cur.execute("""
             INSERT INTO jarvis_events
             (user_id, member, title, event_type, start_time, end_time,
@@ -122,14 +136,17 @@ def get_pending_reminders(within_minutes=30):
 
 
 def log_reminder(event_id, user_id, minutes_before, channel="dm"):
+    """Insert reminder log. Return True neu moi insert (chua ton tai)."""
     try:
         with get_cursor() as cur:
             cur.execute("""
                 INSERT INTO jarvis_reminders (event_id, user_id, minutes_before, channel)
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT (event_id, minutes_before) DO NOTHING
+                RETURNING id
             """, (event_id, user_id, minutes_before, channel))
-        return True
+            row = cur.fetchone()
+        return row is not None  # True = insert moi, False = da ton tai
     except Exception as e:
         print(f"[EventManager] log_reminder err: {e}")
         return False

@@ -149,6 +149,10 @@ async def _do_add(ctx, text, force_ai=False):
         await msg.edit(content=f"Khong parse duoc: `{text}`")
         return
 
+    # DEBUG: log tung event
+    for i, ev in enumerate(events, 1):
+        print(f"[JARVIS DEBUG] event[{i}] {ev.title!r} start={ev.start_time} src={getattr(ev, '_source', '?')}")
+
     saved = []
     for ev in events:
         ev_id = await asyncio.to_thread(

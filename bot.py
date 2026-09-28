@@ -19,6 +19,7 @@ from database import (
 from collector import CheckpointCollector
 from curriculum_classifier import CurriculumClassifier
 from jarvis.commands import setup_jarvis_commands
+from jarvis.reminder import check_and_send as jarvis_check_reminders
 from ai_scorer import AIScorer
 from scorer import Scorer
 from coverage import CoverageAnalyzer
@@ -227,6 +228,11 @@ async def on_ready():
             print("[Bot] JARVIS commands loaded")
         except Exception as e:
             print(f"[Bot] JARVIS error: {e}")
+
+        # Start JARVIS reminder task
+        if not jarvis_reminder_task.is_running():
+            jarvis_reminder_task.start()
+            print("[Bot] JARVIS reminder task started (every 1 min)")
         print("[Bot] ✅ ML Mini started + commands loaded")
     except Exception as e:
         print(f"[Bot] ⚠️ ML Mini error: {e}")
@@ -3070,6 +3076,24 @@ async def classify_debug_cmd(ctx, *, content: str = None):
     msg += f"**Method:** {r['method']}\n**Topic:** {r.get('topic_name','?')}\n"
     msg += f"**Keywords:** {', '.join(r.get('keywords_found', [])[:10])}\n"
     await ctx.send(msg)
+
+
+# ============ JARVIS REMINDER TASK ============
+
+@tasks.loop(minutes=1)
+async def jarvis_reminder_task():
+    """Check events sap toi + gui DM nhac nho 30/15/5 phut."""
+    try:
+        sent = await jarvis_check_reminders(bot)
+        if sent:
+            print(f"[JARVIS Reminder] Sent {len(sent)} DMs")
+    except Exception as e:
+        print(f"[JARVIS Reminder] Error: {e}")
+
+
+@jarvis_reminder_task.error
+async def jarvis_reminder_task_error(exc):
+    print(f"[jarvis_reminder_task] crashed: {exc!r}")
 
 
 # ============ RUN ============

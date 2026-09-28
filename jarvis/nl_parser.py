@@ -204,15 +204,57 @@ class ParsedEvent:
                 f"dist={self.distance_km}km)")
 
 
+def _parse_relative_time(text: str, now: datetime):
+    """Parse 'X phut nua', 'X gio nua', 'X tieng nua', 'X ngay nua'.
+    Return datetime hoac None.
+    """
+    t = _normalize(text)
+
+    # "X phut nua" / "X phut"
+    m = re.search(r"(\d+)\s*phut\s*(?:nua)?", t)
+    if m and "nua" in t:
+        return now + timedelta(minutes=int(m.group(1)))
+
+    # "X gio nua" / "X tieng nua"
+    m = re.search(r"(\d+)\s*(?:gio|tieng|h)\s*nua", t)
+    if m:
+        return now + timedelta(hours=int(m.group(1)))
+
+    # "X ngay nua"
+    m = re.search(r"(\d+)\s*ngay\s*nua", t)
+    if m:
+        return now + timedelta(days=int(m.group(1)))
+
+    return None
+
+
 def parse_event(text: str, now: datetime = None) -> ParsedEvent:
     if now is None:
         now = datetime.now(TZ)
 
     event_type = _detect_activity(text)
+    distance = _parse_distance(text)
+
+    # UU TIEN 1: relative time ("15 phut nua")
+    rel_dt = _parse_relative_time(text, now)
+    if rel_dt is not None:
+        duration = _parse_duration(text) or 60
+        return ParsedEvent(
+            title=_extract_title(text),
+            event_type=event_type,
+            start_time=rel_dt,
+            end_time=rel_dt + timedelta(minutes=duration),
+            duration_min=duration,
+            distance_km=distance,
+            location=None,
+            raw=text,
+            _source="regex_relative",
+        )
+
+    # UU TIEN 2: absolute time nhu cu
     date = _parse_date(text, now)
     t = _parse_time(text)
     duration = _parse_duration(text)
-    distance = _parse_distance(text)
 
     if duration is None:
         duration = {"gym": 60, "run": 30, "bike": 45, "swim": 45, "yoga": 60,
