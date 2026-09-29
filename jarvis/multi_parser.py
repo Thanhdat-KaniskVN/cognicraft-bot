@@ -30,7 +30,10 @@ COMMA_SPLIT = re.compile(
 )
 
 RANGE_PATTERN = re.compile(
-    r"(\d{1,2})(?:[h:](\d{1,2})?)?\s*(?:-|->|den|toi)\s*(\d{1,2})(?:[h:](\d{1,2})?)?",
+    r"(\d{1,2})(?:[h:](\d{1,2})?)?"
+    r"(?:\s+\S+){0,6}"           # cho phep 0-6 tu giua h1 va marker
+    r"\s*(?:-|->|den|toi)\s*"
+    r"(\d{1,2})(?:[h:](\d{1,2})?)?",
     re.IGNORECASE,
 )
 MAX_EVENT_HOURS = 12

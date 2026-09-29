@@ -23,9 +23,11 @@ ACTIVITY_PATTERNS = {
 }
 
 DAY_KEYWORDS = {
-    "today":     [r"\bhom nay\b", r"\btoday\b"],
+    "today":     [r"\bhom nay\b", r"\btoday\b",
+                  r"\bchieu nay\b", r"\btoi nay\b", r"\bsang nay\b", r"\btrua nay\b",
+                  r"\bchieu mai\b", r"\btoi mai\b"],  # chieu/toi mai handled via "mai"
     "tomorrow":  [r"\bmai\b", r"\bngay mai\b", r"\btomorrow\b"],
-    "day_after": [r"\bngay mot\b", r"\bmot\b", r"ngay kia"],
+    "day_after": [r"\bngay mot\b", r"\bngay kia\b"],  # removed mot
 }
 
 WEEKDAY_MAP = {
