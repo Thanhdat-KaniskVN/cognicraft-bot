@@ -10,7 +10,31 @@ from jarvis import personality as pers
 
 # Rate limit per user (in-memory)
 _LAST_MSG = {}  # user_id -> datetime
-RATE_LIMIT_SEC = 0.8  # Cho phep burst nhanh
+RATE_LIMIT_SEC = 0.8
+
+# ============================================================
+# CHANNEL WHITELIST - DUNG CHANNEL ID (chinh xac 100%)
+# ============================================================
+
+try:
+    from config import CHECKPOINT_CHANNEL, ADMIN_REVIEW_CHANNEL, REPORT_CHANNEL
+    NATURAL_INPUT_CHANNEL_IDS = {
+        int(CHECKPOINT_CHANNEL) if CHECKPOINT_CHANNEL else 0,
+        int(ADMIN_REVIEW_CHANNEL) if ADMIN_REVIEW_CHANNEL else 0,
+        int(REPORT_CHANNEL) if REPORT_CHANNEL else 0,
+    }
+    NATURAL_INPUT_CHANNEL_IDS.discard(0)
+    print(f"[NaturalInput] Channel IDs allowed: {NATURAL_INPUT_CHANNEL_IDS}")
+except Exception as e:
+    print(f"[NaturalInput] Config load err: {e}")
+    NATURAL_INPUT_CHANNEL_IDS = set()
+
+# Optional: channels cho phep khac (theo ten chinh xac)
+NATURAL_INPUT_CHANNEL_NAMES = {
+    "admin-review",
+    "checkpoint",
+    "report",
+}  # Cho phep burst nhanh
 
 # Whitelist channels - CHI respond trong cac channel nay
 # Match theo ten channel (lowercase) hoac ID
@@ -52,9 +76,21 @@ def _is_ratelimited(user_id: str) -> bool:
 
 
 def _is_allowed_channel(channel) -> bool:
-    """Check channel co nam trong whitelist khong."""
+    """Check channel ID hoac name trong whitelist."""
     if channel is None:
         return False
+
+    # 1. Check by ID (chinh xac nhat)
+    ch_id = getattr(channel, "id", None)
+    if ch_id and ch_id in NATURAL_INPUT_CHANNEL_IDS:
+        return True
+
+    # 2. Fallback: check by name (khong dau)
+    ch_name = (getattr(channel, "name", "") or "").strip().lower()
+    if ch_name in NATURAL_INPUT_CHANNEL_NAMES:
+        return True
+
+    return False
     ch_name = (getattr(channel, "name", "") or "").strip().lower()
 
     # Explicit ignore first (chat chung)
