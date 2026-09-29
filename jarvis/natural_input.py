@@ -95,7 +95,7 @@ async def handle_natural_message(message: discord.Message, bot, is_admin_fn,
             traceback.print_exc()
             return
 
-    result = classify(text)
+    result = await asyncio.to_thread(classify, text)
     intent = result["intent"]
     conf = result["confidence"]
 

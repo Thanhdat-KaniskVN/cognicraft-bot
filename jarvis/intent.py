@@ -3,6 +3,7 @@
 import re
 import unicodedata
 from typing import Optional
+import json
 
 
 def _norm(s: str) -> str:
@@ -60,6 +61,55 @@ def _match_any(text_norm: str, patterns: list) -> bool:
     return False
 
 
+AI_INTENTS = ["schedule", "context", "chat", "query", "ignore"]
+
+_AI_CACHE = {}  # simple in-memory cache
+
+
+def _ai_classify(text: str) -> dict:
+    """Fallback - goi Gemini khi regex khong chac chan."""
+    cache_key = text.strip().lower()
+    if cache_key in _AI_CACHE:
+        return _AI_CACHE[cache_key]
+
+    try:
+        from ai_provider import call_ai_json
+    except ImportError:
+        return {"intent": "ignore", "confidence": 0.0, "reason": "no_ai"}
+
+    prompt = f"""Ban la AI classify tin nhan Discord cua user cho app lich JARVIS.
+
+**Tin nhan:** "{text}"
+
+**Tra ve JSON** (KHONG markdown):
+{{
+  "intent": "schedule|context|chat|query|ignore",
+  "confidence": 0.0-1.0
+}}
+
+**Dinh nghia:**
+- schedule: them event vao lich (co gio/activity cu the). VD: "mai 6h chay bo", "2h nua hop nhom"
+- context: user bao tinh trang (om, met, te xe, co viec). VD: "toi om roi", "met qua"
+- query: hoi thong tin lich. VD: "hom nay co gi", "mai lam gi", "xem lich"
+- chat: chao hoi / cam on / cau hoi kien thuc. VD: "xin chao", "cam on", "python la gi"
+- ignore: khong lien quan. VD: "ok", "lol", "haha"
+
+Chi tra ve JSON."""
+
+    try:
+        result = call_ai_json(prompt, task_type="jarvis_intent")
+        intent = result.get("intent", "ignore")
+        if intent not in AI_INTENTS:
+            intent = "ignore"
+        conf = float(result.get("confidence", 0.7))
+        out = {"intent": intent, "confidence": conf, "reason": "ai_fallback"}
+        _AI_CACHE[cache_key] = out
+        return out
+    except Exception as e:
+        print(f"[Intent] AI fallback err: {e}")
+        return {"intent": "ignore", "confidence": 0.5, "reason": "ai_error"}
+
+
 def classify(text: str) -> dict:
     """Classify intent.
 
@@ -102,7 +152,15 @@ def classify(text: str) -> dict:
     if _match_any(n, CHAT_HINTS):
         return {"intent": "chat", "confidence": 0.75, "reason": "chat_hint"}
 
-    # Unknown -> ignore (do nothing)
+    # LOW CONFIDENCE -> AI fallback
+    # Truong hop khong co hint nao -> thu AI
+    try:
+        from ai_provider import call_ai_json  # noqa
+        return _ai_classify(text)
+    except ImportError:
+        pass
+
+    # Fallback cuoi
     return {"intent": "ignore", "confidence": 0.5, "reason": "no_match"}
 
 
