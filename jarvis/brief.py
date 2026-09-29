@@ -49,6 +49,51 @@ def _tomorrow_events(user_id):
     return sorted(result, key=lambda e: _parse_dt(e["start_time"]))
 
 
+def _ai_brief_note(events, member, kind="morning"):
+    """AI personalized note for brief."""
+    try:
+        from ai_provider import call_ai_json
+    except ImportError:
+        return None
+
+    if not events:
+        return None
+
+    ev_lines = []
+    for ev in events[:8]:
+        try:
+            start = _parse_dt(ev["start_time"])
+            ev_lines.append(f"- {start.strftime('%H:%M')} {ev['title']} ({ev.get('event_type')})")
+        except Exception:
+            continue
+    events_txt = "\n".join(ev_lines) or "(none)"
+
+    prompt = f"""Ban la JARVIS - tro ly lich. Viet 1-2 cau note ca nhan hoa cho user.
+
+**Buoi:** {"sang" if kind == "morning" else "toi"}
+**User:** {member}
+**Lich hom nay:**
+{events_txt}
+
+**Yeu cau:** 1-2 cau tieng Viet KHONG DAU, giong JARVIS lich su:
+- Morning: nhan xet lich + nhac task quan trong + goi y
+- Evening: tom tat + dong vien + prep ngay mai
+
+**Tra ve JSON:**
+{{
+  "note": "<1-2 cau note>"
+}}
+
+Chi tra ve JSON."""
+
+    try:
+        r = call_ai_json(prompt, task_type="jarvis_brief")
+        return r.get("note", "").strip()
+    except Exception as e:
+        print(f"[Brief] AI error: {e}")
+        return None
+
+
 def build_morning_brief(user_id, member):
     """Build morning brief embed."""
     events = _today_events(user_id)
@@ -113,6 +158,11 @@ def build_morning_brief(user_id, member):
             inline=False,
         )
 
+    # AI personalized note
+    ai_note = _ai_brief_note(events, member, kind="morning")
+    if ai_note:
+        embed.add_field(name="JARVIS note", value=ai_note[:500], inline=False)
+
     embed.set_footer(text="JARVIS - Your day at a glance")
     return embed
 
@@ -167,6 +217,11 @@ def build_evening_review(user_id, member):
             value="\n".join(lines),
             inline=False,
         )
+
+    # AI personalized note
+    ai_note = _ai_brief_note(today, member, kind="evening")
+    if ai_note:
+        embed.add_field(name="JARVIS note", value=ai_note[:500], inline=False)
 
     embed.set_footer(text="Rest well, sir. JARVIS will be here.")
     return embed
