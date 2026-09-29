@@ -127,3 +127,9 @@ dist/test-*
 # Backups
 *.bak
 *.backup
+
+# Test output
+test_*.txt
+
+# Test output
+test_*.txt

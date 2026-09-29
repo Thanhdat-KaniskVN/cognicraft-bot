@@ -161,6 +161,57 @@ def suggest_time_slot(user_id, target_date=None):
     }
 
 
+def _ai_suggest(user_id, member, free_slots, habits, day_label, query_text):
+    """AI personalized suggestions."""
+    try:
+        from ai_provider import call_ai_json
+    except ImportError:
+        return None
+
+    # Format slots
+    slot_txt = "\n".join(
+        f"- {s['start'].strftime('%H:%M')}-{s['end'].strftime('%H:%M')} ({s['duration']}p)"
+        for s in free_slots[:3]
+    ) or "(fully booked)"
+
+    habit_txt = ", ".join(
+        f"{item['type']}({item['count']}x)" for item in habits["top_activities"][:5]
+    ) or "(no data)"
+
+    prompt = f"""Ban la JARVIS - tro ly lich cho sinh vien. Dua ra goi y CU THE.
+
+**Ngu canh:**
+- User: {member}
+- Ngay: {day_label}
+- Cau hoi: "{query_text}"
+- Khung gio trong: 
+{slot_txt}
+- Top hoat dong 4 tuan qua: {habit_txt}
+
+**Yeu cau:** Dua ra 2-3 goi y CU THE + LY DO + KHUNG GIO de xuat.
+Uu tien:
+1. Task overdue (neu co)
+2. Habit (gym, study, ...) theo gio quen
+3. Can bang giua hoc / the chat / nghi ngoi
+
+**Tra ve JSON** (tieng Viet KHONG DAU):
+{{
+  "suggestions": [
+    {{"icon": "GYM|STUDY|REST|TASK", "activity": "...", "time": "HH:MM", "reason": "..."}}
+  ],
+  "note": "<1 cau tom tat tinh hinh, co the trong>"
+}}
+
+Chi tra ve JSON."""
+
+    try:
+        r = call_ai_json(prompt, task_type="jarvis_suggest")
+        return r
+    except Exception as e:
+        print(f"[Suggester] AI error: {e}")
+        return None
+
+
 def build_suggestion_embed(user_id, member, query_text=""):
     """Build embed cho "chieu nay lam gi?" query."""
     import discord
@@ -202,8 +253,32 @@ def build_suggestion_embed(user_id, member, query_text=""):
     else:
         embed.add_field(name="Free slots", value="Fully booked, sir.", inline=False)
 
-    # Suggestions
-    if result["suggestions"]:
+    # AI Suggestions (fallback rules)
+    ai_result = None
+    try:
+        ai_result = _ai_suggest(
+            user_id, member,
+            result["free_slots"], habits,
+            day_label, query_text,
+        )
+    except Exception as e:
+        print(f"[Suggester] AI suggest fail: {e}")
+
+    if ai_result and ai_result.get("suggestions"):
+        lines = []
+        for s in ai_result["suggestions"][:3]:
+            icon = s.get("icon", "?")
+            activity = s.get("activity", "?")
+            time_str = s.get("time", "")
+            reason = s.get("reason", "")
+            t = f" @ `{time_str}`" if time_str else ""
+            lines.append(f"{icon} **{activity}**{t} - _{reason}_")
+        embed.add_field(name="I suggest", value="\n".join(lines), inline=False)
+
+        note = ai_result.get("note", "").strip()
+        if note:
+            embed.set_footer(text=note[:150])
+    elif result["suggestions"]:
         lines = []
         for s in result["suggestions"]:
             lines.append(f"{s['icon']} **{s['activity']}** - _{s['reason']}_")
