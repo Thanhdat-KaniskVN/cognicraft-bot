@@ -41,6 +41,11 @@ Actions:
 
 Force AI parse:
   !j ai sau khi an trua xong di boi 30 phut
+
+Debug:
+  !j debug_brief morning   -> Chay morning brief ngay
+  !j debug_brief evening   -> Chay evening review ngay
+  !j debug_suggest [query] -> Chay suggestion
 """
 
 
@@ -257,6 +262,46 @@ def setup_jarvis_commands(bot, is_admin):
             embed.add_field(name="Cancelled", value=s.get("cancelled", 0))
             embed.add_field(name="Hom nay", value=s.get("today", 0))
             await ctx.send(embed=embed)
+            return
+
+        # !j debug_brief morning|evening
+        if al.startswith("debug_brief"):
+            parts = al.split()
+            kind = parts[1] if len(parts) > 1 else "morning"
+            try:
+                if kind == "evening":
+                    from jarvis.brief import build_evening_review
+                    embed = await asyncio.to_thread(
+                        build_evening_review,
+                        str(ctx.author.id),
+                        ctx.author.display_name,
+                    )
+                else:
+                    from jarvis.brief import build_morning_brief
+                    embed = await asyncio.to_thread(
+                        build_morning_brief,
+                        str(ctx.author.id),
+                        ctx.author.display_name,
+                    )
+                await ctx.send(embed=embed)
+            except Exception as e:
+                await ctx.send(f"Err: {e}")
+            return
+
+        # !j debug_suggest [query]
+        if al.startswith("debug_suggest"):
+            try:
+                from jarvis.suggester import build_suggestion_embed
+                q = a[len("debug_suggest"):].strip() or "chieu nay lam gi"
+                embed = await asyncio.to_thread(
+                    build_suggestion_embed,
+                    str(ctx.author.id),
+                    ctx.author.display_name,
+                    q,
+                )
+                await ctx.send(embed=embed)
+            except Exception as e:
+                await ctx.send(f"Err: {e}")
             return
 
         # !j move <id> <new_time>
