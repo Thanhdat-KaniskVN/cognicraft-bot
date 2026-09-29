@@ -20,6 +20,7 @@ from collector import CheckpointCollector
 from curriculum_classifier import CurriculumClassifier
 from jarvis.commands import setup_jarvis_commands
 from jarvis.natural_input import handle_natural_message as jarvis_natural_handler
+from jarvis.brief import send_morning_brief, send_evening_review
 from jarvis.reminder import check_and_send as jarvis_check_reminders
 from ai_scorer import AIScorer
 from scorer import Scorer
@@ -234,6 +235,14 @@ async def on_ready():
         if not jarvis_reminder_task.is_running():
             jarvis_reminder_task.start()
             print("[Bot] JARVIS reminder task started (every 1 min)")
+
+        # Start JARVIS brief tasks
+        if not jarvis_morning_brief_task.is_running():
+            jarvis_morning_brief_task.start()
+            print("[Bot] JARVIS morning brief started (6h daily)")
+        if not jarvis_evening_review_task.is_running():
+            jarvis_evening_review_task.start()
+            print("[Bot] JARVIS evening review started (21h daily)")
         print("[Bot] ✅ ML Mini started + commands loaded")
     except Exception as e:
         print(f"[Bot] ⚠️ ML Mini error: {e}")
@@ -299,6 +308,26 @@ async def on_command_error(ctx, error):
 
 
 # ============ TASKS ============
+
+# ============ JARVIS BRIEF HELPERS ============
+
+def _get_jarvis_user_ids():
+    """Get distinct user_ids from jarvis_events."""
+    try:
+        from database import get_cursor
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT DISTINCT user_id FROM jarvis_events
+                WHERE status = 'scheduled'
+                  AND user_id NOT LIKE 'test_%%'
+                  AND user_id ~ '^[0-9]+$'
+            """)
+            rows = cur.fetchall()
+        return [r["user_id"] for r in rows]
+    except Exception as e:
+        print(f"[Brief] Get users error: {e}")
+        return []
+
 
 # ============ NATURAL INPUT LISTENER ============
 
@@ -3119,6 +3148,44 @@ async def jarvis_reminder_task():
 @jarvis_reminder_task.error
 async def jarvis_reminder_task_error(exc):
     print(f"[jarvis_reminder_task] crashed: {exc!r}")
+
+
+# ============ JARVIS BRIEF TASKS ============
+
+@tasks.loop(time=time(hour=6, minute=0, tzinfo=TZ))
+async def jarvis_morning_brief_task():
+    """Send morning brief 6h moi ngay."""
+    try:
+        user_ids = _get_jarvis_user_ids()
+        if not user_ids:
+            return
+        sent = await send_morning_brief(bot, user_ids)
+        print(f"[Brief] Morning sent to {sent}/{len(user_ids)} users")
+    except Exception as e:
+        print(f"[Brief] Morning error: {e}")
+
+
+@jarvis_morning_brief_task.error
+async def jarvis_morning_brief_task_error(exc):
+    print(f"[jarvis_morning_brief_task] crashed: {exc!r}")
+
+
+@tasks.loop(time=time(hour=21, minute=0, tzinfo=TZ))
+async def jarvis_evening_review_task():
+    """Send evening review 21h moi ngay."""
+    try:
+        user_ids = _get_jarvis_user_ids()
+        if not user_ids:
+            return
+        sent = await send_evening_review(bot, user_ids)
+        print(f"[Brief] Evening sent to {sent}/{len(user_ids)} users")
+    except Exception as e:
+        print(f"[Brief] Evening error: {e}")
+
+
+@jarvis_evening_review_task.error
+async def jarvis_evening_review_task_error(exc):
+    print(f"[jarvis_evening_review_task] crashed: {exc!r}")
 
 
 # ============ RUN ============
