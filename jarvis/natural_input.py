@@ -12,6 +12,35 @@ from jarvis import personality as pers
 _LAST_MSG = {}  # user_id -> datetime
 RATE_LIMIT_SEC = 0.8  # Cho phep burst nhanh
 
+# Whitelist channels - CHI respond trong cac channel nay
+# Match theo ten channel (lowercase) hoac ID
+NATURAL_INPUT_CHANNELS = {
+    "admin-review",
+    "checkpoint",
+    "report",
+    "m?c-ti?u-tu?n",
+    "quan-ly-lich",
+    "jarvis",
+    "bot-test",
+}
+
+# Channels IGNORE - luon skip (chat chung)
+NATURAL_INPUT_IGNORE = {
+    "th?o-lu?n-t?-do",
+    "thao-luan-tu-do",
+    "gi?i-tr?",
+    "giai-tri",
+    "ch?o-h?i-gi?i-thi?u",
+    "chao-hoi-gioi-thieu",
+    "cozy study",
+    "trao ??i kinh nghi?m",
+    "trao-doi-kinh-nghiem",
+    "s?nh chung",
+    "sanh-chung",
+    "th?ng-b?o-chung",
+    "noi-quy",
+}
+
 
 def _is_ratelimited(user_id: str) -> bool:
     now = datetime.now()
@@ -22,10 +51,38 @@ def _is_ratelimited(user_id: str) -> bool:
     return False
 
 
+def _is_allowed_channel(channel) -> bool:
+    """Check channel co nam trong whitelist khong."""
+    if channel is None:
+        return False
+    ch_name = (getattr(channel, "name", "") or "").strip().lower()
+
+    # Explicit ignore first (chat chung)
+    if ch_name in NATURAL_INPUT_IGNORE:
+        return False
+
+    # Whitelist
+    if ch_name in NATURAL_INPUT_CHANNELS:
+        return True
+
+    # Fallback: check channel category / parent
+    parent = getattr(channel, "parent", None) or getattr(channel, "category", None)
+    if parent:
+        p_name = (getattr(parent, "name", "") or "").strip().lower()
+        if p_name in ("g1-a - cohort", "g1-a-cohort"):
+            return True
+
+    return False
+
+
 def _should_process(message: discord.Message, bot) -> bool:
     """Filter messages truoc khi xu ly."""
     # Skip bot
     if message.author.bot:
+        return False
+
+    # ?? CRITICAL: Chi respond trong channel whitelist
+    if not _is_allowed_channel(message.channel):
         return False
 
     # Skip command prefix (do prefix handler lo)
