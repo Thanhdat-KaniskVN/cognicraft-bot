@@ -131,17 +131,27 @@ def suggest_time_slot(user_id, target_date=None):
                     "icon": ICONS.get(ev.get("event_type"), "TASK"),
                 })
 
-        # Habit suggestions
-        for item in habits["top_activities"][:2]:
+        # Habit suggestions - pick top 2 bat ky (task/study/gym)
+        for item in habits["top_activities"][:3]:
             ev_type = item["type"]
             count = item["count"]
-            if ev_type in ("gym", "run", "bike", "swim", "yoga"):
-                suggestions.append({
-                    "activity": ev_type.upper(),
-                    "reason": f"Habit ({count}x in last 4 weeks)",
-                    "icon": ICONS.get(ev_type, "?"),
-                })
+            if ev_type == "other":
+                continue
+            suggestions.append({
+                "activity": ev_type.upper(),
+                "reason": f"Habit ({count}x in last 4 weeks)",
+                "icon": ICONS.get(ev_type, "?"),
+            })
+            if len(suggestions) >= 2:
                 break
+
+        # Fallback generic
+        if not suggestions:
+            suggestions.append({
+                "activity": "Review pending tasks",
+                "reason": "No habit pattern yet",
+                "icon": "TASK",
+            })
 
     return {
         "free_slots": free_slots[:3],
@@ -160,7 +170,9 @@ def build_suggestion_embed(user_id, member, query_text=""):
     from jarvis.intent import _norm
     nq = _norm(query_text)
 
-    if "mai" in nq or "ngay mai" in nq:
+    # Uu tien "mai" chinh xac (word boundary)
+    import re as _re
+    if _re.search(r"\bmai\b", nq):
         target = (now + timedelta(days=1)).date()
         day_label = "Tomorrow"
     elif "tuan" in nq:

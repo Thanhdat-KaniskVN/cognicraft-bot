@@ -10,7 +10,7 @@ from jarvis import personality as pers
 
 # Rate limit per user (in-memory)
 _LAST_MSG = {}  # user_id -> datetime
-RATE_LIMIT_SEC = 3
+RATE_LIMIT_SEC = 2  # Cho phep burst nhanh
 
 
 def _is_ratelimited(user_id: str) -> bool:
