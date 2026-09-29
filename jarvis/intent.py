@@ -47,7 +47,7 @@ CHAT_HINTS = [
 ]
 
 QUERY_HINTS = [
-    r"\b(hom nay|mai|tuan nay)\s+(?:co gi|lam gi|co gi khong)\b",
+    r"\b(hom nay|mai|tuan nay|chieu nay|toi nay|sang nay|trua nay)\b.*\b(co gi|lam gi|nen lam|the nao|co khong)\b",
     r"\b(xem|list|liet ke|check)\b.*\b(lich|schedule|event)\b",
     r"\b(con bao nhieu|co may)\s+(?:task|event|viec)\b",
 ]

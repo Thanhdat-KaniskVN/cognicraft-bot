@@ -10,7 +10,7 @@ from jarvis import personality as pers
 
 # Rate limit per user (in-memory)
 _LAST_MSG = {}  # user_id -> datetime
-RATE_LIMIT_SEC = 2  # Cho phep burst nhanh
+RATE_LIMIT_SEC = 0.8  # Cho phep burst nhanh
 
 
 def _is_ratelimited(user_id: str) -> bool:
@@ -66,6 +66,35 @@ async def handle_natural_message(message: discord.Message, bot, is_admin_fn,
         return
 
     text = message.content.strip()
+
+    # SUGGESTION check FIRST (before classify)
+    from jarvis.intent import _norm
+    nq = _norm(text)
+    is_suggestion = any(kw in nq for kw in [
+        "lam gi", "nen lam", "co nen", "suggest", "goi y", "the nao",
+    ]) and any(t in nq for t in [
+        "hom nay", "chieu nay", "toi nay", "sang nay", "trua nay",
+        "sang mai", "chieu mai", "toi mai", "mai", "tuan",
+    ])
+
+    if is_suggestion:
+        print(f"[NaturalInput] SUGGESTION: {text!r}")
+        try:
+            from jarvis.suggester import build_suggestion_embed
+            embed = await asyncio.to_thread(
+                build_suggestion_embed,
+                str(message.author.id),
+                message.author.display_name,
+                text,
+            )
+            await message.channel.send(embed=embed)
+            return
+        except Exception as e:
+            print(f"[NaturalInput] Suggestion error: {e}")
+            import traceback
+            traceback.print_exc()
+            return
+
     result = classify(text)
     intent = result["intent"]
     conf = result["confidence"]
@@ -140,28 +169,6 @@ async def handle_natural_message(message: discord.Message, bot, is_admin_fn,
         except Exception as e:
             print(f"[NaturalInput] context error: {e}")
         return
-
-    # Suggestion -> "chieu nay lam gi?"
-    from jarvis.intent import _norm
-    nq = _norm(text)
-    is_suggestion = any(kw in nq for kw in [
-        "lam gi", "nen lam", "co nen", "suggest", "goi y",
-        "chay bo khong", "hoc gi", "the nao",
-    ]) and any(t in nq for t in ["hom nay", "chieu nay", "toi nay", "sang mai", "mai", "tuan"])
-
-    if is_suggestion:
-        try:
-            from jarvis.suggester import build_suggestion_embed
-            embed = await asyncio.to_thread(
-                build_suggestion_embed,
-                str(message.author.id),
-                message.author.display_name,
-                text,
-            )
-            await message.channel.send(embed=embed)
-            return
-        except Exception as e:
-            print(f"[NaturalInput] Suggestion error: {e}")
 
     # Query -> route to !j list/today
     if intent == "query":
