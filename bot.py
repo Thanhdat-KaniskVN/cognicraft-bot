@@ -19,6 +19,7 @@ from database import (
 from collector import CheckpointCollector
 from curriculum_classifier import CurriculumClassifier
 from jarvis.commands import setup_jarvis_commands
+from jarvis.natural_input import handle_natural_message as jarvis_natural_handler
 from jarvis.reminder import check_and_send as jarvis_check_reminders
 from ai_scorer import AIScorer
 from scorer import Scorer
@@ -298,6 +299,30 @@ async def on_command_error(ctx, error):
 
 
 # ============ TASKS ============
+
+# ============ NATURAL INPUT LISTENER ============
+
+@bot.event
+async def on_message(message):
+    """Listen ALL messages - detect natural commands (no prefix)."""
+    # Always call command processor first (for ! commands)
+    await bot.process_commands(message)
+
+    # Skip if command prefix
+    if message.content.startswith("!"):
+        return
+
+    # Skip bot
+    if message.author.bot:
+        return
+
+    # Handle natural message
+    try:
+        from jarvis.commands import _do_add
+        await jarvis_natural_handler(message, bot, is_admin, _do_add)
+    except Exception as e:
+        print(f"[NaturalInput] Error: {e}")
+
 
 @tasks.loop(time=time(hour=TASK_HOUR, minute=TASK_MINUTE, tzinfo=TZ))
 async def ai_scoring_task():
