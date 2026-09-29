@@ -164,10 +164,13 @@ async def handle_natural_message(message: discord.Message, bot, is_admin_fn,
 
     # Chat -> simple reply
     if intent == "chat":
-        # Reply via personality
-        if any(w in text.lower() for w in ["cam on", "thank", "thanks"]):
+        from jarvis.intent import _norm
+        t = _norm(text)
+
+        # Check greeting/thanks sau khi normalize
+        if any(w in t for w in ["cam on", "thank", "thanks", "cam on ban", "cam on em"]):
             reply = pers.get("thanks")
-        elif any(w in text.lower() for w in ["xin chao", "chao", "hello", "hi"]):
+        elif any(w in t for w in ["xin chao", "chao", "hello", "hi", "hey", "helo"]):
             h = datetime.now().hour
             if h < 12:
                 reply = pers.get("greeting_morning")
