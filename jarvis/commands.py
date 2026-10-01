@@ -147,8 +147,12 @@ async def _do_add(ctx, text, force_ai=False):
         if parsed and parsed.start_time:
             events = [parsed]
     else:
+        # Uu tien multi_parser (ho tro time range, context inheritance)
         events = await asyncio.to_thread(parse_multi_events, text)
-        if len(events) <= 1:
+
+        # Chi fallback sang AI neu multi_parser FAIL (0 events)
+        if len(events) == 0:
+            print(f"[JARVIS] multi_parser failed -> AI fallback: {text!r}")
             parsed = await parse_event_smart_async(text)
             if parsed and parsed.start_time:
                 events = [parsed]
